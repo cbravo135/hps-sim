@@ -1,0 +1,41 @@
+##########################################################
+# CMake configuration for SLIC application.              #
+#                                                        #
+# @author Jeremy McCormick <jeremym@slac.stanford.edu>   #
+#                                                        #
+##########################################################
+
+project(HPSSIM)
+set(HPSSIM_VERSION 0.0.1)
+cmake_minimum_required(VERSION 3.0)
+
+if(CMAKE_CXX_COMPILER_VERSION LESS 4.8)
+    message( FATAL_ERROR "The gcc compiler version '${CMAKE_CXX_COMPILER_VERSION}' is too old (at least 4.8 required)." )
+endif()
+
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+
+find_package(XERCES REQUIRED)
+find_package(Geant4 REQUIRED ui_all vis_all)
+find_package(GDML REQUIRED)
+find_package(LCDD REQUIRED)
+find_package(LCIO REQUIRED)
+#find_package(HEPPDT REQUIRED)
+
+file(GLOB_RECURSE library_sources ${PROJECT_SOURCE_DIR}/src/*.cxx)
+
+include( ${Geant4_USE_FILE} )
+
+include_directories(include/)
+include_directories(${XERCES_INCLUDE_DIR} ${LCIO_INCLUDE_DIRS} ${Geant4_INCLUDE_DIRS} ${GDML_INCLUDE_DIR} ${LCDD_INCLUDE_DIR} ${HEPPDT_INCLUDE_DIR})
+
+add_executable(hps-sim ${library_sources} src/hps-sim.cxx)
+
+target_link_libraries(hps-sim ${XERCES_LIBRARY} ${Geant4_LIBRARIES} ${GDML_LIBRARY} ${LCDD_LIBRARY} ${HEPPDT_LIBRARIES} ${LCIO_LIBRARIES})
+link_directories(${GDML_LIBRARY_DIR} ${LCDD_LIBRARY_DIR} ${LCIO_LIBRARY_DIRS})
+
+install(TARGETS hps-sim hps-sim DESTINATION bin)
+
+configure_file(scripts/hps-sim-env.sh.in ${CMAKE_CURRENT_BINARY_DIR}/hps-sim-env.sh )
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/hps-sim-env.sh DESTINATION bin
+        PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
