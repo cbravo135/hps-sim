@@ -184,9 +184,44 @@ class LcioPersistencyManager : public G4PersistencyManager {
                         float pos[3] = {hitPos.x(), hitPos.y(), hitPos.z()};
                         simCalHit->setPosition(pos);
 
+                        // energy
+                        simCalHit->setEnergy(calHit->getEdep());
+
+                        // add to output collection
                         collVec->push_back(simCalHit);
 
-                        // TODO: set MCParticle contribs
+                        auto contribs = calHit->getHitContributions();
+                        for (auto contrib : contribs) {
+                            auto edep = contrib.getEdep();
+                            auto hitTime = contrib.getGlobalTime();
+                            auto pdg = contrib.getPDGID();
+                            auto pos = contrib.getPosition();
+                            auto trackID = contrib.getTrackID();
+
+                            if (trackID <= 0) {
+                                std::cout << "LcioPersistencyManager: Bad trackID " << trackID << " for cal hit contrib" << std::endl;
+                                G4Exception("LcioPersistencyManager::writeHitsCollections", "",
+                                        FatalException, "Bad track ID in cal hit contribution.");
+                            }
+
+                            auto mcp = builder_->findMCParticle(trackID);
+
+                            if (!mcp) {
+                                std::cout << "LcioPersistencyManager: No MCParticle found for track ID " << trackID << std::endl;
+                                G4Exception("LcioPersistencyManager::writeHitsCollections", "",
+                                        FatalException, "No MCParticle found for track ID.");
+                            }
+
+                            simCalHit->addMCParticleContribution(static_cast<EVENT::MCParticle*>(mcp), (float)edep, (float)hitTime, (int)pdg, (float*)pos);
+
+                            std::cout << "LcioPersistencyManager: assigned cal hit contrib with "
+                                    << "trackID = " << trackID << "; "
+                                    << "edep = " << edep << "; "
+                                    << "time = " << hitTime << "; "
+                                    << "pdg = " << pdg << "; "
+                                    << "pos = ( " << pos[0] << ", " << pos[1] << ", " << pos[2] << ") "
+                                    << std::endl;
+                        }
                     }
                 }
 

@@ -7,6 +7,7 @@
 #include "UserTrackInformation.h"
 
 #include "lcdd/core/UserRegionInformation.hh"
+#include "lcdd/detectors/CurrentTrackState.hh"
 
 namespace hpssim {
 
@@ -35,6 +36,21 @@ class UserTrackingAction : public G4UserTrackingAction {
                 // New track so call the process method.
                 processTrack(aTrack);
             }
+
+            // Set the 'global' track ID for LCDD.
+            // This is a strange way to do things but makes the SDs function properly.
+            auto regionInfo = static_cast<UserRegionInformation*>
+                    (aTrack->GetLogicalVolumeAtVertex()->GetRegion()->GetUserInformation());
+            bool storeSeco = true;
+            if (regionInfo) {
+                storeSeco = regionInfo->getStoreSecondaries();
+                std::cout << "UserTrackingAction: store seco " << storeSeco << std::endl;
+            }
+            if (aTrack->GetParentID() == 0 || storeSeco) {
+                std::cout << "UserTrackingAction: setting 'global' track ID " << aTrack->GetTrackID() << std::endl;
+                CurrentTrackState::setCurrentTrackID(trackID);
+            }
+
         }
 
         void PostUserTrackingAction(const G4Track* aTrack) {
