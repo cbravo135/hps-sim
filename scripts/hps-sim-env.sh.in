@@ -16,4 +16,4 @@ export PATH=@CMAKE_INSTALL_PREFIX@/bin:$PATH
 echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
 #echo "GDML_SCHEMA_DIR=$GDML_SCHEMA_DIR"
 env | grep G4 | sort
-which slic
+which hps-sim
