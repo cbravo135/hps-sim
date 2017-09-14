@@ -1,5 +1,5 @@
-#ifndef HPSSIM_EVENTACTION_H_
-#define HPSSIM_EVENTACTION_H_
+#ifndef HPSSIM_USEREVENTACTION_H_
+#define HPSSIM_USEREVENTACTION_H_
 
 #include "G4UserEventAction.hh"
 
@@ -7,12 +7,15 @@
 
 namespace hpssim {
 
-    class EventAction : G4UserEventAction {
+    class UserEventAction : public G4UserEventAction {
 
         public:
 
             void BeginOfEventAction(const G4Event* anEvent) {
+
                 CurrentTrackState::setCurrentTrackID(-1);
+
+                UserTrackingAction::getUserTrackingAction()->getTrackMap()->clear();
             }
     };
 }

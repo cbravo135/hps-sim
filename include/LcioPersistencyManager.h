@@ -181,7 +181,7 @@ class LcioPersistencyManager : public G4PersistencyManager {
 
                         // position
                         const G4ThreeVector hitPos = calHit->getPosition();
-                        float pos[3] = {hitPos.x(), hitPos.y(), hitPos.z()};
+                        float pos[3] = {(float)hitPos.x(), (float)hitPos.y(), (float)hitPos.z()};
                         simCalHit->setPosition(pos);
 
                         // energy
@@ -237,7 +237,6 @@ class LcioPersistencyManager : public G4PersistencyManager {
 
     private:
 
-        // FIXME: hard-coded output file name
         std::string outputFile_{"hps_sim_events.slcio"};
 
         IO::LCWriter* writer_;

@@ -50,7 +50,6 @@ class UserTrackingAction : public G4UserTrackingAction {
                 std::cout << "UserTrackingAction: setting 'global' track ID " << aTrack->GetTrackID() << std::endl;
                 CurrentTrackState::setCurrentTrackID(trackID);
             }
-
         }
 
         void PostUserTrackingAction(const G4Track* aTrack) {
