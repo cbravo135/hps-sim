@@ -11,6 +11,9 @@
 #include "lcdd/core/LCDDDetectorConstruction.hh"
 
 #include "PrimaryGeneratorAction.h"
+#include "UserTrackingAction.h"
+#include "LcioPersistencyManager.h"
+#include "UserRunAction.h"
 
 using namespace hpssim;
 
@@ -23,13 +26,17 @@ int main(int argc, char* argv[]) {
         UIExec = new G4UIExecutive(argc, argv);
     }
 
-    G4RunManager* run = new G4RunManager();
+    G4RunManager* mgr = new G4RunManager();
 
     LCDDDetectorConstruction* det = new LCDDDetectorConstruction();
 
-    run->SetUserInitialization(det);
-    run->SetUserInitialization(new FTFP_BERT);
-    run->SetUserAction(new PrimaryGeneratorAction);
+    mgr->SetUserInitialization(det);
+    mgr->SetUserInitialization(new FTFP_BERT);
+    mgr->SetUserAction(new PrimaryGeneratorAction);
+    mgr->SetUserAction(new UserTrackingAction);
+    mgr->SetUserAction(new UserRunAction);
+
+    LcioPersistencyManager* lcio = new LcioPersistencyManager();
 
     G4VisManager* vis = new G4VisExecutive;
     vis->Initialize();
@@ -47,7 +54,8 @@ int main(int argc, char* argv[]) {
         delete UIExec;
     }
 
-    delete run;
+    delete lcio;
+    delete mgr;
 
     std::cout << "Bye hps-sim!" << std::endl;
 }
