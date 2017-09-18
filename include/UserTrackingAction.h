@@ -2,6 +2,8 @@
 #define HPSSIM_USERTRACKINGACTION_H_ 1
 
 #include "G4UserTrackingAction.hh"
+#include "G4TrackingManager.hh"
+#include "G4RunManager.hh"
 
 #include "TrackMap.h"
 #include "UserTrackInformation.h"
