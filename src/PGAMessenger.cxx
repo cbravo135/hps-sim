@@ -20,8 +20,8 @@ namespace hpssim {
         p = new G4UIparameter("type", 's', false);
         createCmd_->SetParameter(p);
 
-        sourceType_["TEST"] = PrimaryGenerator::TEST;
-        sourceType_["LHE"] = PrimaryGenerator::LHE;
+        sourceType_["TEST"] = TEST;
+        sourceType_["LHE"] = LHE;
     }
 
     void PGAMessenger::SetNewValue(G4UIcommand* command, G4String newValues) {
@@ -40,10 +40,10 @@ namespace hpssim {
     }
 
     PrimaryGenerator* PGAMessenger::createGenerator(std::string name, std::string type) {
-        PrimaryGenerator::SourceType srcType = sourceType_[type];
-        if (srcType == PrimaryGenerator::TEST) {
+        SourceType srcType = sourceType_[type]; // FIXME: use find with iterator here to avoid creating empty list!
+        if (srcType == TEST) {
             return new TestGenerator(name);
-        } else if (srcType == PrimaryGenerator::LHE) {
+        } else if (srcType == LHE) {
             return new LHEPrimaryGenerator(name);
         }
         return nullptr;

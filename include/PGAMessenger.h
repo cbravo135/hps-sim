@@ -17,6 +17,16 @@ namespace hpssim {
 
         public:
 
+            enum SourceType {
+                TEST,
+                LHE
+                /*
+                STDHEP,
+                LCIO,
+                BEAM
+                */
+            };
+
             PGAMessenger(PrimaryGeneratorAction* pga);
 
             void SetNewValue(G4UIcommand* command, G4String newValues);
@@ -31,7 +41,7 @@ namespace hpssim {
 
             G4UIdirectory* dir_;
 
-            std::map<std::string, PrimaryGenerator::SourceType> sourceType_;
+            std::map<std::string, SourceType> sourceType_;
     };
 
 }
