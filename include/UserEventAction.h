@@ -9,19 +9,19 @@
 
 namespace hpssim {
 
-    class UserEventAction : public G4UserEventAction {
+class UserEventAction : public G4UserEventAction {
 
-        public:
+    public:
 
-            void BeginOfEventAction(const G4Event* anEvent) {
+        void BeginOfEventAction(const G4Event* anEvent) {
 
-                CurrentTrackState::setCurrentTrackID(-1);
+            CurrentTrackState::setCurrentTrackID(-1);
 
-                UserTrackingAction::getUserTrackingAction()->getTrackMap()->clear();
+            UserTrackingAction::getUserTrackingAction()->getTrackMap()->clear();
 
-                PluginManager::getPluginManager()->beginEvent(anEvent);
-            }
-    };
+            PluginManager::getPluginManager()->beginEvent(anEvent);
+        }
+};
 }
 
 

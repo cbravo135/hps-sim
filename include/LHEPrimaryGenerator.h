@@ -15,49 +15,49 @@
 
 namespace hpssim {
 
-    /**
-     * @class LHEPrimaryGenerator
-     * @brief Generates a Geant4 event from an LHEEvent
-     */
-    class LHEPrimaryGenerator : public PrimaryGenerator {
+/**
+ * @class LHEPrimaryGenerator
+ * @brief Generates a Geant4 event from an LHEEvent
+ */
+class LHEPrimaryGenerator : public PrimaryGenerator {
 
-        public:
+    public:
 
-            /**
-             * Class constructor.
-             * @param reader The LHE reader with the event data.
-             */
-            LHEPrimaryGenerator(std::string name, LHEReader* reader);
+        /**
+         * Class constructor.
+         * @param reader The LHE reader with the event data.
+         */
+        LHEPrimaryGenerator(std::string name, LHEReader* reader);
 
-            LHEPrimaryGenerator(std::string name) : PrimaryGenerator(name) {
-                reader_ = nullptr;
-            }
+        LHEPrimaryGenerator(std::string name) : PrimaryGenerator(name) {
+            reader_ = nullptr;
+        }
 
-            /**
-             * Class destructor.
-             */
-            virtual ~LHEPrimaryGenerator();
+        /**
+         * Class destructor.
+         */
+        virtual ~LHEPrimaryGenerator();
 
-            /**
-             * Generate vertices in the Geant4 event.
-             * @param anEvent The Geant4 event.
-             */
-            void GeneratePrimaryVertex(G4Event* anEvent);
+        /**
+         * Generate vertices in the Geant4 event.
+         * @param anEvent The Geant4 event.
+         */
+        void GeneratePrimaryVertex(G4Event* anEvent);
 
-            // FIXME: Needs to support multiple input files.
-            void addFile(std::string file) {
-                PrimaryGenerator::addFile(file);
-                std::cout << "LHEPrimaryGenerator: Setting file '" << file << "' on LHE reader." << std::endl;
-                reader_ = new LHEReader(file);
-            }
+        // FIXME: Needs to support multiple input files.
+        void addFile(std::string file) {
+            PrimaryGenerator::addFile(file);
+            std::cout << "LHEPrimaryGenerator: Setting file '" << file << "' on LHE reader." << std::endl;
+            reader_ = new LHEReader(file);
+        }
 
-        private:
+    private:
 
-            /**
-             * The LHE reader with the event data.
-             */
-            LHEReader* reader_;
-    };
+        /**
+         * The LHE reader with the event data.
+         */
+        LHEReader* reader_;
+};
 
 }
 

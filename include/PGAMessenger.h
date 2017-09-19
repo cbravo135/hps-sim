@@ -1,5 +1,5 @@
-#ifndef HPSSIM_PRIMARYGENERATORMESSENGER_H_
-#define HPSSIM_PRIMARYGENERATORMESSENGER_H_
+#ifndef HPSSIM_PGAMESSENGER_H_
+#define HPSSIM_PGAMESSENGER_H_
 
 #include "G4UImessenger.hh"
 #include "G4UIdirectory.hh"
@@ -11,38 +11,38 @@
 
 namespace hpssim {
 
-    class PrimaryGeneratorAction;
+class PrimaryGeneratorAction;
 
-    class PGAMessenger : public G4UImessenger {
+class PGAMessenger : public G4UImessenger {
 
-        public:
+    public:
 
-            enum SourceType {
-                TEST,
-                LHE
-                /*
-                STDHEP,
-                LCIO,
-                BEAM
-                */
-            };
+        enum SourceType {
+            TEST,
+            LHE
+            /*
+            STDHEP,
+            LCIO,
+            BEAM
+            */
+        };
 
-            PGAMessenger(PrimaryGeneratorAction* pga);
+        PGAMessenger(PrimaryGeneratorAction* pga);
 
-            void SetNewValue(G4UIcommand* command, G4String newValues);
+        void SetNewValue(G4UIcommand* command, G4String newValues);
 
-            PrimaryGenerator* createGenerator(std::string name, std::string type);
+        PrimaryGenerator* createGenerator(std::string name, std::string type);
 
-        private:
+    private:
 
-            PrimaryGeneratorAction* pga_;
+        PrimaryGeneratorAction* pga_;
 
-            G4UIcommand* createCmd_;
+        G4UIcommand* createCmd_;
 
-            G4UIdirectory* dir_;
+        G4UIdirectory* dir_;
 
-            std::map<std::string, SourceType> sourceType_;
-    };
+        std::map<std::string, SourceType> sourceType_;
+};
 
 }
 

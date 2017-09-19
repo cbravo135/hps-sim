@@ -48,6 +48,7 @@ class LcioPersistencyManager : public G4PersistencyManager {
             if (writer_) {
                 delete writer_;
             }
+            delete builder_;
             delete messenger_;
         }
 
@@ -92,7 +93,9 @@ class LcioPersistencyManager : public G4PersistencyManager {
         }
 
         G4bool Store(const G4Run* aRun) {
-            std::cout << "LcioPersistencyManager: store run " << aRun->GetRunID() << std::endl;
+            if (m_verbose > 1) {
+                std::cout << "LcioPersistencyManager: store run " << aRun->GetRunID() << std::endl;
+            }
 
             writer_->close();
 
@@ -106,10 +109,15 @@ class LcioPersistencyManager : public G4PersistencyManager {
         // executed manually at start of run
         void Initialize() {
 
-            std::cout << "LcioPersistencyManager: Initializing" << std::endl;
+            if (m_verbose > 1) {
+                std::cout << "LcioPersistencyManager: Initializing" << std::endl;
+            }
 
             writer_ = IOIMPL::LCFactory::getInstance()->createLCWriter();
-            std::cout << "LcioPersistencyManager: Opening '" << outputFile_ << "' for writing" << std::endl;
+
+            if (m_verbose > 1) {
+                std::cout << "LcioPersistencyManager: Opening '" << outputFile_ << "' for writing" << std::endl;
+            }
             writer_->open(outputFile_);
 
             auto runHeader = new IMPL::LCRunHeaderImpl();
@@ -138,9 +146,9 @@ class LcioPersistencyManager : public G4PersistencyManager {
                 LCCollectionVec* collVec = nullptr;
 
                 if (dynamic_cast<TrackerHitsCollection*>(hc)) {
-                    collVec = writeTrackerHitsCollection(hc, collName);
+                    collVec = writeTrackerHitsCollection(hc);
                 } else if (dynamic_cast<CalorimeterHitsCollection*>(hc)) {
-                    collVec = writeCalorimeterHitsCollection(hc, collName);
+                    collVec = writeCalorimeterHitsCollection(hc);
                 }
 
                 if (collVec) {
@@ -153,7 +161,7 @@ class LcioPersistencyManager : public G4PersistencyManager {
 
         }
 
-        IMPL::LCCollectionVec* writeTrackerHitsCollection(G4VHitsCollection* hc, const std::string& collName) {
+        IMPL::LCCollectionVec* writeTrackerHitsCollection(G4VHitsCollection* hc) {
             auto trackerHits = dynamic_cast<TrackerHitsCollection*>(hc);
             auto collVec = new LCCollectionVec(LCIO::SIMTRACKERHIT);
             IMPL::LCFlagImpl collFlag;
@@ -162,7 +170,7 @@ class LcioPersistencyManager : public G4PersistencyManager {
 
             int nhits = trackerHits->GetSize();
             if (m_verbose > 2) {
-                std::cout << "LcioPersistencyManager: Converting " << nhits << " tracker hits to LCIO" << std::endl;
+                std::cout << "LcioPersistencyManager: Converting " << nhits << " tracker hits to LCIO." << std::endl;
             }
             for (int i = 0; i < nhits; i++) {
 
@@ -211,7 +219,7 @@ class LcioPersistencyManager : public G4PersistencyManager {
             return collVec;
         }
 
-        IMPL::LCCollectionVec* writeCalorimeterHitsCollection(G4VHitsCollection* hc, const std::string& collName) {
+        IMPL::LCCollectionVec* writeCalorimeterHitsCollection(G4VHitsCollection* hc) {
 
             auto calHits = dynamic_cast<CalorimeterHitsCollection*>(hc);
             auto collVec = new LCCollectionVec(LCIO::SIMCALORIMETERHIT);

@@ -10,10 +10,12 @@ namespace hpssim {
 class PrimaryGeneratorMessenger;
 
 // TODO:
-// -event transforms (e.g. from stdhep tools)
+// -event transforms (e.g. from stdhep tools); each PG needs to have a list of its transforms
 // -fixed prescale factor
-// -true/false should sample into this "main" event?
-// -number of overlay events to generate (sampling)
+// -number of overlay events to generate which could be 0
+// -activate and deactivate the generator
+// -print info and param values
+// -delete the generator
 class PrimaryGenerator : public G4VPrimaryGenerator {
 
     public:

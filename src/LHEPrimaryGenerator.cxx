@@ -81,7 +81,7 @@ void LHEPrimaryGenerator::GeneratePrimaryVertex(G4Event* anEvent) {
             } else {
             }
 
-            std::cout << std::endl;
+            //std::cout << std::endl;
 
             ++particleIndex;
         }
@@ -89,7 +89,7 @@ void LHEPrimaryGenerator::GeneratePrimaryVertex(G4Event* anEvent) {
         anEvent->AddPrimaryVertex(vertex);
 
     } else {
-        std::cout << "[ LHEPrimaryGenerator ] : Ran out of input events so run will be aborted!" << std::endl;
+        std::cerr << "[ LHEPrimaryGenerator ] : Ran out of input events so run will be aborted!" << std::endl;
         G4RunManager::GetRunManager()->AbortRun(true);
         anEvent->SetEventAborted();
     }

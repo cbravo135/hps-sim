@@ -8,69 +8,69 @@
 
 namespace hpssim {
 
-    LHEEvent::LHEEvent(std::string& line) {
+LHEEvent::LHEEvent(std::string& line) {
 
-        std::istringstream iss(line);
-        std::vector<std::string> tokens;
-        do {
-            std::string elem;
-            iss >> elem;
-            if (elem.size() != 0) {
-                tokens.push_back(elem);
-            }
-        } while (iss);
-
-        if (tokens.size() != 6) {
-            std::cerr << "ERROR: Bad event information record in LHE file ..." << std::endl;
-            std::cerr << "  " << line << std::endl;
-            G4Exception("LHEEvent::LHEEvent", "LHEEventError", FatalException, "Wrong number of tokens in LHE event information record.");
+    std::istringstream iss(line);
+    std::vector<std::string> tokens;
+    do {
+        std::string elem;
+        iss >> elem;
+        if (elem.size() != 0) {
+            tokens.push_back(elem);
         }
+    } while (iss);
 
-        nup_ = atoi(tokens[0].c_str());
-        idprup_ = atoi(tokens[1].c_str());
-        xwgtup_ = atof(tokens[2].c_str());
-        scalup_ = atof(tokens[3].c_str());
-        aqedup_ = atof(tokens[4].c_str());
-        aqcdup_ = atof(tokens[5].c_str());
+    if (tokens.size() != 6) {
+        std::cerr << "ERROR: Bad event information record in LHE file ..." << std::endl;
+        std::cerr << "  " << line << std::endl;
+        G4Exception("LHEEvent::LHEEvent", "LHEEventError", FatalException, "Wrong number of tokens in LHE event information record.");
     }
 
-    LHEEvent::~LHEEvent() {
-        for (std::vector<LHEParticle*>::iterator it = particles_.begin(); it != particles_.end(); it++) {
-            delete (*it);
-        }
-        particles_.clear();
-    }
+    nup_ = atoi(tokens[0].c_str());
+    idprup_ = atoi(tokens[1].c_str());
+    xwgtup_ = atof(tokens[2].c_str());
+    scalup_ = atof(tokens[3].c_str());
+    aqedup_ = atof(tokens[4].c_str());
+    aqcdup_ = atof(tokens[5].c_str());
+}
 
-    int LHEEvent::getNUP() {
-        return nup_;
+LHEEvent::~LHEEvent() {
+    for (std::vector<LHEParticle*>::iterator it = particles_.begin(); it != particles_.end(); it++) {
+        delete (*it);
     }
+    particles_.clear();
+}
 
-    int LHEEvent::getIDPRUP() {
-        return idprup_;
-    }
+int LHEEvent::getNUP() {
+    return nup_;
+}
 
-    double LHEEvent::getXWGTUP() {
-        return xwgtup_;
-    }
+int LHEEvent::getIDPRUP() {
+    return idprup_;
+}
 
-    double LHEEvent::getSCALUP() {
-        return scalup_;
-    }
+double LHEEvent::getXWGTUP() {
+    return xwgtup_;
+}
 
-    double LHEEvent::getAQEDUP() {
-        return aqedup_;
-    }
+double LHEEvent::getSCALUP() {
+    return scalup_;
+}
 
-    double LHEEvent::getAQCDUP() {
-        return aqcdup_;
-    }
+double LHEEvent::getAQEDUP() {
+    return aqedup_;
+}
 
-    void LHEEvent::addParticle(LHEParticle* particle) {
-        particles_.push_back(particle);
-    }
+double LHEEvent::getAQCDUP() {
+    return aqcdup_;
+}
 
-    const std::vector<LHEParticle*>& LHEEvent::getParticles() {
-        return particles_;
-    }
+void LHEEvent::addParticle(LHEParticle* particle) {
+    particles_.push_back(particle);
+}
+
+const std::vector<LHEParticle*>& LHEEvent::getParticles() {
+    return particles_;
+}
 
 }
