@@ -10,7 +10,6 @@ namespace hpssim {
 class LcioPersistencyManager;
 
 // TODO:
-// -verbose
 // -drop collections
 // -enable/disable
 // -coll flags
