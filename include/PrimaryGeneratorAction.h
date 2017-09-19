@@ -2,7 +2,10 @@
 #define HPSSIM_PRIMARYGENERATORACTION_H_
 
 #include "G4VUserPrimaryGeneratorAction.hh"
-#include "G4ParticleGun.hh"
+#include "G4VPrimaryGenerator.hh"
+#include "G4Event.hh"
+
+#include "PGAMessenger.h"
 
 namespace hpssim {
 
@@ -11,21 +14,38 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction {
     public:
 
         PrimaryGeneratorAction() {
-            gun_ = new G4ParticleGun();
+            messenger_ = new PGAMessenger(this);
         }
 
         virtual ~PrimaryGeneratorAction() {
-            delete gun_;
+            delete messenger_;
         }
 
         virtual void GeneratePrimaries(G4Event* anEvent) {
-            //std::cout << "PrimaryGeneratorAction: generate primaries - " << anEvent->GetEventID() << std::endl;
-            gun_->GeneratePrimaryVertex(anEvent);
+
+            for (auto gen : generators_) {
+
+                // create new G4 event to overlay
+                G4Event* overlayEvent = new G4Event();
+                gen->GeneratePrimaryVertex(overlayEvent);
+
+                // overlay the event onto the target output event
+                for (int ivtx = 0; ivtx < overlayEvent->GetNumberOfPrimaryVertex(); ivtx++) {
+                    anEvent->AddPrimaryVertex(overlayEvent->GetPrimaryVertex(ivtx));
+                }
+            }
+        }
+
+        void addGenerator(PrimaryGenerator* generator) {
+            generators_.push_back(generator);
         }
 
     private:
 
-        G4ParticleGun* gun_;
+        G4UImessenger* messenger_;
+
+        std::vector<PrimaryGenerator*> generators_;
+        //std::map<G4VPrimaryGenerator*, std::vector<EventTransform*>> transforms_;
 };
 
 }
