@@ -6,7 +6,7 @@
 namespace hpssim {
 
 LcioPersistencyMessenger::LcioPersistencyMessenger(LcioPersistencyManager* mgr) : mgr_{mgr} {
-    dir_ = new G4UIdirectory("/hps/lcio", this);
+    dir_ = new G4UIdirectory("/hps/lcio/", this);
     fileCmd_ = new G4UIcmdWithAString("/hps/lcio/file", this);
     verboseCmd_ = new G4UIcmdWithAnInteger("/hps/lcio/verbose", this);
 }
