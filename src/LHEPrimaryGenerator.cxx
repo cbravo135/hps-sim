@@ -76,7 +76,7 @@ void LHEPrimaryGenerator::GeneratePrimaryVertex(G4Event* anEvent) {
                     vertex->SetPrimary(primary);
                 }
 
-                primary->Print();
+                //primary->Print();
 
             } else {
             }
