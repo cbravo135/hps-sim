@@ -5,6 +5,8 @@
 
 #include "lcdd/detectors/CurrentTrackState.hh"
 
+#include "PluginManager.h"
+
 namespace hpssim {
 
     class UserEventAction : public G4UserEventAction {
@@ -16,6 +18,8 @@ namespace hpssim {
                 CurrentTrackState::setCurrentTrackID(-1);
 
                 UserTrackingAction::getUserTrackingAction()->getTrackMap()->clear();
+
+                PluginManager::getPluginManager()->beginEvent(anEvent);
             }
     };
 }

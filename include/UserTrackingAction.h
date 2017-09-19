@@ -5,11 +5,12 @@
 #include "G4TrackingManager.hh"
 #include "G4RunManager.hh"
 
-#include "TrackMap.h"
-#include "UserTrackInformation.h"
-
 #include "lcdd/core/UserRegionInformation.hh"
 #include "lcdd/detectors/CurrentTrackState.hh"
+
+#include "PluginManager.h"
+#include "TrackMap.h"
+#include "UserTrackInformation.h"
 
 namespace hpssim {
 
@@ -24,14 +25,14 @@ class UserTrackingAction : public G4UserTrackingAction {
         }
 
         void PreUserTrackingAction(const G4Track* aTrack) {
-            std::cout << "UserTrackingAction: pre tracking - " << aTrack->GetTrackID() << std::endl;
+            //std::cout << "UserTrackingAction: pre tracking - " << aTrack->GetTrackID() << std::endl;
 
             int trackID = aTrack->GetTrackID();
 
             if (trackMap_.contains(trackID)) {
                 if (trackMap_.hasTrajectory(trackID)) {
                     // This makes sure the tracking manager does not delete the trajectory.
-                    std::cout << "store trajectory ON" << std::endl;
+                    //std::cout << "store trajectory ON" << std::endl;
                     fpTrackingManager->SetStoreTrajectory(true);
                 }
             } else {
@@ -46,16 +47,18 @@ class UserTrackingAction : public G4UserTrackingAction {
             bool storeSeco = true;
             if (regionInfo) {
                 storeSeco = regionInfo->getStoreSecondaries();
-                std::cout << "UserTrackingAction: store seco " << storeSeco << std::endl;
+                //std::cout << "UserTrackingAction: store seco " << storeSeco << std::endl;
             }
             if (aTrack->GetParentID() == 0 || storeSeco) {
-                std::cout << "UserTrackingAction: setting 'global' track ID " << aTrack->GetTrackID() << std::endl;
+                //std::cout << "UserTrackingAction: setting 'global' track ID " << aTrack->GetTrackID() << std::endl;
                 CurrentTrackState::setCurrentTrackID(trackID);
             }
+
+            PluginManager::getPluginManager()->preTracking(aTrack);
         }
 
         void PostUserTrackingAction(const G4Track* aTrack) {
-            std::cout << "UserTrackingAction: post tracking - " << aTrack->GetTrackID() << std::endl;
+            //std::cout << "UserTrackingAction: post tracking - " << aTrack->GetTrackID() << std::endl;
 
             // Save extra trajectories on tracks that were flagged for saving during event processing.
             if (dynamic_cast<UserTrackInformation*>(aTrack->GetUserInformation())->getSaveFlag()) {
@@ -73,11 +76,13 @@ class UserTrackingAction : public G4UserTrackingAction {
                     }
                 }
             }
+
+            PluginManager::getPluginManager()->postTracking(aTrack);
         }
 
         void storeTrajectory(const G4Track* aTrack) {
 
-            std::cout << "UserTrackingAction: creating new traj for " << aTrack->GetTrackID() << std::endl;
+            //std::cout << "UserTrackingAction: creating new traj for " << aTrack->GetTrackID() << std::endl;
 
             // Create a new trajectory for this track.
             fpTrackingManager->SetStoreTrajectory(true);
@@ -103,7 +108,7 @@ class UserTrackingAction : public G4UserTrackingAction {
             // Set user track info on new track.
             if (!aTrack->GetUserInformation()) {
                 auto trackInfo = new UserTrackInformation;
-                std::cout << "UserTrackingAction: creating user info for track " << aTrack->GetTrackID() << std::endl;
+                //std::cout << "UserTrackingAction: creating user info for track " << aTrack->GetTrackID() << std::endl;
                 trackInfo->setInitialMomentum(aTrack->GetMomentum());
                 const_cast<G4Track*>(aTrack)->SetUserInformation(trackInfo);
             }
@@ -128,10 +133,10 @@ class UserTrackingAction : public G4UserTrackingAction {
             */
             if (regionInfo && !regionInfo->getStoreSecondaries()) {
                 // Turn off trajectory storage for this track from region flag.
-                std::cout << "store trajectory OFF" << std::endl;
+                //std::cout << "store trajectory OFF" << std::endl;
                 fpTrackingManager->SetStoreTrajectory(false);
             } else {
-                std::cout << "store trajectory ON" << std::endl;
+                //std::cout << "store trajectory ON" << std::endl;
                 // Store a new trajectory for this track.
                 storeTrajectory(aTrack);
             }

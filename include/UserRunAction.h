@@ -3,6 +3,8 @@
 
 #include "G4UserRunAction.hh"
 
+#include "PluginManager.h"
+
 namespace hpssim {
 
 class UserRunAction : public G4UserRunAction {
@@ -18,6 +20,8 @@ class UserRunAction : public G4UserRunAction {
 
         void BeginOfRunAction(const G4Run* aRun) {
             LcioPersistencyManager::getInstance()->Initialize();
+
+            PluginManager::getPluginManager()->beginRun(aRun);
         }
 
 

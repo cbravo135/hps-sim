@@ -19,7 +19,7 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction {
         }
 
         virtual void GeneratePrimaries(G4Event* anEvent) {
-            std::cout << "PrimaryGeneratorAction: generate primaries - " << anEvent->GetEventID() << std::endl;
+            //std::cout << "PrimaryGeneratorAction: generate primaries - " << anEvent->GetEventID() << std::endl;
             gun_->GeneratePrimaryVertex(anEvent);
         }
 

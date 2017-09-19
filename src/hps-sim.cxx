@@ -13,6 +13,7 @@
 #include "PrimaryGeneratorAction.h"
 #include "UserTrackingAction.h"
 #include "LcioPersistencyManager.h"
+#include "PluginManager.h"
 #include "UserRunAction.h"
 #include "UserEventAction.h"
 
@@ -28,6 +29,8 @@ int main(int argc, char* argv[]) {
     }
 
     G4RunManager* mgr = new G4RunManager();
+
+    auto pluginMgr = PluginManager::getPluginManager();
 
     LCDDDetectorConstruction* det = new LCDDDetectorConstruction();
 
