@@ -43,6 +43,8 @@ namespace hpssim {
              */
             typedef std::vector<SimPlugin*> PluginVec;
 
+            typedef std::map<SimPlugin::PluginAction, PluginVec> PluginActionMap;
+
             static PluginManager* getPluginManager() {
                 static PluginManager theInstance;
                 return &theInstance;
@@ -195,6 +197,8 @@ namespace hpssim {
              * The list of registered plugins.
              */
             PluginVec plugins_;
+
+            PluginActionMap actions_;
     };
 
 }

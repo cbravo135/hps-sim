@@ -14,6 +14,8 @@
 #include "G4Step.hh"
 #include "G4ClassificationOfNewTrack.hh"
 
+#include <vector>
+
 namespace hpssim {
 
     /**
@@ -32,6 +34,15 @@ namespace hpssim {
 
         public:
 
+            enum PluginAction {
+                RUN = 1,
+                EVENT,
+                STACKING,
+                STEPPING,
+                TRACKING,
+                PRIMARY
+            };
+
             /**
              * Class destructor.
              */
@@ -44,6 +55,13 @@ namespace hpssim {
              * @return The name of the plugin.
              */
             virtual std::string getName() = 0;
+
+
+            /**
+             * Get a list of actions implemented by this plugin.
+             * @return The list of Geant4 action hooks implemented by this plugin.
+             */
+            virtual std::vector<PluginAction> getActions() = 0;
 
             /**
              * Set the verbose level of the plugin (1-4).

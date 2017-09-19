@@ -14,63 +14,57 @@ namespace hpssim {
     }
 
     void PluginManager::beginRun(const G4Run* run) {
-        for (PluginVec::iterator it = plugins_.begin(); it != plugins_.end(); it++) {
-            if ((*it)->hasRunAction()) {
-                (*it)->beginRun(run);
-            }
+        auto plugins = actions_[SimPlugin::RUN];
+        for (PluginVec::iterator it = plugins.begin(); it != plugins.end(); it++) {
+            (*it)->beginRun(run);
         }
     }
 
     void PluginManager::endRun(const G4Run* run) {
-        for (PluginVec::iterator it = plugins_.begin(); it != plugins_.end(); it++) {
-            if ((*it)->hasRunAction()) {
-                (*it)->endRun(run);
-            }
+        auto plugins = actions_[SimPlugin::RUN];
+        for (PluginVec::iterator it = plugins.begin(); it != plugins.end(); it++) {
+            (*it)->endRun(run);
         }
     }
 
     void PluginManager::stepping(const G4Step* step) {
-        for (PluginVec::iterator it = plugins_.begin(); it != plugins_.end(); it++) {
-            if ((*it)->hasSteppingAction()) {
-                (*it)->stepping(step);
-            }
+        auto plugins = actions_[SimPlugin::STEPPING];
+        for (PluginVec::iterator it = plugins.begin(); it != plugins.end(); it++) {
+            (*it)->stepping(step);
         }
     }
 
     void PluginManager::preTracking(const G4Track* track) {
-        for (PluginVec::iterator it = plugins_.begin(); it != plugins_.end(); it++) {
-            if ((*it)->hasTrackingAction()) {
-                (*it)->preTracking(track);
-            }
+        auto plugins = actions_[SimPlugin::TRACKING];
+        for (PluginVec::iterator it = plugins.begin(); it != plugins.end(); it++) {
+            (*it)->preTracking(track);
         }
     }
 
     void PluginManager::postTracking(const G4Track* track) {
-        for (PluginVec::iterator it = plugins_.begin(); it != plugins_.end(); it++) {
-            if ((*it)->hasTrackingAction()) {
-                (*it)->postTracking(track);
-            }
+        auto plugins = actions_[SimPlugin::TRACKING];
+        for (PluginVec::iterator it = plugins.begin(); it != plugins.end(); it++) {
+            (*it)->postTracking(track);
         }
     }
 
     void PluginManager::beginEvent(const G4Event* event) {
-        for (PluginVec::iterator it = plugins_.begin(); it != plugins_.end(); it++) {
-            if ((*it)->hasEventAction()) {
-                (*it)->beginEvent(event);
-            }
+        auto plugins = actions_[SimPlugin::EVENT];
+        for (PluginVec::iterator it = plugins.begin(); it != plugins.end(); it++) {
+            (*it)->beginEvent(event);
         }
     }
 
     void PluginManager::endEvent(const G4Event* event) {
-        for (PluginVec::iterator it = plugins_.begin(); it != plugins_.end(); it++) {
-            if ((*it)->hasEventAction()) {
-                (*it)->endEvent(event);
-            }
+        auto plugins = actions_[SimPlugin::EVENT];
+        for (PluginVec::iterator it = plugins.begin(); it != plugins.end(); it++) {
+            (*it)->endEvent(event);
         }
     }
 
     void PluginManager::generatePrimary(G4Event* event) {
-        for (PluginVec::iterator it = plugins_.begin(); it != plugins_.end(); it++) {
+        auto plugins = actions_[SimPlugin::PRIMARY];
+        for (PluginVec::iterator it = plugins.begin(); it != plugins.end(); it++) {
             if ((*it)->hasPrimaryGeneratorAction()) {
                 (*it)->generatePrimary(event);
             }
@@ -79,21 +73,21 @@ namespace hpssim {
 
     G4ClassificationOfNewTrack PluginManager::stackingClassifyNewTrack(const G4Track* track) {
 
+        auto plugins = actions_[SimPlugin::STACKING];
+
         // Default value of a track is fUrgent.
         G4ClassificationOfNewTrack currentTrackClass = G4ClassificationOfNewTrack::fUrgent;
 
-        for (PluginVec::iterator it = plugins_.begin(); it != plugins_.end(); it++) {
-            if ((*it)->hasStackingAction()) {
+        for (PluginVec::iterator it = plugins.begin(); it != plugins.end(); it++) {
 
-                // Get proposed new track classification from this plugin.
-                G4ClassificationOfNewTrack newTrackClass = (*it)->stackingClassifyNewTrack(track, currentTrackClass);
+            // Get proposed new track classification from this plugin.
+            G4ClassificationOfNewTrack newTrackClass = (*it)->stackingClassifyNewTrack(track, currentTrackClass);
 
-                // Only set the current classification if the plugin changed it.
-                if (newTrackClass != currentTrackClass) {
+            // Only set the current classification if the plugin changed it.
+            if (newTrackClass != currentTrackClass) {
 
-                    // Set the track classification from this plugin.
-                    currentTrackClass = newTrackClass;
-                }
+                // Set the track classification from this plugin.
+                currentTrackClass = newTrackClass;
             }
         }
 
@@ -102,18 +96,16 @@ namespace hpssim {
     }
 
     void PluginManager::stackingNewStage() {
-        for (PluginVec::iterator it = plugins_.begin(); it != plugins_.end(); it++) {
-            if ((*it)->hasEventAction()) {
-                (*it)->stackingNewStage();
-            }
+        auto plugins = actions_[SimPlugin::STACKING];
+        for (PluginVec::iterator it = plugins.begin(); it != plugins.end(); it++) {
+            (*it)->stackingNewStage();
         }
     }
 
     void PluginManager::stackingPrepareNewEvent() {
-        for (PluginVec::iterator it = plugins_.begin(); it != plugins_.end(); it++) {
-            if ((*it)->hasStackingAction()) {
-                (*it)->stackingPrepareNewEvent();
-            }
+        auto plugins = actions_[SimPlugin::STACKING];
+        for (PluginVec::iterator it = plugins.begin(); it != plugins.end(); it++) {
+            (*it)->stackingPrepareNewEvent();
         }
     }
 
@@ -160,10 +152,28 @@ namespace hpssim {
     }
 
     void PluginManager::registerPlugin(SimPlugin* plugin) {
+
+        // register plugin actions
+        for (auto action : plugin->getActions()) {
+            actions_[action].push_back(plugin);
+        }
+
+        // remove from master list
         plugins_.push_back(plugin);
     }
 
     void PluginManager::deregisterPlugin(SimPlugin* plugin) {
+
+        // deregister plugin actions
+        for (auto action : plugin->getActions()) {
+            auto plugins = actions_[action];
+            std::vector<SimPlugin*>::iterator itPlugin = std::find(plugins_.begin(), plugins_.end(), plugin);
+            if (itPlugin != plugins_.end()) {
+                plugins_.erase(itPlugin);
+            }
+        }
+
+        // remove from master list
         std::vector<SimPlugin*>::iterator pos = std::find(plugins_.begin(), plugins_.end(), plugin);
         if (pos != plugins_.end()) {
             plugins_.erase(pos);
