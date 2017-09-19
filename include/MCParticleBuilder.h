@@ -34,7 +34,7 @@ namespace hpssim {
                     collVec->addElement(particle);
                     particleMap_[trajectory->GetTrackID()] = particle;
                 }
-                std::cout << "MCParticleBuilder: created " << collVec->size() << " empty MCParticle objects" << std::endl;
+                //std::cout << "MCParticleBuilder: created " << collVec->size() << " empty MCParticle objects" << std::endl;
             }
 
             IMPL::MCParticleImpl* findMCParticle(G4int trackID) {
@@ -48,7 +48,7 @@ namespace hpssim {
 
             void buildMCParticle(Trajectory* traj) {
 
-                std::cout << "MCParticleBuilder: building MCParticle for track " << traj->GetTrackID() << std::endl;
+                //std::cout << "MCParticleBuilder: building MCParticle for track " << traj->GetTrackID() << std::endl;
 
                 IMPL::MCParticleImpl* p = particleMap_[traj->GetTrackID()];
 
