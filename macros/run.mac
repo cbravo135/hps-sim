@@ -1,0 +1,21 @@
+# load detector
+/lcdd/url detector.lcdd
+
+# event generator #1
+/hps/generators/create MyTest TEST
+
+# event generator #2
+#/hps/generators/create OverlayTest LHE
+#/hps/generators/OverlayTest/file events.lhe
+
+# init the run
+/run/initialize
+
+# LCIO output
+/hps/lcio/verbose 2
+/hps/lcio/file test_events.slcio
+
+# plugin defs
+/hps/plugins/load DummySimPlugin
+
+/run/beamOn 10
