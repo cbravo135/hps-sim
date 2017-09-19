@@ -3,48 +3,55 @@
 
 #include "G4VPrimaryGenerator.hh"
 
+#include "PrimaryGeneratorMessenger.h"
+
 namespace hpssim {
 
-    class PrimaryGenerator : public G4VPrimaryGenerator {
+class PrimaryGeneratorMessenger;
 
-        public:
+class PrimaryGenerator : public G4VPrimaryGenerator {
 
-            enum SourceType {
-                TEST
-                /*
-                LHE,
-                STDHEP,
-                LCIO,
-                GUN,
-                GPS
-                */
-            };
+    public:
 
-            PrimaryGenerator(std::string name) : name_(name) {
-            }
+        enum SourceType {
+            TEST,
+            LHE
+            /*
+            STDHEP,
+            LCIO,
+            BEAM
+            */
+        };
 
-            const std::string& getName() {
-                return name_;
-            }
+        PrimaryGenerator(std::string name);
 
-            void addFile(std::string file) {
-                files_.push_back(file);
-            }
+        virtual ~PrimaryGenerator();
 
-            // event transforms
+        const std::string& getName() {
+            return name_;
+        }
 
-            // fixed prescale factor
+        virtual void addFile(std::string file) {
+            files_.push_back(file);
+        }
 
-            // should sample for this "main" event?
+        // event transforms
 
-            // number of overlay events
+        // fixed prescale factor
 
-        private:
+        // true/false should sample into this "main" event?
 
-            std::string name_;
+        // number of overlay events
 
-            std::vector<std::string> files_;
-    };
+    private:
+
+        std::string name_;
+
+        std::vector<std::string> files_;
+
+        PrimaryGeneratorMessenger* messenger_;
+};
+
 }
 
 #endif

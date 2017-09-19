@@ -25,9 +25,14 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction {
 
             for (auto gen : generators_) {
 
+                std::cout << "PrimaryGeneratorAction: Generating an event from '" << gen->getName() << "'" << std::endl;
+
                 // create new G4 event to overlay
                 G4Event* overlayEvent = new G4Event();
                 gen->GeneratePrimaryVertex(overlayEvent);
+
+                std::cout << "PrimaryGeneratorAction: Generator '" << gen->getName() << "' created "
+                        << overlayEvent->GetNumberOfPrimaryVertex() << " vertices." << std::endl;
 
                 // overlay the event onto the target output event
                 for (int ivtx = 0; ivtx < overlayEvent->GetNumberOfPrimaryVertex(); ivtx++) {
