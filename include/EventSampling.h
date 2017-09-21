@@ -2,8 +2,7 @@
 #define HPSSIM_EVENTSAMPLING_H_
 
 #include "G4Event.hh"
-#include "G4RandomTools.hh"
-#include "CLHEP/Random/RandPoisson.h"
+#include "G4Poisson.hh"
 
 namespace hpssim {
 
@@ -23,23 +22,13 @@ class EventSampling {
          */
         virtual int getNumberOfEvents(G4Event* event) = 0;
 
-        /**
-         * Hook for setup of any necessary utils like random engine, etc.
-         */
-        void configure() {
-        }
-
         void setParam(double param) {
             param_ = param;
         }
 
-        double getParam() {
-            return param_;
-        }
+    protected:
 
-    private:
-
-        double param_{0};
+        double param_{1.};
 };
 
 /**
@@ -49,57 +38,20 @@ class UniformEventSampling : public EventSampling {
 
     public:
 
-        UniformEventSampling() {
+        int getNumberOfEvents(G4Event*) {
+            return param_;
         }
-
-        void setNumberOfEvents(unsigned int nevents) {
-            nevents_ = nevents;
-        }
-
-
-        int getNumberOfEvents(G4Event* event) {
-            return nevents_;
-        }
-
-    private:
-
-        unsigned int nevents_{1};
-
 };
 
 class PoissonEventSampling : public EventSampling {
 
     public:
 
-        PoissonEventSampling() : mu_{1.0} {
-        }
-
-        virtual ~PoissonEventSampling() {
-            delete pois_;
-        }
-
-        /**
-         * Set the mean of the distribution.
-         */
-        void setMu(double mu) {
-            mu_ = mu;
-        }
-
-        int getNumberOfEvents(G4Event* event) {
-            int nevents = (int) pois_->flat();
-            std::cout << "PoissonEventSampling: Rand sample " << nevents << " this time." << std::endl;
+        int getNumberOfEvents(G4Event*) {
+            double nevents = G4Poisson(param_);
+            std::cout << "PoissonEventSampling: Rand sample " << nevents << " events." << std::endl;
             return nevents;
         }
-
-        void configure() {
-            CLHEP::HepRandomEngine* engine = G4Random::getTheEngine();
-            pois_ = new CLHEP::RandPoisson(*engine, mu_);
-        }
-
-    private:
-
-        double mu_;
-        CLHEP::RandPoisson* pois_{nullptr};
 };
 
 // TODO: class PeriodicEventSampling
