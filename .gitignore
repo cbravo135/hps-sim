@@ -34,3 +34,8 @@
 build/
 install/
 scratch/
+
+*.swp
+
+.cproject
+.project
