@@ -1,0 +1,28 @@
+# load detector
+/lcdd/url detector.lcdd
+
+# read a signal event every 10th Geant4 event
+/hps/generators/create SigGen LHE
+/hps/generators/SigGen/file signal1.lhe
+/hps/generators/SigGen/sample period 10
+
+# read number of background events by Poisson sampling
+/hps/generators/create BackgroundGen STDHEP
+/hps/generators/BackgroundGen/file beam1.stdhep
+/hps/generators/BackgroundGen/sample poisson 1.7
+
+# generate 2 test events for every event
+/hps/generators/create TestGen TEST
+/hps/generators/TestGen/sample uniform 2
+
+# init the run
+/run/initialize
+
+# LCIO output
+/hps/lcio/verbose 2
+/hps/lcio/file sample_test.slcio
+
+# plugin defs
+#/hps/plugins/load DummySimPlugin
+
+/run/beamOn 50
