@@ -10,12 +10,13 @@ namespace hpssim {
 class PrimaryGeneratorMessenger;
 
 // TODO:
-// -event transforms (e.g. from stdhep tools); each PG needs to have a list of its transforms
-// -fixed prescale factor
-// -number of overlay events to generate which could be 0
-// -activate and deactivate the generator
-// -print info and param values
-// -delete the generator
+// -verbose level
+// -event transforms
+// -number of events to sample
+// -activate and deactivate
+// -print out
+// -delete
+// -file management: current file, file queue, hook on new file, etc.
 class PrimaryGenerator : public G4VPrimaryGenerator {
 
     public:
@@ -32,6 +33,10 @@ class PrimaryGenerator : public G4VPrimaryGenerator {
             files_.push_back(file);
         }
 
+        void setVerbose(int verbose) {
+            verbose_ = verbose;
+        }
+
     private:
 
         std::string name_;
@@ -39,6 +44,8 @@ class PrimaryGenerator : public G4VPrimaryGenerator {
         std::vector<std::string> files_;
 
         PrimaryGeneratorMessenger* messenger_;
+
+        int verbose_{1};
 };
 
 }
