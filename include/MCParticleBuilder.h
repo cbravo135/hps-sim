@@ -28,6 +28,9 @@ class MCParticleBuilder {
         }
 
         void buildParticleMap(G4TrajectoryContainer* trajectories, IMPL::LCCollectionVec* collVec) {
+            if (!trajectories) {
+                G4Exception("", "", FatalException, "The trajectory container is null!");
+            }
             particleMap_.clear();
             for (auto trajectory : *trajectories->GetVector()) {
                 auto particle = new IMPL::MCParticleImpl;

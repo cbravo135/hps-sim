@@ -70,6 +70,9 @@ class LcioPersistencyManager : public G4PersistencyManager {
                 lcioEvent->setDetectorName(LCDDProcessor::instance()->getDetectorName());
 
                 // write MCParticles to LCIO event
+                if (!anEvent->GetTrajectoryContainer()) {
+                    G4Exception("LcioPersistencyManager::Store", "", FatalException, "The trajectory container is null!");
+                }
                 lcioEvent->addCollection(builder_->buildMCParticleColl(anEvent), EVENT::LCIO::MCPARTICLE);
 
                 // write hits collections to LCIO event

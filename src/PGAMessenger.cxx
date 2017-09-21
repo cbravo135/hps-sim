@@ -4,6 +4,7 @@
 
 #include "LHEPrimaryGenerator.h"
 #include "PrimaryGeneratorAction.h"
+#include "StdHepPrimaryGenerator.h"
 #include "TestGenerator.h"
 
 #include <sstream>
@@ -20,8 +21,10 @@ PGAMessenger::PGAMessenger(PrimaryGeneratorAction* pga) : pga_(pga) {
     p = new G4UIparameter("type", 's', false);
     createCmd_->SetParameter(p);
 
+    // Define valid source types (this should probably be static and go someplace else).
     sourceType_["TEST"] = TEST;
     sourceType_["LHE"] = LHE;
+    sourceType_["STDHEP"] = STDHEP;
 }
 
 void PGAMessenger::SetNewValue(G4UIcommand* command, G4String newValues) {
@@ -39,12 +42,18 @@ void PGAMessenger::SetNewValue(G4UIcommand* command, G4String newValues) {
     }
 }
 
-PrimaryGenerator* PGAMessenger::createGenerator(std::string name, std::string type) {
-    SourceType srcType = sourceType_[type]; // FIXME: use find with iterator here to avoid creating default object!
+PrimaryGenerator* PGAMessenger::createGenerator(std::string name, std::string type) { 
+    if (sourceType_.find(type) == sourceType_.end()) {
+        std::cerr << "PGAMessenger: The generator type '" << type << "' is not valid." << std::endl;
+        G4Exception("", "", FatalException, "The generator type is not valid.");
+    }
+    SourceType srcType = sourceType_[type];
     if (srcType == TEST) {
         return new TestGenerator(name);
     } else if (srcType == LHE) {
         return new LHEPrimaryGenerator(name);
+    } else if (srcType == STDHEP) {
+        return new StdHepPrimaryGenerator(name);
     }
     return nullptr;
 }

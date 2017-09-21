@@ -19,7 +19,8 @@ class PGAMessenger : public G4UImessenger {
 
         enum SourceType {
             TEST,
-            LHE
+            LHE,
+            STDHEP
             /*
             STDHEP,
             LCIO,

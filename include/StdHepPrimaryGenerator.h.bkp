@@ -1,0 +1,178 @@
+/**
+ * @file LHEPrimaryGenerator.h
+ * @brief Class for generating a Geant4 event from LHE event data
+ * @author Jeremy McCormick, SLAC National Accelerator Laboratory
+ */
+
+#ifndef HPSSIM_STDHEPPRIMARYGENERATOR_H_
+#define HPSSIM_STDHEPPRIMARYGENERATOR_H_
+
+#include "G4RunManager.hh"
+#include "G4VPrimaryGenerator.hh"
+#include "G4SystemOfUnits.hh"
+#include "G4PhysicalConstants.hh"
+
+#include "lStdHep.h"
+#include "StdHepParticle.h"
+#include "PrimaryGenerator.h"
+
+namespace hpssim {
+
+/**
+ * @class STDHEPPrimaryGenerator
+ * @brief Generates a Geant4 event from an LHEEvent
+ */
+class StdHepPrimaryGenerator : public PrimaryGenerator {
+
+    public:
+
+        StdHepPrimaryGenerator(std::string name) : PrimaryGenerator(name) {
+        }
+
+        /**
+         * Class destructor.
+         */
+        virtual ~StdHepPrimaryGenerator() {
+        }
+
+        /**
+         * Generate vertices in the Geant4 event.
+         * @param anEvent The Geant4 event.
+         */
+        void GeneratePrimaryVertex(G4Event* anEvent) {
+            std::cout << "StdHepPrimaryGenerator: Reading StdHep data for event " << anEvent->GetEventID() << "." << std::endl;
+            lStdEvent stdEvent;
+            int res = reader_->readEvent(stdEvent);
+            reader_->printEvent();
+            std::vector<StdHepParticle*> particles;
+
+            // First create a list with all tracks, mainly for bookkeeping of parentage.
+            for (auto track : stdEvent) {
+                particles.push_back(new StdHepParticle(&track));
+            }
+
+            // Assign particle parentage.
+            for (auto particle : particles) {
+
+                int dau1 = particle->getStdTrack()->daughter1;
+                int dau2 = particle->getStdTrack()->daughter2;
+
+                int mom1 = particle->getStdTrack()->mother1;
+                int mom2 = particle->getStdTrack()->mother2;
+
+                int idau1 = dau1 % 10000 - 1;
+                int idau2 = dau2 % 10000 - 1;
+
+                int imom1 = mom1  % 10000 - 1;
+                int imom2 = mom2  % 10000 - 1;
+
+                if (dau1) {
+                    particle->setDaughter(0, particles[idau1]);
+                }
+
+                if (dau2) {
+                    particle->setDaughter(1, particles[idau2]);
+                }
+
+                if (mom1) {
+                    particle->setMother(0, particles[imom1]);
+                }
+
+                if (mom2) {
+                    particle->setMother(1, particles[imom2]);
+                }
+            }
+
+            std::cout << "processing " << particles.size() << " particles" << std::endl;
+
+            // Now create primaries and vertices from particle data.
+            std::vector<G4PrimaryVertex*> vertices;
+            std::map<StdHepParticle*, G4PrimaryParticle*> particleMap;
+            G4PrimaryVertex* vertex;
+            for (std::vector<StdHepParticle*>::const_iterator it = particles.begin(); it != particles.end(); it++) {
+
+                StdHepParticle* particle = (*it);
+                lStdTrack* track = particle->getStdTrack();
+                StdHepParticle* mom = particle->getMother(0);
+                StdHepParticle* dau1 = particle->getDaughter(0);
+                StdHepParticle* dau2 = particle->getDaughter(1);
+
+                double px = track->Px * GeV;
+                double py = track->Py * GeV;
+                double pz = track->Pz * GeV;
+                double energy = track->E * GeV;
+                double x = track->X;
+                double y = track->Y;
+                double z = track->Z;
+
+                // Primary particles without a parent need a new vertex for the position to be set.
+                if (!mom) {
+                    std::cout << "creating new vertex at ( " << x << ", " << y << ", " << z << " )" << std::endl;
+                    vertex = new G4PrimaryVertex();
+                    std::cout << "setting position on vertex" << std::endl;
+                    vertex->SetPosition(x, y, z);
+                    std::cout << "adding vertex to event" << std::endl;
+                    vertices.push_back(vertex);
+                }
+
+                std::cout << "creating new primary particle" << std::endl;
+                G4PrimaryParticle* primary = new G4PrimaryParticle();
+                primary->SetPDGcode(track->pid);
+                primary->Set4Momentum(track->Px * GeV, track->Py * GeV, track->Pz * GeV, track->E * GeV);
+                std::cout << "creating new primary with PDG ID " << track->pid << " and 4 mom: "
+                        << track->Px * GeV << " " << track->Py * GeV << " " << track->Pz * GeV << " " << track->E * GeV
+                        << std::endl;
+                particleMap[particle] = primary;
+                if (particle->getMother(0)) {
+                    G4PrimaryParticle* primaryMom = particleMap[particle->getMother(0)];
+                    if (primaryMom) {
+                        std::cout << "setting dau primary" << std::endl;
+                        primaryMom->SetDaughter(primary);
+                    }
+                } else {
+                    std::cout << "setting vertex primary" << std::endl;
+                    if (!vertex) {
+                        throw std::runtime_error("No vertex created yet!");
+                    }
+                    vertex->SetPrimary(primary);
+                }
+
+                //primary->SetProperTime(0);
+
+                // This code to set the decay times is copied from the MCParticleManager in SLIC.
+                /*
+                auto dau = particle->getDaughter(0);
+                if (dau) {
+                    double dauTime = dau->getStdTrack()->T;
+                    double properTime = fabs(((dauTime / c_light) - (particle->getStdTrack()->T / c_light)) * particle->getStdTrack()->M) / particle->getStdTrack()->E;
+                    primary->SetProperTime(properTime);
+                }
+                */
+            }
+
+            for (auto vertex : vertices) {
+                std::cout << "adding vertex at " << vertex->GetPosition() << std::endl;
+                anEvent->AddPrimaryVertex(vertex);
+            }
+
+            // Cleanup particle list.
+            for (auto particle : particles) {
+                delete particle;
+            }
+        }
+
+        // FIXME: Needs to support multiple input files.
+        void addFile(std::string file) {
+            PrimaryGenerator::addFile(file);
+            std::cout << "StdHepPrimaryGenerator: Setting file '" << file << "' on LHE reader." << std::endl;
+            reader_ = new lStdHep(file.c_str());
+        }
+
+    private:
+
+        lStdHep* reader_{nullptr};
+};
+
+}
+
+#endif

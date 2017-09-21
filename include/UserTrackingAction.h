@@ -25,40 +25,29 @@ class UserTrackingAction : public G4UserTrackingAction {
         }
 
         void PreUserTrackingAction(const G4Track* aTrack) {
-            //std::cout << "UserTrackingAction: pre tracking - " << aTrack->GetTrackID() << std::endl;
+            std::cout << "UserTrackingAction: pre tracking - " << aTrack->GetTrackID() << std::endl;
 
             int trackID = aTrack->GetTrackID();
+
+            // This is set for LCDD sensitive detectors.
+            // It is a weird way to do this but we do not want to fork LCDD right now!
+            CurrentTrackState::setCurrentTrackID(trackID);
 
             if (trackMap_.contains(trackID)) {
                 if (trackMap_.hasTrajectory(trackID)) {
                     // This makes sure the tracking manager does not delete the trajectory.
-                    //std::cout << "store trajectory ON" << std::endl;
                     fpTrackingManager->SetStoreTrajectory(true);
                 }
             } else {
-                // New track so call the process method.
+                // Process a new track.
                 processTrack(aTrack);
-            }
-
-            // Set the 'global' track ID for LCDD.
-            // This is a strange way to do things but makes the SDs function properly.
-            auto regionInfo = static_cast<UserRegionInformation*>
-                    (aTrack->GetLogicalVolumeAtVertex()->GetRegion()->GetUserInformation());
-            bool storeSeco = true;
-            if (regionInfo) {
-                storeSeco = regionInfo->getStoreSecondaries();
-                //std::cout << "UserTrackingAction: store seco " << storeSeco << std::endl;
-            }
-            if (aTrack->GetParentID() == 0 || storeSeco) {
-                //std::cout << "UserTrackingAction: setting 'global' track ID " << aTrack->GetTrackID() << std::endl;
-                CurrentTrackState::setCurrentTrackID(trackID);
             }
 
             PluginManager::getPluginManager()->preTracking(aTrack);
         }
 
         void PostUserTrackingAction(const G4Track* aTrack) {
-            //std::cout << "UserTrackingAction: post tracking - " << aTrack->GetTrackID() << std::endl;
+            std::cout << "UserTrackingAction: post tracking - " << aTrack->GetTrackID() << std::endl;
 
             // Save extra trajectories on tracks that were flagged for saving during event processing.
             if (dynamic_cast<UserTrackInformation*>(aTrack->GetUserInformation())->getSaveFlag()) {
@@ -82,7 +71,7 @@ class UserTrackingAction : public G4UserTrackingAction {
 
         void storeTrajectory(const G4Track* aTrack) {
 
-            //std::cout << "UserTrackingAction: creating new traj for " << aTrack->GetTrackID() << std::endl;
+            std::cout << "UserTrackingAction: creating new traj for " << aTrack->GetTrackID() << std::endl;
 
             // Create a new trajectory for this track.
             fpTrackingManager->SetStoreTrajectory(true);
@@ -133,10 +122,10 @@ class UserTrackingAction : public G4UserTrackingAction {
             */
             if (regionInfo && !regionInfo->getStoreSecondaries()) {
                 // Turn off trajectory storage for this track from region flag.
-                //std::cout << "store trajectory OFF" << std::endl;
+                std::cout << "store trajectory OFF" << std::endl;
                 fpTrackingManager->SetStoreTrajectory(false);
             } else {
-                //std::cout << "store trajectory ON" << std::endl;
+                std::cout << "store trajectory ON" << std::endl;
                 // Store a new trajectory for this track.
                 storeTrajectory(aTrack);
             }
