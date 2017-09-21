@@ -38,8 +38,10 @@ void PrimaryGeneratorMessenger::SetNewValue(G4UIcommand* command, G4String newVa
             eventSampling = new PoissonEventSampling();
         } else if (distrib == "uniform") {
             eventSampling = new UniformEventSampling();
+        } else if (distrib == "period") {
+            eventSampling = new PeriodicEventSampling();
         } else {
-            G4Exception("", "", JustWarning, G4String("Do not know about sampling '" + distrib + "'."));
+            G4Exception("", "", FatalException, G4String("Do not know about sampling '" + distrib + "'."));
         }
         std::cout << "PrimaryGeneratorMessenger: Creating new event sampling '"
                 << distrib << "' with param " << param << "." << std::endl;
