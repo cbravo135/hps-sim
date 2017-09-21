@@ -15,14 +15,6 @@ PrimaryGeneratorMessenger::PrimaryGeneratorMessenger(PrimaryGenerator* generator
     sampleCmd_->SetParameter(p);
     p = new G4UIparameter("parameter", 'd', false);
     sampleCmd_->SetParameter(p);
-
-    /*
-    createCmd_ = new G4UIcommand("/hps/generators/create", this);
-        G4UIparameter* p = new G4UIparameter("name", 's', false);
-        createCmd_->SetParameter(p);
-        p = new G4UIparameter("type", 's', false);
-        createCmd_->SetParameter(p);
-    */
 }
 
 PrimaryGeneratorMessenger::~PrimaryGeneratorMessenger() {
@@ -52,7 +44,6 @@ void PrimaryGeneratorMessenger::SetNewValue(G4UIcommand* command, G4String newVa
         std::cout << "PrimaryGeneratorMessenger: Creating new event sampling '"
                 << distrib << "' with param " << param << "." << std::endl;
         eventSampling->setParam(param);
-        eventSampling->configure();
         generator_->setEventSampling(eventSampling);
     }
 }
