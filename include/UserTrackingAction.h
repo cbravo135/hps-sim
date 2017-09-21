@@ -25,17 +25,16 @@ class UserTrackingAction : public G4UserTrackingAction {
         }
 
         void PreUserTrackingAction(const G4Track* aTrack) {
-            std::cout << "UserTrackingAction: pre tracking - " << aTrack->GetTrackID() << std::endl;
+            //std::cout << "UserTrackingAction: pre tracking - " << aTrack->GetTrackID() << std::endl;
 
             int trackID = aTrack->GetTrackID();
 
-            // This is set for LCDD sensitive detectors.
-            // It is a weird way to do this but we do not want to fork LCDD right now!
+            // This is set for LCDD sensitive detectors, which is strange but we don't want to change it right now!
             CurrentTrackState::setCurrentTrackID(trackID);
 
             if (trackMap_.contains(trackID)) {
                 if (trackMap_.hasTrajectory(trackID)) {
-                    // This makes sure the tracking manager does not delete the trajectory.
+                    // This makes sure the tracking manager does not delete the trajectory if it already exists.
                     fpTrackingManager->SetStoreTrajectory(true);
                 }
             } else {
@@ -47,7 +46,7 @@ class UserTrackingAction : public G4UserTrackingAction {
         }
 
         void PostUserTrackingAction(const G4Track* aTrack) {
-            std::cout << "UserTrackingAction: post tracking - " << aTrack->GetTrackID() << std::endl;
+            //std::cout << "UserTrackingAction: post tracking - " << aTrack->GetTrackID() << std::endl;
 
             // Save extra trajectories on tracks that were flagged for saving during event processing.
             if (dynamic_cast<UserTrackInformation*>(aTrack->GetUserInformation())->getSaveFlag()) {
@@ -71,7 +70,7 @@ class UserTrackingAction : public G4UserTrackingAction {
 
         void storeTrajectory(const G4Track* aTrack) {
 
-            std::cout << "UserTrackingAction: creating new traj for " << aTrack->GetTrackID() << std::endl;
+            //std::cout << "UserTrackingAction: creating new traj for " << aTrack->GetTrackID() << std::endl;
 
             // Create a new trajectory for this track.
             fpTrackingManager->SetStoreTrajectory(true);
@@ -94,40 +93,23 @@ class UserTrackingAction : public G4UserTrackingAction {
 
         void processTrack(const G4Track* aTrack) {
 
-            // Set user track info on new track.
+            // Setup the track info object.
             if (!aTrack->GetUserInformation()) {
                 auto trackInfo = new UserTrackInformation;
-                //std::cout << "UserTrackingAction: creating user info for track " << aTrack->GetTrackID() << std::endl;
                 trackInfo->setInitialMomentum(aTrack->GetMomentum());
                 const_cast<G4Track*>(aTrack)->SetUserInformation(trackInfo);
             }
 
-            // Check if trajectory storage should be turned on or off from the region info.
-            UserRegionInformation* regionInfo = (UserRegionInformation*) aTrack->GetLogicalVolumeAtVertex()->GetRegion()->GetUserInformation();
-
-            // Check if trajectory storage should be turned on or off from the gen status info
-            /*
-            int curGenStatus = -1;
-            if (aTrack->GetDynamicParticle()->GetPrimaryParticle() != NULL){
-                G4VUserPrimaryParticleInformation* primaryInfo = aTrack->GetDynamicParticle()->GetPrimaryParticle()->GetUserInformation();
-                curGenStatus = ((UserPrimaryParticleInformation*) primaryInfo)->getHepEvtStatus();
-            }
-            */
-
-            // Always save a particle if it has gen status == 1
-            /*
-            if (curGenStatus == 1){
+            // Check if trajectory storage should be turned on.
+            UserRegionInformation* regionInfo =
+                    (UserRegionInformation*) aTrack->GetLogicalVolumeAtVertex()->GetRegion()->GetUserInformation();
+            bool isPrimary = (aTrack->GetDynamicParticle()->GetPrimaryParticle() != nullptr);
+            if ((regionInfo && regionInfo->getStoreSecondaries()) || isPrimary) {
+                // Region is flagged for storing secondaries (e.g. "tracking region") or the particle is a primary.
                 storeTrajectory(aTrack);
-            } else
-            */
-            if (regionInfo && !regionInfo->getStoreSecondaries()) {
-                // Turn off trajectory storage for this track from region flag.
-                std::cout << "store trajectory OFF" << std::endl;
-                fpTrackingManager->SetStoreTrajectory(false);
             } else {
-                std::cout << "store trajectory ON" << std::endl;
-                // Store a new trajectory for this track.
-                storeTrajectory(aTrack);
+                // Trajectory storage is turned off!
+                fpTrackingManager->SetStoreTrajectory(false);
             }
 
             // Save the association between track ID and its parent ID for all tracks in the event.
