@@ -43,19 +43,36 @@ class UniformEventSampling : public EventSampling {
         }
 };
 
+/**
+ * Sample number of events from sampling Poisson distribution.
+ */
 class PoissonEventSampling : public EventSampling {
 
     public:
 
         int getNumberOfEvents(G4Event*) {
             double nevents = G4Poisson(param_);
-            std::cout << "PoissonEventSampling: Rand sample " << nevents << " events." << std::endl;
+            //std::cout << "PoissonEventSampling: Rand sample " << nevents << " events." << std::endl;
             return nevents;
         }
 };
 
-// TODO: class PeriodicEventSampling
-// samples an event every Nth Geant4 event
+/**
+ * Sample one event every Nth Geant4 event using a modulus.
+ */
+class PeriodicEventSampling : public EventSampling {
+
+    public:
+
+        int getNumberOfEvents(G4Event* anEvent) {
+            if (anEvent->GetEventID() % (int)param_ == 0) {
+                return 1;
+            } else { 
+                return 0;
+            }    
+        }
+
+};
 
 } // namespace hpssim
 
