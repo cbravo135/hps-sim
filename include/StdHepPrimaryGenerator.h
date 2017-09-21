@@ -50,7 +50,7 @@ class StdHepPrimaryGenerator : public PrimaryGenerator {
             std::vector<StdHepParticle*> particles;
             int nTracks = reader_->nTracks();
             for (int iTrack = 0; iTrack < nTracks; iTrack++) {
-                reader_->printTrack(iTrack);
+                //reader_->printTrack(iTrack);
                 lStdTrack* track = &stdEvent[iTrack];
                 particles.push_back(new StdHepParticle(track));
             }

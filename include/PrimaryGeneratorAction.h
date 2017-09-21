@@ -25,23 +25,27 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction {
 
             for (auto gen : generators_) {
 
-                //std::cout << "PrimaryGeneratorAction: Generating an event from '" << gen->getName() << "'" << std::endl;
+                std::cout << "PrimaryGeneratorAction: Generating an event from '" << gen->getName() << "'" << std::endl;
 
                 // TODO: get number of events to generate e.g. from statistical distribution, prescale, etc.
 
-                // create new G4 event to overlay
-                G4Event* genEvent = new G4Event();
-                gen->GeneratePrimaryVertex(genEvent);
+                int nevents = gen->getEventSampling()->getNumberOfEvents(anEvent);
+                for (int iEvent = 0; iEvent < nevents; iEvent++) {
 
-                // TODO: apply event transforms here
+                    // create new G4 event to overlay
+                    G4Event* genEvent = new G4Event();
+                    gen->GeneratePrimaryVertex(genEvent);
 
-                //std::cout << "PrimaryGeneratorAction: Generator '" << gen->getName() << "' created "
-                //        << genEvent->GetNumberOfPrimaryVertex() << " vertices." << std::endl;
+                    // TODO: apply event transforms here
 
-                // overlay the event onto the target output event
-                for (int ivtx = 0; ivtx < genEvent->GetNumberOfPrimaryVertex(); ivtx++) {
-                    //std::cout << "PrimaryGeneratorAction: Overlaying vertex " << ivtx << " from '" << gen->getName() << "' into event." << std::endl;
-                    anEvent->AddPrimaryVertex(genEvent->GetPrimaryVertex(ivtx));
+                    std::cout << "PrimaryGeneratorAction: Generator '" << gen->getName() << "' created "
+                            << genEvent->GetNumberOfPrimaryVertex() << " vertices." << std::endl;
+
+                    // overlay the event onto the target output event
+                    for (int ivtx = 0; ivtx < genEvent->GetNumberOfPrimaryVertex(); ivtx++) {
+                        std::cout << "PrimaryGeneratorAction: Overlaying vertex " << ivtx << " from '" << gen->getName() << "' into event." << std::endl;
+                        anEvent->AddPrimaryVertex(genEvent->GetPrimaryVertex(ivtx));
+                    }
                 }
             }
         }

@@ -7,6 +7,7 @@ PrimaryGenerator::PrimaryGenerator(std::string name) : name_(name) {
 }
 
 PrimaryGenerator::~PrimaryGenerator() {
+    delete sampling_;
     delete messenger_;
 }
 

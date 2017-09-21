@@ -4,6 +4,7 @@
 #include "G4VPrimaryGenerator.hh"
 
 #include "PrimaryGeneratorMessenger.h"
+#include "EventSampling.h"
 
 namespace hpssim {
 
@@ -37,15 +38,24 @@ class PrimaryGenerator : public G4VPrimaryGenerator {
             verbose_ = verbose;
         }
 
+        void setEventSampling(EventSampling* sampling) {
+            if (sampling_) {
+                delete sampling_;
+            }
+            sampling_ = sampling;
+        }
+
+        EventSampling* getEventSampling() {
+            return sampling_;
+        }
+
     private:
 
         std::string name_;
-
         std::vector<std::string> files_;
-
         PrimaryGeneratorMessenger* messenger_;
-
         int verbose_{1};
+        EventSampling* sampling_{new UniformEventSampling};
 };
 
 }
