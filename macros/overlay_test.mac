@@ -1,12 +1,17 @@
 # load detector
 /lcdd/url detector.lcdd
 
-# event generator #1
-/hps/generators/create MyTest TEST
+# read from WAB or other signal file
+/hps/generators/create SigGen LHE
+/hps/generators/SigGen/file signal1.lhe
 
-# event generator #2
-/hps/generators/create OverlayTest LHE
-/hps/generators/OverlayTest/file events.lhe
+# read from beam backgrounds file
+/hps/generators/create BackgroundGen1 STDHEP
+/hps/generators/BackgroundGen1/file beam1.stdhep
+
+# read from beam backgrounds file
+/hps/generators/create BackgroundGen2 STDHEP
+/hps/generators/BackgroundGen2/file beam2.stdhep
 
 # init the run
 /run/initialize
@@ -18,4 +23,4 @@
 # plugin defs
 #/hps/plugins/load DummySimPlugin
 
-/run/beamOn 1000
+/run/beamOn 2
