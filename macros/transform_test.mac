@@ -1,0 +1,19 @@
+# load detector
+/lcdd/url detector.lcdd
+
+# read a signal event every 10th Geant4 event
+/hps/generators/create SigGen LHE
+/hps/generators/SigGen/file signal1.lhe
+/hps/generators/SigGen/transform pos 0.1 0.2 0.3
+
+# init the run
+/run/initialize
+
+# LCIO output
+/hps/lcio/verbose 2
+/hps/lcio/file sample_test.slcio
+
+# plugin defs
+#/hps/plugins/load DummySimPlugin
+
+/run/beamOn 10

@@ -23,9 +23,14 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction {
 
         virtual void GeneratePrimaries(G4Event* anEvent) {
 
+            std::cout << "PrimaryGenerationAction: Generating event " << anEvent->GetEventID() << std::endl;
+
+
             for (auto gen : generators_) {
 
-                //std::cout << "PrimaryGeneratorAction: Generating an event from '" << gen->getName() << "'" << std::endl;
+                std::cout << "PrimaryGeneratorAction: Running generator '" << gen->getName() << "'." << std::endl;
+
+                auto transforms = gen->getTransforms();
 
                 int nevents = gen->getEventSampling()->getNumberOfEvents(anEvent);
                 for (int iEvent = 0; iEvent < nevents; iEvent++) {
@@ -34,14 +39,18 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction {
                     G4Event* genEvent = new G4Event();
                     gen->GeneratePrimaryVertex(genEvent);
 
-                    // TODO: apply event transforms here
+                    // apply event transforms
+                    for (auto transform : transforms) {
+                        transform->transform(genEvent);
+                    }
 
-                    //std::cout << "PrimaryGeneratorAction: Generator '" << gen->getName() << "' created "
-                    //        << genEvent->GetNumberOfPrimaryVertex() << " vertices." << std::endl;
+                    std::cout << "PrimaryGeneratorAction: Generator '" << gen->getName() << "' created "
+                            << genEvent->GetNumberOfPrimaryVertex() << " vertices in sample " << (iEvent + 1) << "."
+                            << std::endl;
 
                     // overlay the event onto the target output event
                     for (int ivtx = 0; ivtx < genEvent->GetNumberOfPrimaryVertex(); ivtx++) {
-                        //std::cout << "PrimaryGeneratorAction: Overlaying vertex " << ivtx << " from '" << gen->getName() << "' into event." << std::endl;
+                        std::cout << "PrimaryGeneratorAction: Overlaying vertex " << ivtx << " from '" << gen->getName() << "' into event." << std::endl;
                         anEvent->AddPrimaryVertex(new G4PrimaryVertex(*genEvent->GetPrimaryVertex(ivtx)));
                     }
           
@@ -59,7 +68,6 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction {
         G4UImessenger* messenger_;
 
         std::vector<PrimaryGenerator*> generators_;
-        //std::map<G4VPrimaryGenerator*, std::vector<EventTransform*>> transforms_;
 };
 
 }

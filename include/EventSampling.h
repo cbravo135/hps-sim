@@ -6,6 +6,8 @@
 
 namespace hpssim {
 
+// TODO: Random sample of events from input file.
+
 /**
  * @brief Interface for sampling from an event generator into a single Geant4 event.
  * @note The sampling distributions have a single double parameter.

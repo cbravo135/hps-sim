@@ -5,6 +5,7 @@
 
 #include "PrimaryGeneratorMessenger.h"
 #include "EventSampling.h"
+#include "EventTransform.h"
 
 namespace hpssim {
 
@@ -49,6 +50,14 @@ class PrimaryGenerator : public G4VPrimaryGenerator {
             return sampling_;
         }
 
+        void addTransform(EventTransform* transform) {
+            transforms_.push_back(transform);
+        }
+
+        const std::vector<EventTransform*>& getTransforms() {
+            return transforms_;
+        }
+
     private:
 
         std::string name_;
@@ -56,6 +65,7 @@ class PrimaryGenerator : public G4VPrimaryGenerator {
         PrimaryGeneratorMessenger* messenger_;
         int verbose_{1};
         EventSampling* sampling_{new UniformEventSampling};
+        std::vector<EventTransform*> transforms_;
 };
 
 }
