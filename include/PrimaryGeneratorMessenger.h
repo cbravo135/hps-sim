@@ -27,8 +27,15 @@ class PrimaryGeneratorMessenger : public G4UImessenger {
 
         G4UIdirectory* dir_;
         G4UIcmdWithAString* fileCmd_;
+
+        G4UIdirectory* transformDir_;
+
         G4UIcommand* sampleCmd_;
-        G4UIcommand* transformCmd_;
+        //G4UIcommand* transformCmd_;
+
+        G4UIcommand* smearCmd_;
+        G4UIcommand* posCmd_;
+        G4UIcommand* rotCmd_;
 };
 
 }

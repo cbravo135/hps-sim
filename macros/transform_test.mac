@@ -1,10 +1,12 @@
 # load detector
 /lcdd/url detector.lcdd
 
-# read a signal event every 10th Geant4 event
+# read a signal event and apply event transforms
 /hps/generators/create SigGen LHE
 /hps/generators/SigGen/file signal1.lhe
-/hps/generators/SigGen/transform pos 0.1 0.2 0.3
+/hps/generators/SigGen/transform/rot 0.0305
+/hps/generators/SigGen/transform/pos 0. 0. -5
+/hps/generators/SigGen/transform/smear 0.300 0.030 0.0
 
 # init the run
 /run/initialize

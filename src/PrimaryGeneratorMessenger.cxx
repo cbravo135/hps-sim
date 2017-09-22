@@ -17,15 +17,28 @@ PrimaryGeneratorMessenger::PrimaryGeneratorMessenger(PrimaryGenerator* generator
     p = new G4UIparameter("param", 'd', false);
     sampleCmd_->SetParameter(p);
 
-    transformCmd_ = new G4UIcommand(G4String("/hps/generators/" + generator->getName() + "/transform"), this);
-    p = new G4UIparameter("name", 's', false);
-    transformCmd_->SetParameter(p);
-    p = new G4UIparameter("param1", 'd', false);
-    transformCmd_->SetParameter(p);
-    p = new G4UIparameter("param2", 'd', false);
-    transformCmd_->SetParameter(p);
-    p = new G4UIparameter("param3", 'd', false);
-    transformCmd_->SetParameter(p);
+    auto transformPath = G4String("/hps/generators/" + generator->getName() + "/transform/");
+    transformDir_ = new G4UIdirectory(transformPath, this);
+
+    posCmd_ = new G4UIcommand(G4String(transformPath + "pos"), this);
+    p = new G4UIparameter("x", 'd', false);
+    posCmd_->SetParameter(p);
+    p = new G4UIparameter("y", 'd', false);
+    posCmd_->SetParameter(p);
+    p = new G4UIparameter("z", 'd', false);
+    posCmd_->SetParameter(p);
+
+    smearCmd_ = new G4UIcommand(G4String(transformPath + "smear"), this);
+    p = new G4UIparameter("sigma_x", 'd', false);
+    smearCmd_->SetParameter(p);
+    p = new G4UIparameter("sigma_y", 'd', false);
+    smearCmd_->SetParameter(p);
+    p = new G4UIparameter("sigma_z", 'd', false);
+    smearCmd_->SetParameter(p);
+
+    rotCmd_ = new G4UIcommand(G4String(transformPath + "rot"), this);
+    p = new G4UIparameter("theta", 'd', false);
+    rotCmd_->SetParameter(p);
 }
 
 PrimaryGeneratorMessenger::~PrimaryGeneratorMessenger() {
@@ -58,17 +71,21 @@ void PrimaryGeneratorMessenger::SetNewValue(G4UIcommand* command, G4String newVa
                 << distrib << "' with param " << param << "." << std::endl;
         eventSampling->setParam(param);
         generator_->setEventSampling(eventSampling);
-    } else if (command == transformCmd_) {
+    } else if (command == posCmd_) {
         std::stringstream sstream(newValues);
-        std::string name;
-        double params[3];   
-        sstream >> name;
-        sstream >> params[0] >> params[1] >> params[2];
-        EventTransform* transform = nullptr;
-        if (name == "pos") {
-            transform = new VertexPositionTransform(params[0], params[1], params[2]);
-        }
-        generator_->addTransform(transform);
+        double xyz[3];
+        sstream >> xyz[0] >> xyz[1] >> xyz[2];
+        generator_->addTransform(new VertexPositionTransform(xyz[0], xyz[1], xyz[2]));
+    } else if (command == smearCmd_) {
+        std::stringstream sstream(newValues);
+        double sigmas[3];
+        sstream >> sigmas[0] >> sigmas[1] >> sigmas[2];
+        generator_->addTransform(new SmearVertexTransform(sigmas[0], sigmas[1], sigmas[2]));
+    } else if (command == rotCmd_) {
+        std::stringstream sstream(newValues);
+        double theta;
+        sstream >> theta;
+        generator_->addTransform(new RotateTransform(theta));
     }
 }
 
