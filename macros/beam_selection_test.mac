@@ -1,0 +1,27 @@
+# load detector
+/lcdd/url target.gdml
+
+/random/setSeeds 12345 67890
+
+# generate beam particles for one bunch
+/hps/generators/create BeamGen BEAM
+
+# generate test particles
+#/hps/generators/create TestGen TEST
+
+# generate signal
+#/hps/generators/create SigGen LHE
+#/hps/generators/SigGen/file signal1.lhe
+
+# event selection for beam particles
+/hps/plugins/load BeamTrackSelectionPlugin
+/hps/plugins/BeamTrackSelectionPlugin/verbose 3
+
+# init the run
+/run/initialize
+
+# LCIO output
+/hps/lcio/verbose 2
+/hps/lcio/file beam_test.slcio
+
+/run/beamOn 50
