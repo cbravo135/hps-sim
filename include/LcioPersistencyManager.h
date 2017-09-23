@@ -138,30 +138,31 @@ class LcioPersistencyManager : public G4PersistencyManager {
     private:
 
         void writeHitsCollections(const G4Event* g4Event, IMPL::LCEventImpl* lcioEvent) {
-
             G4HCofThisEvent* hce = g4Event->GetHCofThisEvent();
-            int nColl = hce->GetNumberOfCollections();
+            if (hce) {
+                int nColl = hce->GetNumberOfCollections();
 
-            for (int iColl = 0; iColl < nColl; iColl++) {
+                for (int iColl = 0; iColl < nColl; iColl++) {
 
-                G4VHitsCollection* hc = hce->GetHC(iColl);
-                std::string collName = hc->GetName();
-                LCCollectionVec* collVec = nullptr;
+                    G4VHitsCollection* hc = hce->GetHC(iColl);
+                    std::string collName = hc->GetName();
+                    LCCollectionVec* collVec = nullptr;
 
-                if (dynamic_cast<TrackerHitsCollection*>(hc)) {
-                    collVec = writeTrackerHitsCollection(hc);
-                } else if (dynamic_cast<CalorimeterHitsCollection*>(hc)) {
-                    collVec = writeCalorimeterHitsCollection(hc);
-                }
+                    if (dynamic_cast<TrackerHitsCollection*>(hc)) {
+                        collVec = writeTrackerHitsCollection(hc);
+                    } else if (dynamic_cast<CalorimeterHitsCollection*>(hc)) {
+                        collVec = writeCalorimeterHitsCollection(hc);
+                    }
 
-                if (collVec) {
-                    lcioEvent->addCollection(collVec, collName);
-                    if (m_verbose > 1) {
-                        std::cout << "LcioPersistencyManager: Stored " << collVec->size() << " hits in " << collName << std::endl;
+                    if (collVec) {
+                        lcioEvent->addCollection(collVec, collName);
+                        if (m_verbose > 1) {
+                            std::cout << "LcioPersistencyManager: Stored " << collVec->size() << " hits in " << collName
+                                    << std::endl;
+                        }
                     }
                 }
             }
-
         }
 
         IMPL::LCCollectionVec* writeTrackerHitsCollection(G4VHitsCollection* hc) {
