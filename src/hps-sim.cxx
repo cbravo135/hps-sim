@@ -1,19 +1,19 @@
 #include <iostream>
 
+#include "FTFP_BERT.hh"
 #include "G4RunManager.hh"
 #include "G4UIExecutive.hh"
 #include "G4UImanager.hh"
 #include "G4VisManager.hh"
 #include "G4VisExecutive.hh"
-#include "G4RunManager.hh"
-#include "FTFP_BERT.hh"
 
 #include "lcdd/core/LCDDDetectorConstruction.hh"
 
-#include "PrimaryGeneratorAction.h"
-#include "UserTrackingAction.h"
+#include "../include/SteppingAction.h"
 #include "LcioPersistencyManager.h"
 #include "PluginManager.h"
+#include "PrimaryGeneratorAction.h"
+#include "UserTrackingAction.h"
 #include "UserRunAction.h"
 #include "UserEventAction.h"
 
@@ -40,6 +40,7 @@ int main(int argc, char* argv[]) {
     mgr->SetUserAction(new UserTrackingAction);
     mgr->SetUserAction(new UserRunAction);
     mgr->SetUserAction(new UserEventAction);
+    mgr->SetUserAction(new SteppingAction);
 
     LcioPersistencyManager* lcio = new LcioPersistencyManager();
 
