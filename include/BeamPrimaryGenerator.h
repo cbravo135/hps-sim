@@ -1,6 +1,7 @@
 #include <math.h>
 
 #include "G4ParticleGun.hh"
+#include "G4ParticleTable.hh"
 #include "G4SystemOfUnits.hh"
 
 #include "CLHEP/Random/RandGauss.h"
@@ -14,8 +15,7 @@ class BeamPrimaryGenerator : public PrimaryGenerator {
     public:
 
         BeamPrimaryGenerator(std::string name) : PrimaryGenerator(name) {
-            position_ = G4ThreeVector(0, 0, -10);
-            momentum_ = G4ThreeVector(0, 0, 1);
+            gun_.SetParticleDefinition(G4ParticleTable::GetParticleTable()->FindParticle("e-"));
         }
 
         virtual void GeneratePrimaryVertex(G4Event* anEvent) {
@@ -31,7 +31,8 @@ class BeamPrimaryGenerator : public PrimaryGenerator {
                 sampledPosition.setX(position_.x() + CLHEP::RandGauss::shoot(0, sigmaX_));
                 sampledPosition.setY(position_.y() + CLHEP::RandGauss::shoot(0, sigmaY_));
                 sampledPosition.setZ(position_.z());
-                std::cout << "BeamPrimaryGenerator: Sampled pos " << sampledPosition << "." << std::endl;
+                std::cout << "BeamPrimaryGenerator: Sampled pos " << sampledPosition
+                        << " for electron " << i << "." << std::endl;
                 gun_.SetParticlePosition(sampledPosition);
                 gun_.GeneratePrimaryVertex(anEvent);
             }
@@ -41,9 +42,11 @@ class BeamPrimaryGenerator : public PrimaryGenerator {
             energy_ = energy;
         }
 
+        /*
         void setPosition(double x, double y, double z) {
             position_.set(x, y, z);
         }
+        */
 
         void setCurrent(double current) {
             current_ = current;
@@ -71,26 +74,26 @@ class BeamPrimaryGenerator : public PrimaryGenerator {
 
     private:
 
-        /* Beam current in nA (may use 200, 450). */
-        double current_{50};
+        /** Vertex position of the beam particles. */
+        G4ThreeVector position_{G4ThreeVector(0, 0, -10)};
 
-        /* Beam energy in GeV */
+        /** Beam particle momentum. */
+        G4ThreeVector momentum_{G4ThreeVector(0, 0, 1)};
+
+        /* Beam energy in GeV. */
         double energy_{1.056};
 
-        /** Number of electrons computed from current. */
+        /** Number of electrons to fire in one event. */
         int numberOfElectrons_{0};
 
-        /** Vertex position of the beam particles. */
-        G4ThreeVector position_;
+        /* Beam current in nA (may use 200, 450 also). */
+        double current_{50};
 
         /** Gaussian sigma of vertex X coordinate. */
         double sigmaX_{0.300};
 
         /** Gaussian sigma of vertex Y coordinate. */
         double sigmaY_{0.030};
-
-        /** Beam particle momentum. */
-        G4ThreeVector momentum_;
 
         /** Particle gun for generating events. */
         G4ParticleGun gun_;
