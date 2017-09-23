@@ -2,7 +2,9 @@
 #define HPSSIM_EVENTTRANSFORM_H_
 
 #include "CLHEP/Random/RandGauss.h"
+#include "CLHEP/Random/RandFlat.h"
 
+#include "G4SystemOfUnits.hh"
 #include "G4Event.hh"
 
 #include <iostream>
@@ -10,6 +12,9 @@
 
 namespace hpssim {
 
+/**
+ * Interface for transforming generated events.
+ */
 class EventTransform {
 
     public:
@@ -20,11 +25,14 @@ class EventTransform {
         virtual void transform(G4Event*) = 0;
 };
 
-class VertexPositionTransform : public EventTransform {
+/**
+ * Transform vertices to a fixed position.
+ */
+class PositionTransform : public EventTransform {
 
     public:
 
-        VertexPositionTransform(double x, double y, double z) {
+        PositionTransform(double x, double y, double z) {
             x_ = x;
             y_ = y;
             z_ = z;
@@ -46,11 +54,14 @@ class VertexPositionTransform : public EventTransform {
         double z_;
 };
 
-class SmearVertexTransform : public EventTransform {
+/**
+ * Gaussian smearing of vertex positions.
+ */
+class SmearTransform : public EventTransform {
 
     public:
 
-        SmearVertexTransform(double sigmaX, double sigmaY, double sigmaZ) {
+        SmearTransform(double sigmaX, double sigmaY, double sigmaZ) {
             sigmaX_ = sigmaX;
             sigmaY_ = sigmaY;
             sigmaZ_ = sigmaZ;
@@ -59,7 +70,7 @@ class SmearVertexTransform : public EventTransform {
             randZ_ = new CLHEP::RandGauss(G4Random::getTheEngine(), 0, sigmaZ);
         }
 
-        virtual ~SmearVertexTransform() {
+        virtual ~SmearTransform() {
             delete randX_;
             delete randY_;
             delete randZ_;
@@ -68,33 +79,36 @@ class SmearVertexTransform : public EventTransform {
         void transform(G4Event* anEvent) {
             double shiftX, shiftY, shiftZ;
             shiftX = shiftY = shiftZ = 0;
-            if (sigmaX_ > 0.) {
-                shiftX = sigmaX_ * randX_->fire();
+            if (sigmaX_ != 0.) {
+                shiftX = randX_->fire();
+                //std::cout << "shiftX: " << shiftX << std::endl;
             }
-            if (sigmaY_ > 0.) {
-                shiftY = sigmaY_ * randY_->fire();
+            if (sigmaY_ != 0.) {
+                shiftY = randY_->fire();
+                //std::cout << "shiftY: " << shiftY << std::endl;
             }
-            if (sigmaZ_ > 0.) {
-                shiftZ = sigmaZ_ * randZ_->fire();
+            if (sigmaZ_ != 0.) {
+                shiftZ = randZ_->fire();
+                //std::cout << "shiftZ: " << shiftZ << std::endl;
             }
             int nVertex = anEvent->GetNumberOfPrimaryVertex();
             for (int iVertex = 0; iVertex < nVertex; iVertex++) {
                 auto vertex = anEvent->GetPrimaryVertex(iVertex);
                 auto pos = vertex->GetPosition();
-                double x = pos.x();
-                double y = pos.y();
-                double z = pos.z();
-                if (sigmaX_) {
-                    x += shiftX;
+                if (shiftX != 0) {
+                    pos.setX(pos.x() + shiftX);
+                    //std::cout << "posX: " << pos.x() << std::endl;
                 }
-                if (sigmaY_) {
-                    y += shiftY;
+                if (shiftY != 0) {
+                    pos.setY(pos.y() + shiftY);
+                    //std::cout << "posY: " << pos.y() << std::endl;
                 }
-                if (sigmaZ_) {
-                    z += shiftZ;
+                if (shiftZ != 0) {
+                    pos.setZ(pos.z() + shiftZ);
+                    //std::cout << "posZ: " << pos.z() << std::endl;
                 }
-                vertex->SetPosition(x, y, z);
-                std::cout << "SmearVertexTransform: Smeared vertex to new pos " << vertex->GetPosition()
+                vertex->SetPosition(pos.x(), pos.y(), pos.z());
+                std::cout << "SmearTransform: Smeared vertex to new pos " << vertex->GetPosition()
                         << "." << std::endl;
             }
         }
@@ -110,6 +124,12 @@ class SmearVertexTransform : public EventTransform {
         CLHEP::RandGauss* randZ_;
 };
 
+/**
+ * Rotation into "beam coordinates" which transforms Px and Pz as well as the vertex X and Z positions.
+ *
+ * @note Based on algorithm from this StdHep tool:
+ * @link https://github.com/JeffersonLab/hps-mc/blob/master/tools/stdhep-tools/src/beam_coords.cc
+ */
 class RotateTransform : public EventTransform {
 
     public:
@@ -134,10 +154,12 @@ class RotateTransform : public EventTransform {
             }
         }
 
+    private:
+
         void rotatePrimary(G4PrimaryParticle* primary) {
             double px = primary->GetMomentum().x() * std::cos(theta_) + primary->GetMomentum().z() * std::sin(theta_);
             double py = primary->GetMomentum().y();
-            double pz = primary->GetMomentum().z() * std::cos(theta_) + primary->GetMomentum().x() * std::sin(theta_);
+            double pz = primary->GetMomentum().z() * std::cos(theta_) - primary->GetMomentum().x() * std::sin(theta_);
             primary->SetMomentum(px, py, pz);
             std::cout << "RotateTransform: Rotated primary momentum to " << primary->GetMomentum() << "." << std::endl;
             if (primary->GetNext()) {
@@ -148,6 +170,35 @@ class RotateTransform : public EventTransform {
     private:
 
         double theta_;
+};
+
+/**
+ * Transform the vertex Z position in a uniform random range.
+ */
+class RandZTransform : public EventTransform {
+
+    public:
+        RandZTransform(double width) {
+            width_ = width;
+        }
+
+        void transform(G4Event* anEvent) {
+            int nVertex = anEvent->GetNumberOfPrimaryVertex();
+            for (int iVertex = 0; iVertex < nVertex; iVertex++) {
+                auto vertex = anEvent->GetPrimaryVertex(iVertex);
+                auto pos = vertex->GetPosition();
+                double a = pos.z() - width_ / 2;
+                double b = pos.z() + width_ / 2;
+                double z = vertex->GetPosition().z() + CLHEP::RandFlat::shoot(a, b);
+                vertex->SetPosition(pos.x(), pos.y(), z);
+                std::cout << "RandZTransform: Set Z to " << z << "." << std::endl;
+            }
+        }
+
+    private:
+
+        /** Width of random distribution (default matches 4 micron target thickness). */
+        double width_{4.0*um};
 };
 
 }

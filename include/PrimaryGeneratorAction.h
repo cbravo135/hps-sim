@@ -25,7 +25,6 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction {
 
             std::cout << "PrimaryGenerationAction: Generating event " << anEvent->GetEventID() << std::endl;
 
-
             for (auto gen : generators_) {
 
                 std::cout << "PrimaryGeneratorAction: Running generator '" << gen->getName() << "'." << std::endl;

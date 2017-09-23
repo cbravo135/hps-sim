@@ -60,7 +60,7 @@ class LcioPersistencyManager : public G4PersistencyManager {
             if (!anEvent->IsAborted()) {
 
                 if (m_verbose > 1) {
-                    std::cout << "LcioPersistencyManager: Storing event " << anEvent->GetEventID() << std::endl;
+                    std::cout << "LcioPersistencyManager: Storing event " << anEvent->GetEventID() << "." << std::endl;
                 }
 
                 // create new LCIO event
@@ -89,7 +89,7 @@ class LcioPersistencyManager : public G4PersistencyManager {
 
             } else {
                 if (m_verbose > 1) {
-                    std::cout << "LcioPersistencyManager: Skipping aborted event " << anEvent->GetEventID() << std::endl;
+                    std::cout << "LcioPersistencyManager: Skipping aborted event " << anEvent->GetEventID() << "." << std::endl;
                 }
                 return false;
             }
@@ -97,7 +97,7 @@ class LcioPersistencyManager : public G4PersistencyManager {
 
         G4bool Store(const G4Run* aRun) {
             if (m_verbose > 1) {
-                std::cout << "LcioPersistencyManager: store run " << aRun->GetRunID() << std::endl;
+                std::cout << "LcioPersistencyManager: Store run " << aRun->GetRunID() << "." << std::endl;
             }
 
             writer_->close();
@@ -113,13 +113,13 @@ class LcioPersistencyManager : public G4PersistencyManager {
         void Initialize() {
 
             if (m_verbose > 1) {
-                std::cout << "LcioPersistencyManager: Initializing" << std::endl;
+                std::cout << "LcioPersistencyManager: Initializing." << std::endl;
             }
 
             writer_ = IOIMPL::LCFactory::getInstance()->createLCWriter();
 
             if (m_verbose > 1) {
-                std::cout << "LcioPersistencyManager: Opening '" << outputFile_ << "' for writing" << std::endl;
+                std::cout << "LcioPersistencyManager: Opening '" << outputFile_ << "' for writing." << std::endl;
             }
             writer_->open(outputFile_);
 

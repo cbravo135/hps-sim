@@ -39,6 +39,10 @@ PrimaryGeneratorMessenger::PrimaryGeneratorMessenger(PrimaryGenerator* generator
     rotCmd_ = new G4UIcommand(G4String(transformPath + "rot"), this);
     p = new G4UIparameter("theta", 'd', false);
     rotCmd_->SetParameter(p);
+
+    randzCmd_ = new G4UIcommand(G4String(transformPath + "randz"), this);
+    p = new G4UIparameter("width", 'd', false);
+    randzCmd_->SetParameter(p);
 }
 
 PrimaryGeneratorMessenger::~PrimaryGeneratorMessenger() {
@@ -46,13 +50,13 @@ PrimaryGeneratorMessenger::~PrimaryGeneratorMessenger() {
 }
 
 void PrimaryGeneratorMessenger::SetNewValue(G4UIcommand* command, G4String newValues) {
+    std::stringstream sstream(newValues);
     if (command == fileCmd_) {
         generator_->addFile(newValues);
     } else if (command == sampleCmd_) {
         /*
          * Create an event sampling object for this generator.
          */
-        std::stringstream sstream(newValues);
         std::string distrib;
         double param = 0;
         sstream >> distrib;
@@ -72,20 +76,21 @@ void PrimaryGeneratorMessenger::SetNewValue(G4UIcommand* command, G4String newVa
         eventSampling->setParam(param);
         generator_->setEventSampling(eventSampling);
     } else if (command == posCmd_) {
-        std::stringstream sstream(newValues);
         double xyz[3];
         sstream >> xyz[0] >> xyz[1] >> xyz[2];
-        generator_->addTransform(new VertexPositionTransform(xyz[0], xyz[1], xyz[2]));
+        generator_->addTransform(new PositionTransform(xyz[0], xyz[1], xyz[2]));
     } else if (command == smearCmd_) {
-        std::stringstream sstream(newValues);
         double sigmas[3];
         sstream >> sigmas[0] >> sigmas[1] >> sigmas[2];
-        generator_->addTransform(new SmearVertexTransform(sigmas[0], sigmas[1], sigmas[2]));
+        generator_->addTransform(new SmearTransform(sigmas[0], sigmas[1], sigmas[2]));
     } else if (command == rotCmd_) {
-        std::stringstream sstream(newValues);
         double theta;
         sstream >> theta;
         generator_->addTransform(new RotateTransform(theta));
+    } else if (command == randzCmd_) {
+        double width;
+        sstream >> width;
+        generator_->addTransform(new RandZTransform(width));
     }
 }
 

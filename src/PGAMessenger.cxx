@@ -2,6 +2,7 @@
 
 #include "globals.hh"
 
+#include "BeamPrimaryGenerator.h"
 #include "LHEPrimaryGenerator.h"
 #include "PrimaryGeneratorAction.h"
 #include "StdHepPrimaryGenerator.h"
@@ -25,6 +26,7 @@ PGAMessenger::PGAMessenger(PrimaryGeneratorAction* pga) : pga_(pga) {
     sourceType_["TEST"] = TEST;
     sourceType_["LHE"] = LHE;
     sourceType_["STDHEP"] = STDHEP;
+    sourceType_["BEAM"] = BEAM;
 }
 
 void PGAMessenger::SetNewValue(G4UIcommand* command, G4String newValues) {
@@ -54,6 +56,8 @@ PrimaryGenerator* PGAMessenger::createGenerator(std::string name, std::string ty
         return new LHEPrimaryGenerator(name);
     } else if (srcType == STDHEP) {
         return new StdHepPrimaryGenerator(name);
+    } else if (srcType == BEAM) {
+        return new BeamPrimaryGenerator(name);
     }
     return nullptr;
 }

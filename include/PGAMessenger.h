@@ -18,13 +18,12 @@ class PGAMessenger : public G4UImessenger {
     public:
 
         enum SourceType {
-            TEST,
+            TEST = 1,
             LHE,
-            STDHEP
-            /*
             STDHEP,
-            LCIO,
             BEAM
+            /*
+            ,LCIO
             */
         };
 

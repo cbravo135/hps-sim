@@ -36,6 +36,7 @@ class PrimaryGeneratorMessenger : public G4UImessenger {
         G4UIcommand* smearCmd_;
         G4UIcommand* posCmd_;
         G4UIcommand* rotCmd_;
+        G4UIcommand* randzCmd_;
 };
 
 }

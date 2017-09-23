@@ -13,8 +13,7 @@ class PrimaryGeneratorMessenger;
 
 // TODO:
 // -verbose level
-// -event transforms
-// -number of events to sample
+// -new run hook (for setup/init)
 // -activate and deactivate
 // -print out
 // -delete
@@ -57,6 +56,8 @@ class PrimaryGenerator : public G4VPrimaryGenerator {
         const std::vector<EventTransform*>& getTransforms() {
             return transforms_;
         }
+
+        virtual void GeneratePrimaryVertex(G4Event* anEvent) = 0;
 
     private:
 
