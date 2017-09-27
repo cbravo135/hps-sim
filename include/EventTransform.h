@@ -41,8 +41,8 @@ class PositionTransform : public EventTransform {
         void transform(G4Event* anEvent) {
             int nVertex = anEvent->GetNumberOfPrimaryVertex();
             for (int iVertex = 0; iVertex < nVertex; iVertex++) {
-                std::cout << "VertexPositionTransform: Setting vertex position to ( "
-                        << x_ << ", " << y_ << ", " << z_ << " )." << std::endl;
+                //std::cout << "VertexPositionTransform: Setting vertex position to ( "
+                //        << x_ << ", " << y_ << ", " << z_ << " )." << std::endl;
                 anEvent->GetPrimaryVertex(iVertex)->SetPosition(x_, y_, z_);
             }
         }
@@ -108,8 +108,8 @@ class SmearTransform : public EventTransform {
                     //std::cout << "posZ: " << pos.z() << std::endl;
                 }
                 vertex->SetPosition(pos.x(), pos.y(), pos.z());
-                std::cout << "SmearTransform: Smeared vertex to new pos " << vertex->GetPosition()
-                        << "." << std::endl;
+                //std::cout << "SmearTransform: Smeared vertex to new pos " << vertex->GetPosition()
+                //        << "." << std::endl;
             }
         }
 
@@ -146,7 +146,7 @@ class RotateTransform : public EventTransform {
                 double y = pos.y();
                 double z = pos.z() * std::cos(theta_) - pos.x() * std::sin(theta_);
                 vertex->SetPosition(x, y, z);
-                std::cout << "RotateTransform: Rotated vertex to " << vertex->GetPosition() << "." << std::endl;
+                //std::cout << "RotateTransform: Rotated vertex to " << vertex->GetPosition() << "." << std::endl;
                 int nPrim = vertex->GetNumberOfParticle();
                 for (int iPrim = 0; iPrim < nPrim; iPrim++) {
                     rotatePrimary(vertex->GetPrimary(iPrim));
@@ -161,7 +161,7 @@ class RotateTransform : public EventTransform {
             double py = primary->GetMomentum().y();
             double pz = primary->GetMomentum().z() * std::cos(theta_) - primary->GetMomentum().x() * std::sin(theta_);
             primary->SetMomentum(px, py, pz);
-            std::cout << "RotateTransform: Rotated primary momentum to " << primary->GetMomentum() << "." << std::endl;
+            //std::cout << "RotateTransform: Rotated primary momentum to " << primary->GetMomentum() << "." << std::endl;
             if (primary->GetNext()) {
                 rotatePrimary(primary->GetNext());
             }
@@ -180,6 +180,7 @@ class RandZTransform : public EventTransform {
     public:
         RandZTransform(double width) {
             width_ = width;
+            //CLHEP::RandFlat::setTheEngine(G4Random::getTheEngine());
         }
 
         void transform(G4Event* anEvent) {
@@ -191,7 +192,7 @@ class RandZTransform : public EventTransform {
                 double b = pos.z() + width_ / 2;
                 double z = vertex->GetPosition().z() + CLHEP::RandFlat::shoot(a, b);
                 vertex->SetPosition(pos.x(), pos.y(), z);
-                std::cout << "RandZTransform: Set Z to " << z << "." << std::endl;
+                //std::cout << "RandZTransform: Set Z to " << z << "." << std::endl;
             }
         }
 
