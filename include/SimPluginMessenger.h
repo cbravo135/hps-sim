@@ -13,75 +13,78 @@
 
 namespace hpssim {
 
-    class SimPlugin;
+class SimPlugin;
 
-    /**
-     * @class SimPluginMessenger
-     * @brief Messenger for sending macro commands to a SimPlugin
-     *
-     * @note
-     * By default, this class creates a directory for the plugin and provides
-     * a command for setting of the verbose level.  Users can override this
-     * class to provide additional commands for their specific plugins.
-     */
-    class SimPluginMessenger : public G4UImessenger {
+/**
+ * @class SimPluginMessenger
+ * @brief Messenger for sending macro commands to a SimPlugin
+ *
+ * @note
+ * By default, this class creates a directory for the plugin and provides
+ * a command for setting of the verbose level.  Users can override this
+ * class to provide additional commands for their specific plugins.
+ */
+class SimPluginMessenger : public G4UImessenger {
 
-        public:
+    public:
 
-            /**
-             * Class constructor.
-             * @param userPlugin The associated SimPlugin.
-             */
-            SimPluginMessenger(SimPlugin* userPlugin);
+        /**
+         * Class constructor.
+         * @param userPlugin The associated SimPlugin.
+         */
+        SimPluginMessenger(SimPlugin* userPlugin);
 
-            /**
-             * Class destructor.
-             */
-            virtual ~SimPluginMessenger() {
-                delete verboseCmd_;
-                delete pluginDir_;
-            }
+        /**
+         * Class destructor.
+         */
+        virtual ~SimPluginMessenger() {
+            delete verboseCmd_;
+            delete pluginDir_;
+        }
 
-            /**
-             * Process the macro command.
-             * @param[in] command The macro command.
-             * @param[in] newValue The argument values.
-             */
-            void SetNewValue(G4UIcommand *command, G4String newValue);
+        /**
+         * Process the macro command.
+         * @param[in] command The macro command.
+         * @param[in] newValue The argument values.
+         */
+        void SetNewValue(G4UIcommand *command, G4String newValue);
 
-            /**
-             * Get the command path (plugin's macro directory).
-             * @return The command path.
-             */
-            const std::string& getPath() {
-                return pluginDir_->GetCommandPath();
-            }
+        /**
+         * Get the command path (plugin's macro directory).
+         * @return The command path.
+         */
+        const std::string& getPath() {
+            return pluginDir_->GetCommandPath();
+        }
 
-            /**
-             * Get the associated SimPlugin.
-             * @return The associated SimPlugin.
-             */
-            SimPlugin* getPlugin() {
-                return userPlugin_;
-            }
+        /**
+         * Get the associated SimPlugin.
+         * @return The associated SimPlugin.
+         */
+        SimPlugin* getPlugin() {
+            return userPlugin_;
+        }
 
-        private:
+    private:
 
-            /**
-             * The associated UserActionPligin.
-             */
-            SimPlugin* userPlugin_;
+        /**
+         * The associated UserActionPligin.
+         */
+        SimPlugin* userPlugin_;
 
-            /**
-             * The plugin's command directory.
-             */
-            G4UIdirectory* pluginDir_;
+        /**
+         * The plugin's command directory.
+         */
+        G4UIdirectory* pluginDir_;
 
-            /**
-             * The command for setting verbose level.
-             */
-            G4UIcommand* verboseCmd_;
-    };
+        /**
+         * The command for setting verbose level.
+         */
+        G4UIcommand* verboseCmd_;
+
+        /** The double parameters for the plugin. */
+        G4UIcommand* paramCmd_;
+};
 
 } // namespace sim
 

@@ -7,12 +7,13 @@
 #ifndef HPSSIM_SIMPLUGIN_H_
 #define HPSSIM_SIMPLUGIN_H_
 
-// Geant4
 #include "G4Run.hh"
 #include "G4Event.hh"
 #include "G4Track.hh"
 #include "G4Step.hh"
 #include "G4ClassificationOfNewTrack.hh"
+
+#include "Parameters.h"
 
 #include <vector>
 
@@ -82,6 +83,13 @@ class SimPlugin {
          */
         int getVerboseLevel() {
             return verbose_;
+        }
+
+        virtual void initialize() {
+        }
+
+        Parameters& getParameters() {
+            return params_;
         }
 
         /**
@@ -156,7 +164,9 @@ class SimPlugin {
     protected:
 
         /** Protected access to verbose level for convenience of sub-classes. */
-        int verbose_ {1};
+        int verbose_{1};
+
+        Parameters params_;
 };
 }
 

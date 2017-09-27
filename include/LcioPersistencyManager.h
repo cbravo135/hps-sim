@@ -60,7 +60,7 @@ class LcioPersistencyManager : public G4PersistencyManager {
             if (!anEvent->IsAborted()) {
 
                 if (m_verbose > 1) {
-                    std::cout << "LcioPersistencyManager: Storing event " << anEvent->GetEventID() << "." << std::endl;
+                    std::cout << "LcioPersistencyManager: Storing event " << anEvent->GetEventID() << std::endl;
                 }
 
                 // create new LCIO event

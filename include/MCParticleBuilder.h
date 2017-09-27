@@ -21,6 +21,7 @@ class MCParticleBuilder {
         typedef std::map<G4int, IMPL::MCParticleImpl*> MCParticleMap;
 
         MCParticleBuilder() {
+            // TODO: Make track map a constructor arg.
             trackMap_ = UserTrackingAction::getUserTrackingAction()->getTrackMap();
         }
 
@@ -67,8 +68,6 @@ class MCParticleBuilder {
             //p->setEnergy(traj->getEnergy());
             p->setTime(traj->getGlobalTime());
 
-            //p->setProcessType(traj->getProcessType());
-
             double vertexArr[] = {traj->getVertexPosition()[0], traj->getVertexPosition()[1], traj->getVertexPosition()[2]};
             p->setVertex(vertexArr);
 
@@ -78,8 +77,6 @@ class MCParticleBuilder {
             //const G4ThreeVector& endpMomentum = traj->getEndPointMomentum();
             //p->setEndPointMomentum(endpMomentum[0], endpMomentum[1], endpMomentum[2]);
 
-            //G4ThreeVector endpoint = traj->getEndPoint();
-            //p->setEndPoint(endpoint[0], endpoint[1], endpoint[2]);
             double endp[] = {traj->getEndPoint()[0], traj->getEndPoint()[1], traj->getEndPoint()[2]};
             p->setEndpoint(endp);
 
@@ -92,6 +89,13 @@ class MCParticleBuilder {
                     std::cerr << "MCParticleBuilder : MCParticle with parent ID " << traj->GetParentID() << " not found for track ID " << traj->GetTrackID() << std::endl;
                     G4Exception("MCParticleBuilder::buildMCParticle", "", FatalException, "MCParticle not found from parent track ID.");
                 }
+            }
+
+            // Set sim status to indicate particle was created in simulation.
+            if (!traj->getGenStatus()) {
+                std::bitset<32> simStatus;
+                simStatus[EVENT::MCParticle::BITCreatedInSimulation] = 1;
+                p->setSimulatorStatus(simStatus.to_ulong());
             }
         }
 

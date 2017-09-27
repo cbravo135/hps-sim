@@ -159,6 +159,8 @@ class PluginManager {
          */
         std::ostream& print(std::ostream& os);
 
+        void initializePlugins();
+
     private:
 
         /**

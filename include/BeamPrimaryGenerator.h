@@ -7,6 +7,7 @@
 #include "CLHEP/Random/RandGauss.h"
 
 #include "PrimaryGenerator.h"
+#include "UserPrimaryParticleInformation.h"
 
 namespace hpssim {
 
@@ -16,46 +17,46 @@ class BeamPrimaryGenerator : public PrimaryGenerator {
 
         BeamPrimaryGenerator(std::string name) : PrimaryGenerator(name) {
             gun_.SetParticleDefinition(G4ParticleTable::GetParticleTable()->FindParticle("e-"));
+            CLHEP::RandGauss::setTheEngine(G4Random::getTheEngine());
         }
 
-        virtual void GeneratePrimaryVertex(G4Event* anEvent) {
-            if (!numberOfElectrons_) {
-                numberOfElectrons_ = computeNumberOfElectrons();
+        void GeneratePrimaryVertex(G4Event* anEvent) {
+            if (verbose_ > 1) {
+                std::cout << "BeamPrimaryGenerator: Generating " << nelectrons_ << " electrons." << std::endl;
             }
-            std::cout << "BeamPrimaryGenerator: Generating " << numberOfElectrons_ << " electrons." << std::endl;
             gun_.SetParticleEnergy(energy_);
-            gun_.SetParticleMomentum(momentum_);
             gun_.SetParticlePosition(position_);
-            for (int i = 0; i < numberOfElectrons_; i++) {
+            gun_.SetParticleMomentumDirection(direction_);
+            for (int i = 0; i < nelectrons_; i++) {
                 G4ThreeVector sampledPosition;
                 sampledPosition.setX(position_.x() + CLHEP::RandGauss::shoot(0, sigmaX_));
                 sampledPosition.setY(position_.y() + CLHEP::RandGauss::shoot(0, sigmaY_));
                 sampledPosition.setZ(position_.z());
-                std::cout << "BeamPrimaryGenerator: Sampled pos " << sampledPosition
-                        << " for electron " << i << "." << std::endl;
+                if (verbose_ > 2) {
+                    std::cout << "BeamPrimaryGenerator: Sampled pos " << sampledPosition
+                            << " for electron " << i << std::endl;
+                }
                 gun_.SetParticlePosition(sampledPosition);
                 gun_.GeneratePrimaryVertex(anEvent);
             }
         }
 
-        void setEnergy(double energy) {
-            energy_ = energy;
-        }
-
-        /*
-        void setPosition(double x, double y, double z) {
-            position_.set(x, y, z);
-        }
-        */
-
-        void setCurrent(double current) {
-            current_ = current;
-            numberOfElectrons_ = 0; // n electrons now needs to be recalculated
+        void initialize() {
+            Parameters& params = getParameters();
+            energy_ = params.get("energy", energy_);
+            if (params.has("nelectrons")) {
+                nelectrons_ = params.get("nelectrons");
+                std::cout << "BeamPrimaryGenerator: Number of electrons was set to " << nelectrons_ << std::endl;
+            } else {
+                current_ = params.get("current", current_);
+                computeNumberOfElectrons();
+                std::cout << "BeamPrimaryGenerator: Calculated number of electrons " << nelectrons_ << std::endl;
+            }
         }
 
     private:
 
-        int computeNumberOfElectrons() {
+        void computeNumberOfElectrons() {
 
             // electrons per second for 100 nA
             static double electronsPerSecond = 6.25 * pow(10., 11.);
@@ -67,9 +68,7 @@ class BeamPrimaryGenerator : public PrimaryGenerator {
             static int electronsPerBunch = electronsPerSecond / nBunchesPerSecond;
 
             // convert to specified current
-            int nelectrons = electronsPerBunch * current_ / 100.;
-
-            return nelectrons;
+            nelectrons_ = electronsPerBunch * current_ / 100.;
         }
 
     private:
@@ -77,16 +76,16 @@ class BeamPrimaryGenerator : public PrimaryGenerator {
         /** Vertex position of the beam particles. */
         G4ThreeVector position_{G4ThreeVector(0, 0, -10)};
 
-        /** Beam particle momentum. */
-        G4ThreeVector momentum_{G4ThreeVector(0, 0, 1)};
+        /** Beam particle momentum in GeV. */
+        G4ThreeVector direction_{G4ThreeVector(0, 0, 1.)};
 
         /* Beam energy in GeV. */
-        double energy_{1.056};
+        double energy_{1.056 * GeV};
 
         /** Number of electrons to fire in one event. */
-        int numberOfElectrons_{0};
+        int nelectrons_{0};
 
-        /* Beam current in nA (may use 200, 450 also). */
+        /* Beam current in nA (may use 200 or 450 also). */
         double current_{50};
 
         /** Gaussian sigma of vertex X coordinate. */

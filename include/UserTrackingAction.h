@@ -10,6 +10,7 @@
 
 #include "PluginManager.h"
 #include "TrackMap.h"
+#include "UserPrimaryParticleInformation.h"
 #include "UserTrackInformation.h"
 
 namespace hpssim {
@@ -57,7 +58,10 @@ class UserTrackingAction : public G4UserTrackingAction {
 
             // Set end point momentum on the trajectory.
             if (fpTrackingManager->GetStoreTrajectory()) {
+
                 auto traj = dynamic_cast<Trajectory*>(fpTrackingManager->GimmeTrajectory());
+
+                // Set end point momentum if track is killed.
                 if (traj) {
                     if (aTrack->GetTrackStatus() == G4TrackStatus::fStopAndKill) {
                         traj->setEndPointMomentum(aTrack);
@@ -76,16 +80,6 @@ class UserTrackingAction : public G4UserTrackingAction {
             fpTrackingManager->SetStoreTrajectory(true);
             Trajectory* traj = new Trajectory(aTrack);
             fpTrackingManager->SetTrajectory(traj);
-
-            // Update the gen status from the primary particle.
-            /*
-            if (aTrack->GetDynamicParticle()->GetPrimaryParticle() != NULL) {
-                G4VUserPrimaryParticleInformation* primaryInfo = aTrack->GetDynamicParticle()->GetPrimaryParticle()->GetUserInformation();
-                if (primaryInfo != NULL) {
-                    traj->setGenStatus(((UserPrimaryParticleInformation*) primaryInfo)->getHepEvtStatus());
-                }
-            }
-            */
 
             // Map track ID to trajectory.
             trackMap_.addTrajectory(traj);

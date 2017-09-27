@@ -2,7 +2,9 @@
 #define HPSSIM_PRIMARYGENERATORMESSENGER_H_
 
 #include "G4UImessenger.hh"
+#include "G4UIcmdWithADoubleAndUnit.hh"
 #include "G4UIcmdWithAString.hh"
+#include "G4UIcmdWithAnInteger.hh"
 
 namespace hpssim {
 
@@ -27,12 +29,11 @@ class PrimaryGeneratorMessenger : public G4UImessenger {
 
         G4UIdirectory* dir_;
         G4UIcmdWithAString* fileCmd_;
+        G4UIcmdWithAnInteger* verboseCmd_;
+        G4UIcommand* paramCmd_;
+        G4UIcommand* sampleCmd_;
 
         G4UIdirectory* transformDir_;
-
-        G4UIcommand* sampleCmd_;
-        //G4UIcommand* transformCmd_;
-
         G4UIcommand* smearCmd_;
         G4UIcommand* posCmd_;
         G4UIcommand* rotCmd_;

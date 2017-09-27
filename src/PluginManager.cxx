@@ -13,6 +13,14 @@ PluginManager::~PluginManager() {
     delete messenger_;
 }
 
+void PluginManager::initializePlugins() {
+    for (auto plugin : this->plugins_) {
+        std::cout << "PluginManager: Initializing " << plugin->getName() << std::endl;
+        plugin->getParameters().print(std::cout);
+        plugin->initialize();
+    }
+}
+
 void PluginManager::beginRun(const G4Run* run) {
     auto plugins = actions_[SimPlugin::RUN];
     for (PluginVec::iterator it = plugins.begin(); it != plugins.end(); it++) {

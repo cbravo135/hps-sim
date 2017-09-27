@@ -3,9 +3,12 @@
 
 #include "G4VPrimaryGenerator.hh"
 
-#include "PrimaryGeneratorMessenger.h"
 #include "EventSampling.h"
 #include "EventTransform.h"
+#include "Parameters.h"
+#include "PrimaryGeneratorMessenger.h"
+
+#include <map>
 
 namespace hpssim {
 
@@ -13,7 +16,6 @@ class PrimaryGeneratorMessenger;
 
 // TODO:
 // -verbose level
-// -new run hook (for setup/init)
 // -activate and deactivate
 // -print out
 // -delete
@@ -25,6 +27,13 @@ class PrimaryGenerator : public G4VPrimaryGenerator {
         PrimaryGenerator(std::string name);
 
         virtual ~PrimaryGenerator();
+
+        virtual void initialize() {
+        }
+
+        Parameters& getParameters() {
+            return params_;
+        }
 
         const std::string& getName() {
             return name_;
@@ -59,14 +68,17 @@ class PrimaryGenerator : public G4VPrimaryGenerator {
 
         virtual void GeneratePrimaryVertex(G4Event* anEvent) = 0;
 
+    protected:
+        int verbose_{1};
+
     private:
 
         std::string name_;
         std::vector<std::string> files_;
         PrimaryGeneratorMessenger* messenger_;
-        int verbose_{1};
         EventSampling* sampling_{new UniformEventSampling};
         std::vector<EventTransform*> transforms_;
+        Parameters params_;
 };
 
 }

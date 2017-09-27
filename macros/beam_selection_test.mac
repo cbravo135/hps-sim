@@ -5,17 +5,11 @@
 
 # generate beam particles for one bunch
 /hps/generators/create BeamGen BEAM
-
-# generate test particles
-#/hps/generators/create TestGen TEST
-
-# generate signal
-#/hps/generators/create SigGen LHE
-#/hps/generators/SigGen/file signal1.lhe
+#/hps/generators/BeamGen param nelectrons 2
 
 # event selection for beam particles
 /hps/plugins/load BeamTrackSelectionPlugin
-/hps/plugins/BeamTrackSelectionPlugin/verbose 3
+/hps/plugins/BeamTrackSelectionPlugin/verbose 2
 
 # init the run
 /run/initialize
@@ -24,4 +18,4 @@
 /hps/lcio/verbose 2
 /hps/lcio/file beam_test.slcio
 
-/run/beamOn 50
+/run/beamOn 160

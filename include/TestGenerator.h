@@ -15,8 +15,9 @@ class TestGenerator : public PrimaryGenerator {
 
         TestGenerator(std::string name) : PrimaryGenerator(name) {
             gun_->SetParticleDefinition(G4ParticleTable::GetParticleTable()->FindParticle("e-"));
-            gun_->SetParticlePosition(G4ThreeVector(55*mm, 25*mm, 0*mm));
-            gun_->SetParticleMomentum(G4ThreeVector(0, 0, 1*GeV));
+            //gun_->SetParticlePosition(G4ThreeVector(55*mm, 25*mm, 0*mm));
+            gun_->SetParticlePosition(G4ThreeVector(0, 0, 0));
+            gun_->SetParticleMomentum(G4ThreeVector(0, 0, 1.056*GeV));
         }
 
         void GeneratePrimaryVertex (G4Event *evt) {

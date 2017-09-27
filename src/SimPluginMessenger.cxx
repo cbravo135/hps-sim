@@ -2,6 +2,8 @@
 
 #include "SimPlugin.h"
 
+#include <sstream>
+
 namespace hpssim {
 
     SimPluginMessenger::SimPluginMessenger(SimPlugin* userPlugin) :
@@ -20,7 +22,15 @@ namespace hpssim {
     void SimPluginMessenger::SetNewValue(G4UIcommand *command, G4String newValue) {
         if (command == verboseCmd_) {
             userPlugin_->setVerboseLevel(std::atoi(newValue));
-            std::cout << userPlugin_->getName() << " verbose set to " << userPlugin_->getVerboseLevel() << std::endl;
+            std::cout << userPlugin_->getName() << ": Verbose set to " << userPlugin_->getVerboseLevel() << std::endl;
+        } else if (command == paramCmd_) {
+            std::stringstream sstream(newValue);
+            std::string name;
+            double value;
+            sstream >> name;
+            sstream >> value;
+            userPlugin_->getParameters().set(name, value);
+            std::cout << std::cout << userPlugin_->getName() << ": Set param '" << name << "' = " << value << std::endl;
         }
     }
 } // namespace hpssim

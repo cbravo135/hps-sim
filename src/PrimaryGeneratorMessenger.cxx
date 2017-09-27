@@ -17,6 +17,14 @@ PrimaryGeneratorMessenger::PrimaryGeneratorMessenger(PrimaryGenerator* generator
     p = new G4UIparameter("param", 'd', false);
     sampleCmd_->SetParameter(p);
 
+    verboseCmd_ = new G4UIcmdWithAnInteger(G4String("/hps/generators/" + generator->getName() + "/verbose"), this);
+
+    paramCmd_ = new G4UIcommand(G4String("/hps/generators/" + generator->getName() + "/param"), this);
+    p = new G4UIparameter("name", 's', false);
+    paramCmd_->SetParameter(p);
+    p = new G4UIparameter("value", 'd', false);
+    paramCmd_->SetParameter(p);
+
     auto transformPath = G4String("/hps/generators/" + generator->getName() + "/transform/");
     transformDir_ = new G4UIdirectory(transformPath, this);
 
@@ -53,6 +61,19 @@ void PrimaryGeneratorMessenger::SetNewValue(G4UIcommand* command, G4String newVa
     std::stringstream sstream(newValues);
     if (command == fileCmd_) {
         generator_->addFile(newValues);
+    } else if (command == verboseCmd_ ) {
+        int newLevel = verboseCmd_->ConvertToInt(newValues);
+        generator_->setVerbose(newLevel);
+        std::cout << "PrimaryGeneratorMessenger: Set verbose level to " << newLevel
+                << " for generator " << generator_->getName() << "." << std::endl;
+    } else if (command == paramCmd_) {
+        std::string name;
+        double value;
+        sstream >> name;
+        sstream >> value;
+        generator_->getParameters().set(name, value);
+        std::cout << "PrimaryGeneratorMessenger: Set param '" << name << "' = " << value <<
+                " for generator " << generator_->getName() << std::endl;
     } else if (command == sampleCmd_) {
         /*
          * Create an event sampling object for this generator.
