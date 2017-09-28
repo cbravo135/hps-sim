@@ -22,6 +22,8 @@ PGAMessenger::PGAMessenger(PrimaryGeneratorAction* pga) : pga_(pga) {
     p = new G4UIparameter("type", 's', false);
     createCmd_->SetParameter(p);
 
+    verboseCmd_ = new G4UIcmdWithAnInteger("/hps/generators/verbose", this);
+
     // Define valid source types (this should probably be static and go someplace else).
     sourceType_["TEST"] = TEST;
     sourceType_["LHE"] = LHE;
@@ -34,13 +36,17 @@ void PGAMessenger::SetNewValue(G4UIcommand* command, G4String newValues) {
         std::stringstream params(newValues);
         std::string name, type;
         params >> name >> type;
-        std::cout << "PrimaryGeneratorMessenger: Creating generator '" << name << "' with type '" << type << "'" << std::endl;
+        //std::cout << "PrimaryGeneratorMessenger: Creating generator '" << name << "' with type '" << type << "'" << std::endl;
         auto generator = createGenerator(name, type);
         if (!generator) {
             std::cerr << "PGAMessenger: The primary generator type '" << type << "' is not valid!" << std::endl;
             G4Exception("", "", FatalException, "Invalid primary generator type.");
         }
         pga_->addGenerator(generator);
+    } else if (command == verboseCmd_) {
+        int newLevel = G4UIcommand::ConvertToInt(newValues);
+        std::cout << "PrimaryGeneratorMessenger: Setting generator verbose level to " << newLevel << std::endl;
+        pga_->setVerbose(newLevel);
     }
 }
 

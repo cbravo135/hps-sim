@@ -41,6 +41,8 @@ class PGAMessenger : public G4UImessenger {
 
         G4UIdirectory* dir_;
 
+        G4UIcmdWithAnInteger* verboseCmd_;
+
         std::map<std::string, SourceType> sourceType_;
 };
 

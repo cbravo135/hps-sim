@@ -22,17 +22,30 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction {
             delete messenger_;
         }
 
+        void setVerbose(int verbose) {
+            verbose_ = verbose;
+        }
+
         virtual void GeneratePrimaries(G4Event* anEvent) {
 
-            std::cout << "PrimaryGenerationAction: Generating event " << anEvent->GetEventID() << std::endl;
+            if (verbose_ > 1) {
+                std::cout << "PrimaryGenerationAction: Generating event " << anEvent->GetEventID() << std::endl;
+            }
 
             for (auto gen : generators_) {
 
-                //std::cout << "PrimaryGeneratorAction: Running generator '" << gen->getName() << "'." << std::endl;
+                if (verbose_ > 1) {
+                    std::cout << "PrimaryGeneratorAction: Running generator '" << gen->getName() << std::endl;
+                }
 
                 auto transforms = gen->getTransforms();
 
                 int nevents = gen->getEventSampling()->getNumberOfEvents(anEvent);
+
+                if (verbose_ > 1) {
+                    std::cout << "PrimaryGeneratorAction: Sampling " << nevents << " events from '" << gen->getName() << "'" << std::endl;
+                }
+
                 for (int iEvent = 0; iEvent < nevents; iEvent++) {
 
                     // create new G4 event to overlay
@@ -44,20 +57,27 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction {
                         transform->transform(genEvent);
                     }
 
-                    //std::cout << "PrimaryGeneratorAction: Generator '" << gen->getName() << "' created "
-                    //        << genEvent->GetNumberOfPrimaryVertex() << " vertices in sample " << (iEvent + 1) << "."
-                    //        << std::endl;
+                    if (verbose_ > 2) {
+                        std::cout << "PrimaryGeneratorAction: Generator '" << gen->getName() << "' created "
+                                << genEvent->GetNumberOfPrimaryVertex() << " vertices in sample " << iEvent
+                                << std::endl;
+                    }
 
                     // overlay the event onto the target output event
+                    std::vector<G4PrimaryVertex*> vertices;
                     for (int ivtx = 0; ivtx < genEvent->GetNumberOfPrimaryVertex(); ivtx++) {
-                        //std::cout << "PrimaryGeneratorAction: Overlaying vertex " << ivtx << " from '" << gen->getName() << "' into event." << std::endl;
-                        anEvent->AddPrimaryVertex(new G4PrimaryVertex(*genEvent->GetPrimaryVertex(ivtx)));
+                        auto vtx = new G4PrimaryVertex(*genEvent->GetPrimaryVertex(ivtx));
+                        vertices.push_back(vtx);
+                    }
+                    if (vertices.size()) {
+                        anEvent->AddPrimaryVertex(vertices[0]);
                     }
           
                     delete genEvent;
                 }
             }
 
+            // Set the generator status on the primaries and attach a user info object, if needed.
             setGenStatus(anEvent);
         }
 
@@ -91,27 +111,39 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction {
         }
 
         void setGenStatus(G4PrimaryParticle* primaryParticle) {
+
             auto info = UserPrimaryParticleInformation::getUserPrimaryParticleInformation(primaryParticle);
+
+            // Create a new user info object if needed; maybe the generator itself didn't do this!
             if (!info) {
                 info = new UserPrimaryParticleInformation;
                 primaryParticle->SetUserInformation(info);
             }
+
             G4PrimaryParticle* dau = primaryParticle->GetDaughter();
             if (dau) {
+                // Particles with daughters are given status of 'intermediate'.
                 info->setGenStatus(2);
                 while (dau) {
+                    // Process the list of daughter particles recursively.
                     setGenStatus(dau);
                     dau = dau->GetNext();
                 }
             } else {
+                // Particles with no daughters are given status of 'final state'.
                 info->setGenStatus(1);
             }
         }
+
+    protected:
+
+        int verbose_{1};
 
     private:
 
         G4UImessenger* messenger_;
 
+        /** List of primary generators to run for every Geant4 event. */
         std::vector<PrimaryGenerator*> generators_;
 };
 
