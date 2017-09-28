@@ -4,6 +4,6 @@ cmake .. \
         -DGDML_DIR=$depdir/gdml/install \
         -DLCDD_DIR=$depdir/lcdd/install \
         -DXERCES_LIBRARY=$depdir/xercesc/xerces-c-3.2.0-install/lib/libxerces-c.so -DXERCES_INCLUDE_DIR=$depdir/xercesc/xerces-c-3.2.0-install/include \
-        -DGeant4_DIR=$depdir/geant4/geant4.10.03.p02-install/lib64/Geant4-10.3.2/ \
+        -DGeant4_DIR=$depdir/geant4/geant4.10.02.p03-install/lib64/Geant4-10.2.3/ \
         -DLCIO_DIR=$depdir/LCIO/install \
         -DCMAKE_BUILD_TYPE=Debug
