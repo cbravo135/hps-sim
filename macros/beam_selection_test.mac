@@ -3,9 +3,12 @@
 
 /random/setSeeds 12345 67890
 
+/hps/generators/verbose 4
+
 # generate beam particles for one bunch
 /hps/generators/create BeamGen BEAM
-#/hps/generators/BeamGen param nelectrons 2
+#/hps/generators/BeamGen/param nelectrons 1
+/hps/generators/BeamGen/verbose 2
 
 # event selection for beam particles
 /hps/plugins/load BeamTrackSelectionPlugin
@@ -16,6 +19,17 @@
 
 # LCIO output
 /hps/lcio/verbose 2
-/hps/lcio/file beam_test.slcio
+/hps/lcio/recreate
+/hps/lcio/file beam_selection_test.slcio
 
-/run/beamOn 160
+# visualization
+#/vis/scene/create
+#/vis/scene/add/volume
+#/vis/scene/add/trajectories
+#/vis/open OGLSX
+#/vis/viewer/set/viewpointThetaPhi 90 0
+#/vis/viewer/zoom 6
+
+#/run/beamOn 1250
+#/run/beamOn 160
+/run/beamOn 1000
