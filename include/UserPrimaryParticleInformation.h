@@ -47,7 +47,7 @@ class UserPrimaryParticleInformation : public G4VUserPrimaryParticleInformation 
         }
 
         /**
-         * Implement virtual method (no-op).
+         * Implement pure virtual method.
          */
         void Print() const {
         }
@@ -61,7 +61,7 @@ class UserPrimaryParticleInformation : public G4VUserPrimaryParticleInformation 
         /**
          * The HEP event status.
          */
-        int genStatus_ {-1};
+        int genStatus_{-1};
 };
 
 }
