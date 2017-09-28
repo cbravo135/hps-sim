@@ -49,7 +49,7 @@ class LcioPersistencyManager : public G4PersistencyManager {
             G4PersistencyCenter::GetPersistencyCenter()->RegisterPersistencyManager(this);
             G4PersistencyCenter::GetPersistencyCenter()->SetPersistencyManager(this, "LcioPersistencyManager");
             writer_ = nullptr;
-            builder_ = new MCParticleBuilder();
+            builder_ = new MCParticleBuilder(UserTrackingAction::getUserTrackingAction()->getTrackMap());
             messenger_ = new LcioPersistencyMessenger(this);
         }
 

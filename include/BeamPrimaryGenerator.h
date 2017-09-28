@@ -1,6 +1,5 @@
 #include <math.h>
 
-#include "G4ParticleGun.hh"
 #include "G4ParticleTable.hh"
 #include "G4SystemOfUnits.hh"
 
@@ -16,7 +15,6 @@ class BeamPrimaryGenerator : public PrimaryGenerator {
     public:
 
         BeamPrimaryGenerator(std::string name) : PrimaryGenerator(name) {
-            CLHEP::RandGauss::setTheEngine(G4Random::getTheEngine());
         }
 
         void GeneratePrimaryVertex(G4Event* anEvent) {
@@ -57,12 +55,14 @@ class BeamPrimaryGenerator : public PrimaryGenerator {
                 if (verbose_ > 1) {
                     std::cout << "BeamPrimaryGenerator: Number of electrons was set to " << nelectrons_ << std::endl;
                 }
+                smearNElectrons_ = false;
             } else {
                 current_ = params.get("current", current_);
                 computeNumberOfElectrons();
                 if (verbose_ > 1) {
                     std::cout << "BeamPrimaryGenerator: Calculated number of electrons " << nelectrons_ << std::endl;
                 }
+                smearNElectrons_ = true;
             }
         }
 
@@ -105,6 +105,9 @@ class BeamPrimaryGenerator : public PrimaryGenerator {
 
         /** Gaussian sigma of vertex Y coordinate. */
         double sigmaY_{0.030};
+
+        /** Flag for Gaussian smearing of number of electrons. */
+        bool smearNElectrons_{false};
 };
 
 }

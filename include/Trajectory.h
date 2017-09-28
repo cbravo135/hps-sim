@@ -173,16 +173,6 @@ class Trajectory : public G4VTrajectory {
          */
         static Trajectory* findByTrackID(G4TrajectoryContainer* trajCont, int trackID);
 
-        /**
-         * Get the creator process type of this particle.
-         * This corresponds to the value returned by <i>G4VProcess::GetProcessSubType()</i>
-         * e.g. 121 for products of photonuclear reactions.
-         * @return The creator process type of this particle.
-         */
-        int getProcessType() {
-            return processType_;
-        }
-
         void setEndPointMomentum(const G4Track* aTrack) {
             G4ThreeVector p = aTrack->GetMomentum();
             double px = p.x();
@@ -250,9 +240,6 @@ class Trajectory : public G4VTrajectory {
 
         /** The particle's vertex position. */
         G4ThreeVector vertexPosition_;
-
-        /** The type of the process which created the track. */
-        int processType_;
 
         /** Flag for whether track should be persisted. */
         bool saveFlag_{false};

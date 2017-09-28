@@ -20,9 +20,7 @@ class MCParticleBuilder {
 
         typedef std::map<G4int, IMPL::MCParticleImpl*> MCParticleMap;
 
-        MCParticleBuilder() {
-            // TODO: Make track map a constructor arg.
-            trackMap_ = UserTrackingAction::getUserTrackingAction()->getTrackMap();
+        MCParticleBuilder(TrackMap* trackMap) : trackMap_(trackMap) {
         }
 
         virtual ~MCParticleBuilder() {

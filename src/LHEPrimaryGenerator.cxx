@@ -4,9 +4,6 @@
 #include "G4Event.hh"
 #include "G4IonTable.hh"
 
-// LDMX
-//#include "SimApplication/UserPrimaryParticleInformation.h"
-
 // Geant4
 #include "G4SystemOfUnits.hh"
 #include "G4PhysicalConstants.hh"
