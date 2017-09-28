@@ -34,9 +34,11 @@ class MCParticleBuilder {
             }
             particleMap_.clear();
             for (auto trajectory : *trajectories->GetVector()) {
-                auto particle = new IMPL::MCParticleImpl;
-                collVec->addElement(particle);
-                particleMap_[trajectory->GetTrackID()] = particle;
+                if (Trajectory::getTrajectory(trajectory)->getSaveFlag()) {
+                    auto particle = new IMPL::MCParticleImpl;
+                    collVec->addElement(particle);
+                    particleMap_[trajectory->GetTrackID()] = particle;
+                }
             }
             //std::cout << "MCParticleBuilder: created " << collVec->size() << " empty MCParticle objects" << std::endl;
         }
@@ -84,11 +86,13 @@ class MCParticleBuilder {
                 IMPL::MCParticleImpl* parent = findMCParticle(traj->GetParentID());
                 if (parent != nullptr) {
                     p->addParent(parent);
-                } else {
+                }
+                // Sometimes this is okay if there is track selection from plugins in the event that kills primary tracks.
+                /*else {
                     // If the parent particle can not be found by its track ID, this is a fatal error!
                     std::cerr << "MCParticleBuilder : MCParticle with parent ID " << traj->GetParentID() << " not found for track ID " << traj->GetTrackID() << std::endl;
                     G4Exception("MCParticleBuilder::buildMCParticle", "", FatalException, "MCParticle not found from parent track ID.");
-                }
+                }*/
             }
 
             // Set sim status to indicate particle was created in simulation.
@@ -107,7 +111,11 @@ class MCParticleBuilder {
             buildParticleMap(trajectories, collVec);
 
             for (auto trajectory : *trajectories->GetVector()) {
-                buildMCParticle(static_cast<Trajectory*>(trajectory));
+                if (Trajectory::getTrajectory(trajectory)->getSaveFlag()) {
+                    buildMCParticle(static_cast<Trajectory*>(trajectory));
+                } /*else {
+                    std::cout << "MCParticleBuilder: Save flag off for track " << trajectory->GetTrackID() << std::endl;
+                }*/
             }
 
             return collVec;
