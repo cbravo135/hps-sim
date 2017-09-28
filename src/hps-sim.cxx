@@ -9,7 +9,7 @@
 
 #include "lcdd/core/LCDDDetectorConstruction.hh"
 
-#include "../include/SteppingAction.h"
+#include "SteppingAction.h"
 #include "LcioPersistencyManager.h"
 #include "PluginManager.h"
 #include "PrimaryGeneratorAction.h"
