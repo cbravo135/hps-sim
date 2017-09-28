@@ -6,6 +6,8 @@
 
 #include "SimPlugin.h"
 #include "SimPluginMessenger.h"
+#include "UserPrimaryParticleInformation.h"
+#include "UserTrackInformation.h"
 
 #include "G4AntiNeutron.hh"
 #include "G4AntiProton.hh"
@@ -50,6 +52,8 @@ class BeamTrackSelectionPlugin: public SimPlugin {
             electronThetaYCut_ = params.get("electronThetaYCut", electronThetaYCut_);
             electronEnergyCut_ = params.get("electronEnergyCut", electronEnergyCut_);
             electronEnergyThreshold_ = params.get("electronEnergyThreshold", electronEnergyThreshold_);
+
+            // TODO: Compute energy cuts automatically from particle energy (beam E) if not set from parameters.
         }
 
         void beginEvent(const G4Event* event) {
@@ -58,17 +62,25 @@ class BeamTrackSelectionPlugin: public SimPlugin {
             }
             nKilled_ = 0;
             nTracks_ = 0;
+            nPassed_ = 0;
         }
 
         void endEvent(const G4Event* event) {
             if (verbose_ > 1) {
-                std::cout << "BeamTrackSelectionPlugin: End event " << event->GetEventID() << std::endl;
                 std::cout << "BeamTrackSelectionPlugin: Killed " << nKilled_ << " tracks of " << nTracks_
-                        << " in event " << event->GetEventID() << std::endl;
+                        << " and passed " << nPassed_ << " in event " << event->GetEventID() << std::endl;
             }
         }
 
-        void preTracking(const G4Track*) {
+        void preTracking(const G4Track* aTrack) {
+            if (verbose_ > 2) {
+                std::cout << "BeamTrackSelectionPlugin: Track " << aTrack->GetTrackID()
+                        << " with PID " << aTrack->GetParticleDefinition()->GetPDGEncoding()
+                        << " and momentum " << aTrack->GetMomentum()
+                        << "' with parent " << aTrack->GetParentID()
+                        << " and vertex " << aTrack->GetVertexPosition()
+                        << std::endl;
+            }
             ++nTracks_;
         }
 
@@ -90,9 +102,15 @@ class BeamTrackSelectionPlugin: public SimPlugin {
                         if (verbose_ > 2) {
                             std::cout << "BeamTrackSelectionPlugin: Track " << track->GetTrackID() << " with PID "
                                     << track->GetParticleDefinition()->GetPDGEncoding() << " and momentum "
-                                    << track->GetMomentum() << " failed selection and will be killed" << std::endl;
+                                    << track->GetMomentum() << " failed selection" << std::endl;
                         }
+
+                        // Stop and kill the track; let secondaries propagate.
                         step->GetTrack()->SetTrackStatus(G4TrackStatus::fStopAndKill);
+
+                        // Do not save this track in output particle coll.
+                        UserTrackInformation::getUserTrackInformation(track)->setSaveFlag(false);
+
                         ++nKilled_;
                     } else {
                         if (verbose_ > 2) {
@@ -100,6 +118,11 @@ class BeamTrackSelectionPlugin: public SimPlugin {
                                     << track->GetParticleDefinition()->GetPDGEncoding() << " and momentum "
                                     << track->GetMomentum() << " passed selection" << std::endl;
                         }
+
+                        // Save this track in output particle coll.
+                        UserTrackInformation::getUserTrackInformation(track)->setSaveFlag(true);
+
+                        ++nPassed_;
                     }
                 }
             }
@@ -147,31 +170,34 @@ class BeamTrackSelectionPlugin: public SimPlugin {
     private:
 
         /** Theta Y cut in radians for gammas. */
-        double gammaThetaYCut_ { 0.004 };
+        double gammaThetaYCut_{0.004};
 
         /** Theta Y cut in radians for electrons. */
-        double electronThetaYCut_ { 0.004 };
+        double electronThetaYCut_{0.004};
 
         /**
          * Electron energy cut, e.g. for killing delta rays.
          * Default = 1.056 GeV * 0.005
          */
-        double electronEnergyCut_ { 5.28 * MeV };
+        double electronEnergyCut_{5.28 * MeV};
 
         /**
          * Threshold for theta Y cut.
          * Default = 1.056 GeV * 0.6
          */
-        double electronEnergyThreshold_ { 0.6336 * GeV };
+        double electronEnergyThreshold_{0.6336 * GeV};
 
         /** Name of target volume in geometry. */
-        std::string volumeName_ { "target_vol" };
+        std::string volumeName_{"target_vol"};
 
         /** Number of tracks killed in event. */
-        int nKilled_ { 0 };
+        int nKilled_{0};
 
         /** Total number of tracks seen in event. */
-        int nTracks_ { 0 };
+        int nTracks_{0};
+
+        /** Total number of tracks that passed selection. */
+        int nPassed_{0};
 
         /** Plugin messenger for UI commands. */
         G4UImessenger* messenger_;
