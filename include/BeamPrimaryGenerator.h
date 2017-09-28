@@ -16,28 +16,36 @@ class BeamPrimaryGenerator : public PrimaryGenerator {
     public:
 
         BeamPrimaryGenerator(std::string name) : PrimaryGenerator(name) {
-            gun_.SetParticleDefinition(G4ParticleTable::GetParticleTable()->FindParticle("e-"));
             CLHEP::RandGauss::setTheEngine(G4Random::getTheEngine());
         }
 
         void GeneratePrimaryVertex(G4Event* anEvent) {
             if (verbose_ > 1) {
-                std::cout << "BeamPrimaryGenerator: Generating " << nelectrons_ << " electrons." << std::endl;
+                std::cout << "BeamPrimaryGenerator: Generating " << nelectrons_
+                        << " electrons in event " << anEvent->GetEventID() << std::endl;
             }
-            gun_.SetParticleEnergy(energy_);
-            gun_.SetParticlePosition(position_);
-            gun_.SetParticleMomentumDirection(direction_);
             for (int i = 0; i < nelectrons_; i++) {
+
+                G4PrimaryVertex* vertex = new G4PrimaryVertex();
                 G4ThreeVector sampledPosition;
                 sampledPosition.setX(position_.x() + CLHEP::RandGauss::shoot(0, sigmaX_));
                 sampledPosition.setY(position_.y() + CLHEP::RandGauss::shoot(0, sigmaY_));
                 sampledPosition.setZ(position_.z());
+
                 if (verbose_ > 2) {
                     std::cout << "BeamPrimaryGenerator: Sampled pos " << sampledPosition
                             << " for electron " << i << std::endl;
                 }
-                gun_.SetParticlePosition(sampledPosition);
-                gun_.GeneratePrimaryVertex(anEvent);
+
+                vertex->SetPosition(sampledPosition.x(), sampledPosition.y(), sampledPosition.z());
+                anEvent->AddPrimaryVertex(vertex);
+
+                G4PrimaryParticle* primaryParticle = new G4PrimaryParticle();
+                static auto electronDef = G4ParticleTable::GetParticleTable()->FindParticle("e-");
+                primaryParticle->SetParticleDefinition(electronDef);
+                primaryParticle->SetMomentumDirection(direction_);
+                primaryParticle->SetTotalEnergy(energy_);
+                vertex->SetPrimary(primaryParticle);
             }
         }
 
@@ -46,11 +54,15 @@ class BeamPrimaryGenerator : public PrimaryGenerator {
             energy_ = params.get("energy", energy_);
             if (params.has("nelectrons")) {
                 nelectrons_ = params.get("nelectrons");
-                std::cout << "BeamPrimaryGenerator: Number of electrons was set to " << nelectrons_ << std::endl;
+                if (verbose_ > 1) {
+                    std::cout << "BeamPrimaryGenerator: Number of electrons was set to " << nelectrons_ << std::endl;
+                }
             } else {
                 current_ = params.get("current", current_);
                 computeNumberOfElectrons();
-                std::cout << "BeamPrimaryGenerator: Calculated number of electrons " << nelectrons_ << std::endl;
+                if (verbose_ > 1) {
+                    std::cout << "BeamPrimaryGenerator: Calculated number of electrons " << nelectrons_ << std::endl;
+                }
             }
         }
 
@@ -93,9 +105,6 @@ class BeamPrimaryGenerator : public PrimaryGenerator {
 
         /** Gaussian sigma of vertex Y coordinate. */
         double sigmaY_{0.030};
-
-        /** Particle gun for generating events. */
-        G4ParticleGun gun_;
 };
 
 }
