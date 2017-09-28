@@ -63,9 +63,14 @@ class UserTrackingAction : public G4UserTrackingAction {
 
                 // Set end point momentum if track is killed.
                 if (traj) {
+
+                    // Set end point momentum from last point if track is being killed.
                     if (aTrack->GetTrackStatus() == G4TrackStatus::fStopAndKill) {
                         traj->setEndPointMomentum(aTrack);
                     }
+
+                    // Pass save flag from track info to trajectory.
+                    traj->setSaveFlag(UserTrackInformation::getUserTrackInformation(aTrack)->getSaveFlag());
                 }
             }
 
