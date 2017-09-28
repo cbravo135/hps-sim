@@ -47,6 +47,10 @@ class Trajectory : public G4VTrajectory {
          */
         virtual ~Trajectory();
 
+        static Trajectory* getTrajectory(G4VTrajectory* traj) {
+            return static_cast<Trajectory*>(traj);
+        }
+
         /**
          * Create a new trajectory.
          * @param s The size of the object.
@@ -194,6 +198,24 @@ class Trajectory : public G4VTrajectory {
             return endPointMomentum_;
         }
 
+        /**
+         * Get the flag which indicates whether this track should be saved
+         * as a Trajectory.
+         * @return The save flag.
+         */
+        bool getSaveFlag() {
+            return saveFlag_;
+        }
+
+        /**
+         * Set the save flag so the associated track will be persisted
+         * as a Trajectory.
+         * @param saveFlag True to save the associated track.
+         */
+        void setSaveFlag(bool saveFlag) {
+            saveFlag_ = saveFlag;
+        }
+
     private:
 
         /** The list of trajectory points. */
@@ -231,6 +253,9 @@ class Trajectory : public G4VTrajectory {
 
         /** The type of the process which created the track. */
         int processType_;
+
+        /** Flag for whether track should be persisted. */
+        bool saveFlag_{false};
 };
 
 /**
