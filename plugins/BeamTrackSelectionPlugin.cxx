@@ -6,7 +6,6 @@
 
 #include "SimPlugin.h"
 #include "SimPluginMessenger.h"
-#include "UserPrimaryParticleInformation.h"
 #include "UserTrackInformation.h"
 
 #include "G4AntiNeutron.hh"
