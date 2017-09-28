@@ -15,7 +15,6 @@ namespace hpssim {
 class PrimaryGeneratorMessenger;
 
 // TODO:
-// -verbose level
 // -activate and deactivate
 // -print out
 // -delete
