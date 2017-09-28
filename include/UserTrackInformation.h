@@ -27,6 +27,10 @@ class UserTrackInformation : public VUserTrackInformation {
         virtual ~UserTrackInformation() {
         }
 
+        static UserTrackInformation* getUserTrackInformation(const G4Track* aTrack) {
+            return static_cast<UserTrackInformation*>(aTrack->GetUserInformation());
+        }
+
         /**
          * Overload pure virtual method (we don't implement it!).
          */
