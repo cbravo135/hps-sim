@@ -9,11 +9,11 @@ namespace hpssim {
 
 class LcioPersistencyManager;
 
-// TODO:
+// TODO: additional macro commands
 // -drop collections
-// -enable/disable
-// -coll flags
-// -cal hit contribs
+// -enable/disable persistency engine
+// -set coll flags
+// -configure cal hit contribs
 class LcioPersistencyMessenger : public G4UImessenger {
 
     public:
@@ -27,6 +27,13 @@ class LcioPersistencyMessenger : public G4UImessenger {
         G4UIdirectory* dir_;
         G4UIcmdWithAString* fileCmd_;
         G4UIcmdWithAnInteger* verboseCmd_;
+
+        /*
+         * Write mode commands.
+         */
+        G4UIcommand* newCmd_;
+        G4UIcommand* appendCmd_;
+        G4UIcommand* recreateCmd_;
 
         LcioPersistencyManager* mgr_{nullptr};
 };

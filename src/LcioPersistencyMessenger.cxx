@@ -9,6 +9,15 @@ LcioPersistencyMessenger::LcioPersistencyMessenger(LcioPersistencyManager* mgr) 
     dir_ = new G4UIdirectory("/hps/lcio/", this);
     fileCmd_ = new G4UIcmdWithAString("/hps/lcio/file", this);
     verboseCmd_ = new G4UIcmdWithAnInteger("/hps/lcio/verbose", this);
+
+    newCmd_ = new G4UIcommand("/hps/lcio/new", this);
+    newCmd_->SetGuidance("Write a new LCIO file and throw an error if the file exists already.");
+
+    recreateCmd_ = new G4UIcommand("/hps/lcio/recreate", this);
+    recreateCmd_->SetGuidance("Recreate the output LCIO file and delete the file if it exists already.");
+
+    appendCmd_ = new G4UIcommand("/hps/lcio/append", this);
+    appendCmd_->SetGuidance("Append events to an existing LCIO file.");
 }
 
 void LcioPersistencyMessenger::SetNewValue(G4UIcommand* command, G4String newValues) {
@@ -18,6 +27,12 @@ void LcioPersistencyMessenger::SetNewValue(G4UIcommand* command, G4String newVal
     } else if (command == this->verboseCmd_) {
         std::cout << "LcioPersistencyMessenger: Setting verbose level to " << newValues << std::endl;
         mgr_->SetVerboseLevel(G4UIcmdWithAnInteger::GetNewIntValue(newValues));
+    } else if (command == this->newCmd_) {
+        mgr_->setWriteMode(LcioPersistencyManager::NEW);
+    } else if (command == this->recreateCmd_) {
+        mgr_->setWriteMode(LcioPersistencyManager::RECREATE);
+    } else if (command == this->appendCmd_) {
+        mgr_->setWriteMode(LcioPersistencyManager::APPEND);
     }
 }
 

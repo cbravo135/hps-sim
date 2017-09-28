@@ -35,6 +35,15 @@ class LcioPersistencyManager : public G4PersistencyManager {
 
     public:
 
+        enum WriteMode {
+            /* Make a new file and throw an error if it exists already. */
+            NEW = -1,
+            /* Make a new file and overwrite an existing one if it exists. */
+            RECREATE = LCIO::WRITE_NEW,
+            /* Append to an existing file. */
+            APPEND = LCIO::WRITE_APPEND
+        };
+
         LcioPersistencyManager() :
                 G4PersistencyManager(G4PersistencyCenter::GetPersistencyCenter(), "LcioPersistencyManager") {
             G4PersistencyCenter::GetPersistencyCenter()->RegisterPersistencyManager(this);
@@ -73,7 +82,12 @@ class LcioPersistencyManager : public G4PersistencyManager {
                 if (!anEvent->GetTrajectoryContainer()) {
                     G4Exception("LcioPersistencyManager::Store", "", FatalException, "The trajectory container is null!");
                 }
-                lcioEvent->addCollection(builder_->buildMCParticleColl(anEvent), EVENT::LCIO::MCPARTICLE);
+                auto particleColl = builder_->buildMCParticleColl(anEvent);
+                if (m_verbose > 1) {
+                    std::cout << "LcioPersistencyManager: Storing " << particleColl->size() << " MC particles in event "
+                            << anEvent->GetEventID() << std::endl;
+                }
+                lcioEvent->addCollection(particleColl, EVENT::LCIO::MCPARTICLE);
 
                 // write hits collections to LCIO event
                 writeHitsCollections(anEvent, lcioEvent);
@@ -119,9 +133,19 @@ class LcioPersistencyManager : public G4PersistencyManager {
             writer_ = IOIMPL::LCFactory::getInstance()->createLCWriter();
 
             if (m_verbose > 1) {
-                std::cout << "LcioPersistencyManager: Opening '" << outputFile_ << "' for writing." << std::endl;
+                std::cout << "LcioPersistencyManager: Opening '" << outputFile_
+                        << "' with write mode " << modeToString(writeMode_) << std::endl;
             }
-            writer_->open(outputFile_);
+
+            try {
+                if (writeMode_ == NEW) {
+                    writer_->open(outputFile_);
+                } else {
+                    writer_->open(outputFile_, writeMode_);
+                }
+            } catch (IO::IOException& e) {
+                G4Exception("LcioPersistencyManager::Initialize()", "FileExists", RunMustBeAborted, e.what());
+            }
 
             auto runHeader = new IMPL::LCRunHeaderImpl();
             runHeader->setDetectorName(LCDDProcessor::instance()->getDetectorName());
@@ -133,6 +157,25 @@ class LcioPersistencyManager : public G4PersistencyManager {
 
         void setOutputFile(std::string outputFile) {
             outputFile_ = outputFile;
+        }
+
+        void setWriteMode(WriteMode writeMode) {
+            writeMode_ = writeMode;
+        }
+
+        const std::string& modeToString(WriteMode writeMode) {
+            static std::vector<std::string> writeModes{"NEW", "RECREATE", "APPEND"};
+            if (writeMode == NEW) {
+                return writeModes[0];
+            } else if (writeMode == RECREATE) {
+                return writeModes[1];
+            } else if (writeMode == APPEND) {
+                return writeModes[2];
+            } else {
+                G4Exception("", "", FatalException, G4String("Unknown write mode: " + writeMode));
+            }
+            // This will never happen.
+            return "";
         }
 
     private:
@@ -301,6 +344,9 @@ class LcioPersistencyManager : public G4PersistencyManager {
         IO::LCWriter* writer_;
         MCParticleBuilder* builder_;
         LcioPersistencyMessenger* messenger_;
+
+        /** LCIO write mode. */
+        WriteMode writeMode_{NEW};
 
 };
 
