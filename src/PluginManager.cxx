@@ -164,7 +164,7 @@ void PluginManager::registerPlugin(SimPlugin* plugin) {
         actions_[action].push_back(plugin);
     }
 
-    // remove from master list
+    // add to master list
     plugins_.push_back(plugin);
 }
 
