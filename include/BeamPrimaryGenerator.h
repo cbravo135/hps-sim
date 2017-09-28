@@ -1,5 +1,3 @@
-#include <math.h>
-
 #include "G4ParticleTable.hh"
 #include "G4SystemOfUnits.hh"
 
@@ -7,6 +5,8 @@
 
 #include "PrimaryGenerator.h"
 #include "UserPrimaryParticleInformation.h"
+
+#include <math.h>
 
 namespace hpssim {
 
@@ -22,7 +22,17 @@ class BeamPrimaryGenerator : public PrimaryGenerator {
                 std::cout << "BeamPrimaryGenerator: Generating " << nelectrons_
                         << " electrons in event " << anEvent->GetEventID() << std::endl;
             }
-            for (int i = 0; i < nelectrons_; i++) {
+
+            // Smear the number of electrons.
+            int nElectronsRand = nelectrons_;
+            if (this->smearNElectrons_) {
+                nElectronsRand = CLHEP::RandGauss::shoot(nelectrons_, sqrt(nelectrons_));
+                if (verbose_ > 1) {
+                    std::cout << "BeaPrimaryGenerator: Generating " << nElectronsRand << " electrons after Gaussian smearing" << std::endl;
+                }
+            }
+
+            for (int i = 0; i < nElectronsRand; i++) {
 
                 G4PrimaryVertex* vertex = new G4PrimaryVertex();
                 G4ThreeVector sampledPosition;
@@ -51,12 +61,20 @@ class BeamPrimaryGenerator : public PrimaryGenerator {
             Parameters& params = getParameters();
             energy_ = params.get("energy", energy_);
             if (params.has("nelectrons")) {
+                /*
+                 * In the case where number of electrons is assigned explicitly, then this does not need to be
+                 * calculated and smearing of electron count is not applied.
+                 */
                 nelectrons_ = params.get("nelectrons");
                 if (verbose_ > 1) {
                     std::cout << "BeamPrimaryGenerator: Number of electrons was set to " << nelectrons_ << std::endl;
                 }
                 smearNElectrons_ = false;
             } else {
+                /*
+                 * Where number of electrons is not specified, compute from the beam current, and smear the electron
+                 * count using Gaussian distribution.
+                 */
                 current_ = params.get("current", current_);
                 computeNumberOfElectrons();
                 if (verbose_ > 1) {
