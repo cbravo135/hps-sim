@@ -20,6 +20,10 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction {
 
         virtual ~PrimaryGeneratorAction() {
             delete messenger_;
+
+            for (auto generator : generators_) {
+                delete generator;
+            }
         }
 
         void setVerbose(int verbose) {
@@ -38,42 +42,36 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction {
                     std::cout << "PrimaryGeneratorAction: Running generator '" << gen->getName() << std::endl;
                 }
 
+                // Get the list of event transforms to be applied to each generated event.
                 auto transforms = gen->getTransforms();
 
+                // Generate N event samples based on sampling setting.
                 int nevents = gen->getEventSampling()->getNumberOfEvents(anEvent);
-
                 if (verbose_ > 1) {
                     std::cout << "PrimaryGeneratorAction: Sampling " << nevents << " events from '" << gen->getName() << "'" << std::endl;
                 }
-
                 for (int iEvent = 0; iEvent < nevents; iEvent++) {
 
-                    // create new G4 event to overlay
-                    G4Event* genEvent = new G4Event();
-                    gen->GeneratePrimaryVertex(genEvent);
+                    // Create a new event to overlay.
+                    G4Event* overlayEvent = new G4Event();
+                    gen->GeneratePrimaryVertex(overlayEvent);
 
-                    // apply event transforms
+                    // Apply event transforms to the overlay event.
                     for (auto transform : transforms) {
-                        transform->transform(genEvent);
+                        transform->transform(overlayEvent);
                     }
 
                     if (verbose_ > 2) {
                         std::cout << "PrimaryGeneratorAction: Generator '" << gen->getName() << "' created "
-                                << genEvent->GetNumberOfPrimaryVertex() << " vertices in sample " << iEvent
+                                << overlayEvent->GetNumberOfPrimaryVertex() << " vertices in sample " << iEvent
                                 << std::endl;
                     }
 
-                    // overlay the event onto the target output event
-                    std::vector<G4PrimaryVertex*> vertices;
-                    for (int ivtx = 0; ivtx < genEvent->GetNumberOfPrimaryVertex(); ivtx++) {
-                        auto vtx = new G4PrimaryVertex(*genEvent->GetPrimaryVertex(ivtx));
-                        vertices.push_back(vtx);
-                    }
-                    if (vertices.size()) {
-                        anEvent->AddPrimaryVertex(vertices[0]);
-                    }
+                    // Overlay the event onto the target event by deep copying the first vertex object.
+                    anEvent->AddPrimaryVertex(new G4PrimaryVertex(*overlayEvent->GetPrimaryVertex(0)));
           
-                    delete genEvent;
+                    // Delete the overlay event to avoid memory leak.
+                    delete overlayEvent;
                 }
             }
 
