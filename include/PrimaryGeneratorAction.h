@@ -56,22 +56,25 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction {
                     G4Event* overlayEvent = new G4Event();
                     gen->GeneratePrimaryVertex(overlayEvent);
 
-                    // Apply event transforms to the overlay event.
-                    for (auto transform : transforms) {
-                        transform->transform(overlayEvent);
-                    }
+                    if (overlayEvent->GetNumberOfPrimaryVertex()) {
 
-                    if (verbose_ > 2) {
-                        std::cout << "PrimaryGeneratorAction: Generator '" << gen->getName() << "' created "
-                                << overlayEvent->GetNumberOfPrimaryVertex() << " vertices in sample " << iEvent
-                                << std::endl;
-                    }
+                        // Apply event transforms to the overlay event.
+                        for (auto transform : transforms) {
+                            transform->transform(overlayEvent);
+                        }
 
-                    // Overlay the event onto the target event by deep copying the first vertex object.
-                    anEvent->AddPrimaryVertex(new G4PrimaryVertex(*overlayEvent->GetPrimaryVertex(0)));
+                        if (verbose_ > 2) {
+                            std::cout << "PrimaryGeneratorAction: Generator '" << gen->getName() << "' created "
+                                    << overlayEvent->GetNumberOfPrimaryVertex() << " vertices in sample " << iEvent
+                                    << std::endl;
+                        }
+
+                        // Overlay the event onto the target event by deep copying the first vertex object.
+                        anEvent->AddPrimaryVertex(new G4PrimaryVertex(*overlayEvent->GetPrimaryVertex(0)));
           
-                    // Delete the overlay event to avoid memory leak.
-                    delete overlayEvent;
+                        // Delete the overlay event to avoid memory leak.
+                        delete overlayEvent;
+                    }
                 }
             }
 
