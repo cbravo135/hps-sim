@@ -1664,7 +1664,7 @@
     </materials>
     <solids>
       <box name="world_box" x="world_x" y="world_y" z="world_z" />
-      <box name="target_box" x="10.0" y="10.0" z="0.004"/>
+      <box name="target_box" x="10.0" y="10.0" z="0.0004062"/>
       <tube name="tracking_cylinder" deltaphi="6.283185307179586" rmin="0.0" rmax="tracking_region_radius" z="2*tracking_region_zmax" />
       <box name="baseBox" x="406.4" y="1282.6999999999998" z="171.196" />
       <box name="base_plateBox" x="406.4" y="1282.6999999999998" z="6.35" />

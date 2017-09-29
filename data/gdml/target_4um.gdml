@@ -21,7 +21,7 @@
     </materials>
 
     <solids>
-        <box name="target_box" x="10.0" y="10.0" z="0.004"/>
+        <box name="target_box" x="10.0" y="10.0" z="0.0004062"/>
         <box name="world_box" x="100.0" y="100.0" z="100.0"/>
     </solids>
 
