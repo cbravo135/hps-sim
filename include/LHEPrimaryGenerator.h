@@ -45,7 +45,11 @@ class LHEPrimaryGenerator : public PrimaryGenerator {
         void GeneratePrimaryVertex(G4Event* anEvent);
 
         void initialize() {
-            std::cout << "LHEPrimaryGenerator: Setting file '" << files_[0] << "' on LHE reader." << std::endl;
+
+            if (verbose_ > 1) {
+                std::cout << "LHEPrimaryGenerator: Setting file '" << files_[0] << "' on LHE reader." << std::endl;
+            }
+
             reader_ = new LHEReader(files_[0]);
 
             // Setup event sampling if using cross section.
