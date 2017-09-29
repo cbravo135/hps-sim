@@ -1,0 +1,48 @@
+# load detector
+/lcdd/url detector.lcdd
+
+# print info as event generation runs
+/hps/generators/verbose 2
+
+# overlay WAB events using poisson distribution
+/hps/generators/create WabGen LHE
+/hps/generators/WabGen/file wab_unweighted_events.lhe
+/hps/generators/WabGen/sample poisson 0.00890984782305
+/hps/generators/WabGen/verbose 2
+
+# overlay trident events using poisson distribution
+/hps/generators/create TriGen LHE
+/hps/generators/TriGen/file tritrig_unweighted_events.lhe
+/hps/generators/TriGen/sample poisson 1.71540265613e-05
+/hps/generators/TriGen/verbose 2
+
+# generate beam backgrounds every event
+/hps/generators/create BeamGen BEAM
+#/hps/generators/BeamGen/param nelectrons 1
+/hps/generators/BeamGen/verbose 2
+
+# plugin for selecting tracks from beam-target interaction
+/hps/plugins/load BeamTrackSelectionPlugin
+/hps/plugins/BeamTrackSelectionPlugin/verbose 2
+
+# init the run
+/run/initialize
+
+# LCIO output
+/hps/lcio/verbose 2
+/hps/lcio/recreate
+/hps/lcio/file wab-beam-tri_test.slcio
+
+# visualization
+#/vis/scene/create
+#/vis/scene/add/volume
+#/vis/scene/add/trajectories
+#/vis/scene/add/axes
+#/vis/open OGLSX 1000x1000
+#/vis/viewer/set/viewpointThetaPhi 90 0
+#/vis/viewer/zoom 2
+
+#/vis/viewer/reset
+
+# number of events
+/run/beamOn 500000
