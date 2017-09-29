@@ -89,6 +89,8 @@ void PrimaryGeneratorMessenger::SetNewValue(G4UIcommand* command, G4String newVa
             eventSampling = new UniformEventSampling();
         } else if (distrib == "period") {
             eventSampling = new PeriodicEventSampling();
+        } else if (distrib == "sigma") {
+            eventSampling = new CrossSectionEventSampling();
         } else {
             G4Exception("", "", FatalException, G4String("Do not know about sampling '" + distrib + "'."));
         }

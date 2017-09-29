@@ -26,6 +26,10 @@ class EventSampling {
             param_ = param;
         }
 
+        double getParam() {
+            return param_;
+        }
+
     protected:
 
         double param_{1.};
@@ -72,6 +76,36 @@ class PeriodicEventSampling : public EventSampling {
             }    
         }
 
+};
+
+/**
+ * Sample from Poisson distribution based on physics cross section calculation.
+ */
+class CrossSectionEventSampling : public PoissonEventSampling {
+
+    public:
+
+        void setCrossSection(double crossSection) {
+            crossSection_ = crossSection;
+            calculateMu();
+        }
+
+        void calculateMu() {
+            double integratedLuminosity = density_ * nElectrons_ * targetThickness_;
+            param_ = integratedLuminosity * 1e-12 * crossSection_;
+        }
+
+    private:
+
+        /*
+         * Default parameters for integrated luminosity calculation.
+         */
+        double targetThickness_{0.0004062};
+        double nElectrons_{625};
+        double density_{6.306e-2};
+
+        /* Physics cross section which should be externally set by the generator during initialization. */
+        double crossSection_{0};
 };
 
 } // namespace hpssim

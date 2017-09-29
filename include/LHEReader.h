@@ -38,7 +38,17 @@ class LHEReader {
          */
         LHEEvent* readNextEvent();
 
+        double getCrossSection() {
+            return crossSection_;
+        }
+
     private:
+
+        void readCrossSection();
+
+    private:
+
+        double crossSection_{0};
 
         /**
          * The input file stream.

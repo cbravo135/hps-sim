@@ -2,17 +2,44 @@
 
 // STL
 #include <iostream>
-#include <stdexcept>
+#include <sstream>
+#include <stdlib.h>
+#include <string>
+#include <vector>
 
 namespace hpssim {
 
 LHEReader::LHEReader(std::string& filename) {
     std::cout << "LHEReader: Opening LHE file " << filename << std::endl;
     ifs_.open(filename.c_str(), std::ifstream::in);
+
+    readCrossSection();
 }
 
 LHEReader::~LHEReader() {
     ifs_.close();
+}
+
+/*
+Get cross section from LHE file:
+#  Integrated weight (pb)  :  0.10715E+10
+*/
+void LHEReader::readCrossSection() {
+    std::string line;
+    while (getline(ifs_, line)) {
+        if (line.find("Integrated weight") !=std::string::npos) {
+            std::stringstream ss(line);
+            std::vector<std::string> tokens;
+            std::string token;
+            while (ss >> token) {
+                tokens.push_back(token);
+            }
+            crossSection_ = atof(tokens[5].c_str());
+        }
+        if (line == "</MGGenerationInfo>") {
+            break;
+        }
+    }
 }
 
 LHEEvent* LHEReader::readNextEvent() {

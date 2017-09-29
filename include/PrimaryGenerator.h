@@ -88,8 +88,8 @@ class PrimaryGenerator : public G4VPrimaryGenerator {
     private:
         std::string name_;
         PrimaryGeneratorMessenger* messenger_;
-        EventSampling* sampling_{new UniformEventSampling};
         std::vector<EventTransform*> transforms_;
+        EventSampling* sampling_{new UniformEventSampling};
         Parameters params_;
 };
 
