@@ -41,8 +41,13 @@ LHEEvent* LHEReader::readNextEvent() {
             break;
         }
 
-        LHEParticle* particle = new LHEParticle(line);
-        nextEvent->addParticle(particle);
+        if (line[0] == '<') {
+            // Ignore tags embedded in event block by MG5!
+            std::cerr << "LHE: Ignoring garbage line '" << line << "' in input!" << std::endl;
+        } else {
+            LHEParticle* particle = new LHEParticle(line);
+            nextEvent->addParticle(particle);
+        }
     }
 
     const std::vector<LHEParticle*>& particles = nextEvent->getParticles();
