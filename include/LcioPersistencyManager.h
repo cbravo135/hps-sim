@@ -79,9 +79,6 @@ class LcioPersistencyManager : public G4PersistencyManager {
                 lcioEvent->setDetectorName(LCDDProcessor::instance()->getDetectorName());
 
                 // write MCParticles to LCIO event
-                if (!anEvent->GetTrajectoryContainer()) {
-                    G4Exception("LcioPersistencyManager::Store", "", FatalException, "The trajectory container is null!");
-                }
                 auto particleColl = builder_->buildMCParticleColl(anEvent);
                 if (m_verbose > 1) {
                     std::cout << "LcioPersistencyManager: Storing " << particleColl->size() << " MC particles in event "
@@ -309,16 +306,24 @@ class LcioPersistencyManager : public G4PersistencyManager {
                     auto trackID = contrib.getTrackID();
 
                     if (trackID <= 0) {
-                        std::cerr << "LcioPersistencyManager: Bad track ID " << trackID << " for cal hit contrib" << std::endl;
-                        G4Exception("LcioPersistencyManager::writeHitsCollections", "",
+                        std::cerr << "LcioPersistencyManager: Bad track ID " << trackID << " for calorimeter hit contrib" << std::endl;
+                        G4Exception("LcioPersistencyManager::writeCalorimeterHitsCollections", "",
                                 FatalException, "Bad track ID in cal hit contribution.");
                     }
 
-                    auto mcp = builder_->findMCParticle(trackID);
+                    // Find the first parent track with a trajectory; it could actually be this track.
+                    G4VTrajectory* traj = builder_->getTrackMap().findTrajectory(trackID);
+                    if (!traj) {
+                        std::cerr << "LcioPersistencyManager: No trajectory found for track ID " << trackID << std::endl;
+                        G4Exception("LcioPersistencyManager::writeCalorimeterHitsCollections", "",
+                                FatalException, "No trajectory found for track ID.");
+                    }
 
+                    // Lookup an MCParticle from the parent, which should exist!
+                    auto mcp = builder_->findMCParticle(traj->GetTrackID());
                     if (!mcp) {
                         std::cerr << "LcioPersistencyManager: No MCParticle found for track ID " << trackID << std::endl;
-                        G4Exception("LcioPersistencyManager::writeHitsCollections", "",
+                        G4Exception("LcioPersistencyManager::writeCalorimeterHitsCollection", "",
                                 FatalException, "No MCParticle found for track ID.");
                     }
 
