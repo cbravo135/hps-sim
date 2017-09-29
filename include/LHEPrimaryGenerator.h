@@ -44,11 +44,9 @@ class LHEPrimaryGenerator : public PrimaryGenerator {
          */
         void GeneratePrimaryVertex(G4Event* anEvent);
 
-        // FIXME: Needs to support multiple input files.
-        void addFile(std::string file) {
-            PrimaryGenerator::addFile(file);
-            std::cout << "LHEPrimaryGenerator: Setting file '" << file << "' on LHE reader." << std::endl;
-            reader_ = new LHEReader(file);
+        void initialize() {
+            std::cout << "LHEPrimaryGenerator: Setting file '" << files_[0] << "' on LHE reader." << std::endl;
+            reader_ = new LHEReader(files_[0]);
         }
 
     private:

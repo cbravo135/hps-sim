@@ -155,11 +155,9 @@ class StdHepPrimaryGenerator : public PrimaryGenerator {
             particles.clear();
         }
 
-        // FIXME: Needs to support multiple input files.
-        void addFile(std::string file) {
-            PrimaryGenerator::addFile(file);
-            //std::cout << "StdHepPrimaryGenerator: Setting file '" << file << "' on LHE reader." << std::endl;
-            reader_ = new lStdHep(file.c_str());
+        void initialize() {
+            std::cout << "StdHepPrimaryGenerator: Opening '" << files_[0] << "' for reading" << std::endl;
+            reader_ = new lStdHep(files_[0].c_str());
         }
 
     private:
