@@ -28,16 +28,20 @@ class PrimaryGenerator : public G4VPrimaryGenerator {
         virtual ~PrimaryGenerator();
 
         /**
-         * Initialization call back to open reader.
+         * Sub-classes must implement this method to generate an event.
+         */
+        virtual void GeneratePrimaryVertex(G4Event* anEvent) = 0;
+
+        /**
+         * Initialization callback to open reader.
          */
         virtual void initialize() {
         }
 
         /**
-         * Cleanup call back to close open readers.
+         * Cleanup callback to close open readers.
          */
         virtual void cleanup() {
-
         }
 
         Parameters& getParameters() {
@@ -78,8 +82,6 @@ class PrimaryGenerator : public G4VPrimaryGenerator {
         const std::vector<EventTransform*>& getTransforms() {
             return transforms_;
         }
-
-        virtual void GeneratePrimaryVertex(G4Event* anEvent) = 0;
 
     protected:
         int verbose_{1};
