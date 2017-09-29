@@ -27,7 +27,17 @@ class PrimaryGenerator : public G4VPrimaryGenerator {
 
         virtual ~PrimaryGenerator();
 
+        /**
+         * Initialization call back to open reader.
+         */
         virtual void initialize() {
+        }
+
+        /**
+         * Cleanup call back to close open readers.
+         */
+        virtual void cleanup() {
+
         }
 
         Parameters& getParameters() {
@@ -40,6 +50,10 @@ class PrimaryGenerator : public G4VPrimaryGenerator {
 
         virtual void addFile(std::string file) {
             files_.push_back(file);
+        }
+
+        const std::vector<std::string>& getFiles() {
+            return files_;
         }
 
         void setVerbose(int verbose) {
@@ -69,11 +83,10 @@ class PrimaryGenerator : public G4VPrimaryGenerator {
 
     protected:
         int verbose_{1};
+        std::vector<std::string> files_;
 
     private:
-
         std::string name_;
-        std::vector<std::string> files_;
         PrimaryGeneratorMessenger* messenger_;
         EventSampling* sampling_{new UniformEventSampling};
         std::vector<EventTransform*> transforms_;
