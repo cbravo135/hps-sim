@@ -76,7 +76,7 @@ class BeamTrackSelectionPlugin: public SimPlugin {
                 std::cout << "BeamTrackSelectionPlugin: Track " << aTrack->GetTrackID()
                         << " with PID " << aTrack->GetParticleDefinition()->GetPDGEncoding()
                         << " and momentum " << aTrack->GetMomentum()
-                        << "' with parent " << aTrack->GetParentID()
+                        << " with parent " << aTrack->GetParentID()
                         << " and vertex " << aTrack->GetVertexPosition()
                         << std::endl;
             }
