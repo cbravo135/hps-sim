@@ -27,9 +27,6 @@ class MCParticleBuilder {
         }
 
         void buildParticleMap(G4TrajectoryContainer* trajectories, IMPL::LCCollectionVec* collVec) {
-            if (!trajectories) {
-                G4Exception("", "", FatalException, "The trajectory container is null!");
-            }
             particleMap_.clear();
             for (auto trajectory : *trajectories->GetVector()) {
                 if (Trajectory::getTrajectory(trajectory)->getSaveFlag()) {
@@ -38,7 +35,6 @@ class MCParticleBuilder {
                     particleMap_[trajectory->GetTrackID()] = particle;
                 }
             }
-            //std::cout << "MCParticleBuilder: created " << collVec->size() << " empty MCParticle objects" << std::endl;
         }
 
         IMPL::MCParticleImpl* findMCParticle(G4int trackID) {
@@ -51,8 +47,6 @@ class MCParticleBuilder {
         }
 
         void buildMCParticle(Trajectory* traj) {
-
-            //std::cout << "MCParticleBuilder: building MCParticle for track " << traj->GetTrackID() << std::endl;
 
             IMPL::MCParticleImpl* p = particleMap_[traj->GetTrackID()];
 
@@ -85,12 +79,6 @@ class MCParticleBuilder {
                 if (parent != nullptr) {
                     p->addParent(parent);
                 }
-                // Sometimes this is okay if there is track selection from plugins in the event that kills primary tracks.
-                /*else {
-                    // If the parent particle can not be found by its track ID, this is a fatal error!
-                    std::cerr << "MCParticleBuilder : MCParticle with parent ID " << traj->GetParentID() << " not found for track ID " << traj->GetTrackID() << std::endl;
-                    G4Exception("MCParticleBuilder::buildMCParticle", "", FatalException, "MCParticle not found from parent track ID.");
-                }*/
             }
 
             // Set sim status to indicate particle was created in simulation.
@@ -106,17 +94,22 @@ class MCParticleBuilder {
             auto collVec = new IMPL::LCCollectionVec(EVENT::LCIO::MCPARTICLE);
             auto trajectories = anEvent->GetTrajectoryContainer();
 
-            buildParticleMap(trajectories, collVec);
+            if (trajectories) {
 
-            for (auto trajectory : *trajectories->GetVector()) {
-                if (Trajectory::getTrajectory(trajectory)->getSaveFlag()) {
-                    buildMCParticle(static_cast<Trajectory*>(trajectory));
-                } /*else {
-                    std::cout << "MCParticleBuilder: Save flag off for track " << trajectory->GetTrackID() << std::endl;
-                }*/
+                buildParticleMap(trajectories, collVec);
+
+                for (auto trajectory : *trajectories->GetVector()) {
+                    if (Trajectory::getTrajectory(trajectory)->getSaveFlag()) {
+                        buildMCParticle(static_cast<Trajectory*>(trajectory));
+                    }
+                }
             }
 
             return collVec;
+        }
+
+        TrackMap& getTrackMap() {
+            return *trackMap_;
         }
 
     private:
