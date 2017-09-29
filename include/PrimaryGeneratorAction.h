@@ -39,7 +39,7 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction {
             for (auto gen : generators_) {
 
                 if (verbose_ > 1) {
-                    std::cout << "PrimaryGeneratorAction: Running generator '" << gen->getName() << std::endl;
+                    std::cout << "PrimaryGeneratorAction: Running generator '" << gen->getName() << "'" << std::endl;
                 }
 
                 // Get the list of event transforms to be applied to each generated event.
