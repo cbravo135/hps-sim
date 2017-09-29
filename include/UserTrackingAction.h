@@ -50,9 +50,19 @@ class UserTrackingAction : public G4UserTrackingAction {
             //std::cout << "UserTrackingAction: post tracking - " << aTrack->GetTrackID() << std::endl;
 
             // Save extra trajectories on tracks that were flagged for saving during event processing.
-            if (dynamic_cast<UserTrackInformation*>(aTrack->GetUserInformation())->getSaveFlag()) {
+            auto info = dynamic_cast<UserTrackInformation*>(aTrack->GetUserInformation());
+
+            // Save tracks with tracker hits.
+            // This flag is used by LCDD tracker detectors.
+            if (info->hasTrackerHit()) {
+                info->setSaveFlag(true);
+            }
+
+            // Store trajectory if info has save flag turned on.
+            if (info->getSaveFlag()) {
                 if (!trackMap_.hasTrajectory(aTrack->GetTrackID())) {
                     storeTrajectory(aTrack);
+                    //std::cout << "UserTrackingAction: Storing extra trajectory for track " << aTrack->GetTrackID() << std::endl;
                 }
             }
 
@@ -61,7 +71,6 @@ class UserTrackingAction : public G4UserTrackingAction {
 
                 auto traj = dynamic_cast<Trajectory*>(fpTrackingManager->GimmeTrajectory());
 
-                // Set end point momentum if track is killed.
                 if (traj) {
 
                     // Set end point momentum from last point if track is being killed.
@@ -69,8 +78,11 @@ class UserTrackingAction : public G4UserTrackingAction {
                         traj->setEndPointMomentum(aTrack);
                     }
 
-                    // Pass save flag from track info to trajectory.
-                    traj->setSaveFlag(UserTrackInformation::getUserTrackInformation(aTrack)->getSaveFlag());
+                    // Pass save flag from track info to the trajectory for persistency engine.
+                    bool saveFlag = UserTrackInformation::getUserTrackInformation(aTrack)->getSaveFlag();
+                    //std::cout << "UserTrackingAction: Passing save flag " << saveFlag
+                    //        << " to trajectory " << aTrack->GetTrackID() << std::endl;
+                    traj->setSaveFlag(saveFlag);
                 }
             }
 
@@ -79,7 +91,7 @@ class UserTrackingAction : public G4UserTrackingAction {
 
         void storeTrajectory(const G4Track* aTrack) {
 
-            //std::cout << "UserTrackingAction: creating new traj for " << aTrack->GetTrackID() << std::endl;
+            //std::cout << "UserTrackingAction: Creating new trajectory for " << aTrack->GetTrackID() << std::endl;
 
             // Create a new trajectory for this track.
             fpTrackingManager->SetStoreTrajectory(true);
@@ -93,22 +105,42 @@ class UserTrackingAction : public G4UserTrackingAction {
         void processTrack(const G4Track* aTrack) {
 
             // Setup the track info object.
+            UserTrackInformation* info = nullptr;
             if (!aTrack->GetUserInformation()) {
-                auto trackInfo = new UserTrackInformation;
-                trackInfo->setInitialMomentum(aTrack->GetMomentum());
-                const_cast<G4Track*>(aTrack)->SetUserInformation(trackInfo);
+                info = new UserTrackInformation;
+                info->setInitialMomentum(aTrack->GetMomentum());
+                const_cast<G4Track*>(aTrack)->SetUserInformation(info);
             }
 
-            // Check if trajectory storage should be turned on.
+            /*
+             * Check if trajectory storage should be turned on.
+             * Region is flagged for storing secondaries (e.g. "tracking region") or the particle is a primary.
+             */
             UserRegionInformation* regionInfo =
                     (UserRegionInformation*) aTrack->GetLogicalVolumeAtVertex()->GetRegion()->GetUserInformation();
             bool isPrimary = (aTrack->GetDynamicParticle()->GetPrimaryParticle() != nullptr);
             if ((regionInfo && regionInfo->getStoreSecondaries()) || isPrimary) {
-                // Region is flagged for storing secondaries (e.g. "tracking region") or the particle is a primary.
+                /*
+                if (regionInfo && regionInfo->getStoreSecondaries()) {
+                    std::cout << "UserTrackingAction: Storing trajectory for " << aTrack->GetTrackID() << " in region "
+                            << aTrack->GetLogicalVolumeAtVertex()->GetRegion()->GetName()
+                            << std::endl;
+                }
+
+                if (isPrimary) {
+                    std::cout << "UserTrackingAction: Storing trajectory for primary track " << aTrack->GetTrackID() << std::endl;
+                }
+                */
+
                 storeTrajectory(aTrack);
+
+                info->setSaveFlag(true);
+
             } else {
                 // Trajectory storage is turned off!
                 fpTrackingManager->SetStoreTrajectory(false);
+
+                info->setSaveFlag(false);
             }
 
             // Save the association between track ID and its parent ID for all tracks in the event.
