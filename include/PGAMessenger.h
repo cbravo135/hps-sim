@@ -21,10 +21,8 @@ class PGAMessenger : public G4UImessenger {
             TEST = 1,
             LHE,
             STDHEP,
+            LCIO,
             BEAM
-            /*
-            ,LCIO
-            */
         };
 
         PGAMessenger(PrimaryGeneratorAction* pga);
