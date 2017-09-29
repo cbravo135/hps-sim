@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<gdml xmlns:gdml="http://cern.ch/2001/Schemas/GDML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/gdml/1.0/gdml.xsd" >
+
+    <define/>
+
+    <materials>
+        <element Z="74" formula="W" name="W">
+            <atom type="A" unit="g/mol" value="183.842" />
+        </element>
+        <material name="Tungsten">
+            <D unit="g/cm3" value="19.3"/>
+            <fraction n="1.0" ref="W"/>
+        </material>
+        <element Z="1" formula="H" name="H">
+            <atom type="A" unit="g/mol" value="1.00794" />
+        </element>
+        <material name="Vacuum">
+            <D type="density" unit="g/cm3" value="0.00000001" />
+            <fraction n="1" ref="H" />
+        </material>
+    </materials>
+
+    <solids>
+        <box name="target_box" x="10.0" y="10.0" z="0.004"/>
+        <box name="world_box" x="100.0" y="100.0" z="100.0"/>
+    </solids>
+
+    <structure>
+        <volume name="target_vol">
+            <materialref ref="Tungsten"/>
+            <solidref ref="target_box"/>
+        </volume>
+        <volume name="world_vol">
+            <materialref ref="Vacuum"/>
+            <solidref ref="world_box"/>
+            <physvol> 
+                <volumeref ref="target_vol" /> 
+                <position name="target_position" x="0.0" y="0.0" z="0.0" />      
+            </physvol> 
+        </volume> 
+    </structure>
+
+    <setup name="Default" version="1.0">
+        <world ref="world_vol"/>
+    </setup>
+
+</gdml>
