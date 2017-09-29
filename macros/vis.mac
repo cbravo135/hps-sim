@@ -1,0 +1,8 @@
+# visualization
+/vis/scene/create
+/vis/scene/add/volume
+/vis/scene/add/trajectories
+#/vis/scene/add/axes
+/vis/open OGLSX 1200x1000
+/vis/viewer/set/viewpointThetaPhi 90 0
+/vis/viewer/zoom 6
