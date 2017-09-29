@@ -69,6 +69,10 @@ class UserTrackInformation : public VUserTrackInformation {
         void setHasTrackerHit() {
             hasTrackerHit_ = true;
         }
+
+        bool hasTrackerHit() {
+            return hasTrackerHit_;
+        }
     
     private:
 
