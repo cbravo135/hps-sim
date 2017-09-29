@@ -24,15 +24,15 @@ class BeamPrimaryGenerator : public PrimaryGenerator {
             }
 
             // Smear the number of electrons.
-            int nElectronsRand = nelectrons_;
+            int nGenerate = nelectrons_;
             if (this->smearNElectrons_) {
-                nElectronsRand = CLHEP::RandGauss::shoot(nelectrons_, sqrt(nelectrons_));
+                nGenerate = CLHEP::RandGauss::shoot(nelectrons_, sqrt(nelectrons_));
                 if (verbose_ > 1) {
-                    std::cout << "BeaPrimaryGenerator: Generating " << nElectronsRand << " electrons after Gaussian smearing" << std::endl;
+                    std::cout << "BeamPrimaryGenerator: Generating " << nGenerate << " electrons after Gaussian smearing" << std::endl;
                 }
             }
 
-            for (int i = 0; i < nElectronsRand; i++) {
+            for (int i = 0; i < nGenerate; i++) {
 
                 G4PrimaryVertex* vertex = new G4PrimaryVertex();
                 G4ThreeVector sampledPosition;
