@@ -1,3 +1,7 @@
+#
+# Event overlay macro similar to tritrig-wab-beam generation
+#
+
 # load detector
 /lcdd/url detector.lcdd
 
@@ -34,14 +38,15 @@
 /hps/lcio/file overlay_test.slcio
 
 # visualization
-/vis/scene/create
-/vis/scene/add/volume
-/vis/scene/add/trajectories
+#/vis/scene/create
+#/vis/scene/add/volume
+#/vis/scene/add/trajectories
 #/vis/scene/add/axes
-/vis/open OGLSX 1000x1000
-#/vis/viewer/reset
-/vis/viewer/set/viewpointThetaPhi 90 0
+#/vis/open OGLSX 1000x1000
+#/vis/viewer/set/viewpointThetaPhi 90 0
 #/vis/viewer/zoom 2
 
+#/vis/viewer/reset
+
 # number of events
-/run/beamOn 1
+/run/beamOn 500000
