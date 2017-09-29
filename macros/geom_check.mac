@@ -1,0 +1,7 @@
+# load detector
+/lcdd/url detector.lcdd
+
+# init the run
+/run/initialize
+
+/geometry/test/run
