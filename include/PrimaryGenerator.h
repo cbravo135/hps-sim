@@ -9,6 +9,7 @@
 #include "PrimaryGeneratorMessenger.h"
 
 #include <map>
+#include <queue>
 
 namespace hpssim {
 
@@ -83,9 +84,29 @@ class PrimaryGenerator : public G4VPrimaryGenerator {
             return transforms_;
         }
 
+        /*
+         * Generators that are using files should read in the data for the
+         * next event here and return true if the read was successful.
+         *
+         * Non-file based generators should not override this hook.
+         */
+        virtual bool readNextEvent() {
+            return true;
+        }
+
+        /*
+         * Called in initialization to queue up all files for processing.
+         */
+        void queueFiles() {
+            for (auto file : files_) {
+                fileQueue_.push(file);
+            }
+        }
+
     protected:
         int verbose_{1};
         std::vector<std::string> files_;
+        std::queue<std::string> fileQueue_;
 
     private:
         std::string name_;

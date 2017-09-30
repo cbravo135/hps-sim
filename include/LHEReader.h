@@ -42,6 +42,12 @@ class LHEReader {
             return crossSection_;
         }
 
+        void close() {
+            if (ifs_.is_open()) {
+                ifs_.close();
+            }
+        }
+
     private:
 
         void readCrossSection();

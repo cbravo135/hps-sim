@@ -54,8 +54,19 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction {
 
                     // Create a new event to overlay.
                     G4Event* overlayEvent = new G4Event();
+
+                    // Read next event if using a file source.
+                    bool readNext = gen->readNextEvent();
+
+                    if (!readNext) {
+                        // Probably the generator ran out of events so the run must be aborted.
+                        G4Exception("", "", RunMustBeAborted, G4String("Event generator '" + gen->getName() + "' ran out of events."));
+                    }
+
+                    // Generate a primary vertex.
                     gen->GeneratePrimaryVertex(overlayEvent);
 
+                    // Only apply transforms and overlay the event if something was actually generated.
                     if (overlayEvent->GetNumberOfPrimaryVertex()) {
 
                         // Apply event transforms to the overlay event.
@@ -88,6 +99,7 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction {
 
         void initialize() {
             for (auto gen : generators_) {
+                gen->queueFiles();
                 gen->initialize();
             }
         }

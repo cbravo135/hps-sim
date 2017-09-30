@@ -13,7 +13,9 @@ LHEReader::LHEReader(std::string& filename) {
     std::cout << "LHEReader: Opening LHE file " << filename << std::endl;
     ifs_.open(filename.c_str(), std::ifstream::in);
 
+    std::cout << "LHEReader: Reading cross section ..." << std::endl;
     readCrossSection();
+    std::cout << "LHEReader: Done reading cross section!" << std::endl;
 }
 
 LHEReader::~LHEReader() {
@@ -21,8 +23,10 @@ LHEReader::~LHEReader() {
 }
 
 /*
-Get cross section from LHE file:
-#  Integrated weight (pb)  :  0.10715E+10
+ * Get cross section from LHE file line which looks like:
+ * @verbatim
+ * #  Integrated weight (pb)  :  0.10715E+10
+ * @endverbatim
 */
 void LHEReader::readCrossSection() {
     std::string line;
@@ -54,8 +58,8 @@ LHEEvent* LHEReader::readNextEvent() {
     }
 
     if (!foundEventElement) {
-        std::cerr << "WARNING: No next <event> element was found by the LHE reader." << std::endl;
-        return NULL;
+        // This probably just means that all events have been processed.
+        return nullptr;
     }
 
     getline(ifs_, line);

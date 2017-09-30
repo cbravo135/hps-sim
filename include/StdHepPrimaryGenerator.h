@@ -37,21 +37,13 @@ class StdHepPrimaryGenerator : public PrimaryGenerator {
             //std::cout << "StdHepPrimaryGenerator: Generate event " << anEvent->GetEventID() << "." << std::endl;
 
             /*
-             * Read the next Stdhep event.
-             */
-            lStdEvent stdEvent;
-            // TODO: check result from reading to see if no more events, etc.
-            int res = reader_->readEvent(stdEvent);
-            //reader_->printEvent();
-
-            /*
              * Create a vector with the track data.
              */
             std::vector<StdHepParticle*> particles;
             int nTracks = reader_->nTracks();
             for (int iTrack = 0; iTrack < nTracks; iTrack++) {
                 //reader_->printTrack(iTrack);
-                lStdTrack* track = &stdEvent[iTrack];
+                lStdTrack* track = &stdEvent_[iTrack];
                 particles.push_back(new StdHepParticle(track));
             }
 
@@ -156,13 +148,63 @@ class StdHepPrimaryGenerator : public PrimaryGenerator {
         }
 
         void initialize() {
-            std::cout << "StdHepPrimaryGenerator: Opening '" << files_[0] << "' for reading" << std::endl;
-            reader_ = new lStdHep(files_[0].c_str());
+            if (fileQueue_.size()) {
+                std::string nextFile = fileQueue_.front();
+                std::cout << "StdHepPrimaryGenerator: Opening '" << nextFile << "' for reading" << std::endl;
+                fileQueue_.pop();
+                reader_ = new lStdHep(files_[0].c_str());
+            } else {
+                G4Exception("", "", RunMustBeAborted,
+                        G4String("No files were specified for generator '" + this->getName() + "'"));
+            }
+        }
+
+        bool readNextEvent() {
+
+            long res = reader_->readEvent(stdEvent_);
+            //reader_->printEvent();
+
+            if (res == LSH_ENDOFFILE) {
+                if (reader_) {
+                    delete reader_;
+                }
+                if (fileQueue_.size()) {
+
+                    std::string nextFile = fileQueue_.front();
+                    fileQueue_.pop();
+
+                    if (verbose_ > 1) {
+                        std::cout << "StdHepPrimaryGenerator: Reading next event file '" << nextFile << "'" << std::endl;
+                    }
+
+                    // Create reader for next file.
+                    reader_ = new lStdHep(nextFile.c_str());
+
+                    // Read in the next event.
+                    long res = reader_->readEvent(stdEvent_);
+
+                    if (res != LSH_SUCCESS) {
+                        std::cerr << "StdHepPrimaryGenerator: Failed to read first event from '" << nextFile << "'" << std::endl;
+                        return false;
+                    }
+                } else {
+                    // Ran out of files.
+                    std::cerr << "StdHepPrimaryGenerator: No more files to process!" << std::endl;
+                    return false;
+                }
+            } else if (res != LSH_SUCCESS) {
+                //G4Exception("", "", FatalException, G4String("LSH error code from StdHep reader: " + std::to_string(res)));
+                std::cerr << "StdHepPrimaryGenerator: Error code " << res << " returned by StdHep reader!" << std::endl;
+                return false;
+            }
+
+            return true;
         }
 
     private:
 
         lStdHep* reader_{nullptr};
+        lStdEvent stdEvent_;
 };
 
 }

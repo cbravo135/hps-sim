@@ -1,0 +1,20 @@
+# load detector
+/lcdd/url detector.lcdd
+
+/hps/generators/verbose 2
+
+# define StdHep event generator with multiple files
+/hps/generators/create MyTest STDHEP
+/hps/generators/MyTest/file ap_events1.stdhep
+/hps/generators/MyTest/file ap_events2.stdhep
+/hps/generators/MyTest/verbose 2
+
+# init the run
+/run/initialize
+
+# LCIO output
+#/hps/lcio/verbose 2
+/hps/lcio/recreate
+/hps/lcio/file stdhep_multi_test.slcio
+
+/run/beamOn 9999999

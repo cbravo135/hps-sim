@@ -22,6 +22,8 @@ namespace hpssim {
 /**
  * @class LHEPrimaryGenerator
  * @brief Generates a Geant4 event from an LHEEvent
+ * @note The readNextEvent() hook does not need to be implemented because the LCIO
+ * reader can accept a list of files to process.
  */
 class LcioPrimaryGenerator : public PrimaryGenerator {
 
