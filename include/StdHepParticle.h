@@ -13,47 +13,11 @@ class StdHepParticle {
 
     public:
 
-        class Data {
-            public:
-                int pid;
-                double Px;
-                double Py;
-                double Pz;
-                double E;
-                double M;
-                double T;
-                double x;
-                double y;
-                double z;
-                long daughter1;
-                long daughter2;
-                long mother1;
-                long mother2;
-        };
-
-    public:
-
-        StdHepParticle(lStdTrack* track) {
-
+        StdHepParticle(lStdTrack& track) : data_(track) {
             mothers_[0] = nullptr;
             mothers_[1] = nullptr;
             daughters_[0] = nullptr;
             daughters_[1] = nullptr;
-
-            data_.pid = track->pid;
-            data_.Px = track->Px;
-            data_.Py = track->Py;
-            data_.Pz = track->Pz;
-            data_.E = track->E;
-            data_.M = track->M;
-            data_.T = track->T;
-            data_.x = track->X;
-            data_.y = track->Y;
-            data_.z = track->Z;
-            data_.daughter1 = track->daughter1;
-            data_.daughter2 = track->daughter2;
-            data_.mother1 = track->mother1;
-            data_.mother2 = track->mother2;
         }
 
         void setMother(int i, StdHepParticle* particle) {
@@ -72,7 +36,7 @@ class StdHepParticle {
             daughters_[i] = particle;
         }
 
-        const Data& getData() const {
+        const lStdTrack& getData() const {
             return data_;
         }
 
@@ -81,7 +45,7 @@ class StdHepParticle {
         StdHepParticle* mothers_[2];
         StdHepParticle* daughters_[2];
 
-        Data data_;
+        lStdTrack& data_;
 };
 
 }

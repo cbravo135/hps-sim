@@ -44,12 +44,11 @@ class StdHepPrimaryGenerator : public PrimaryGenerator {
             /*
              * Create a vector with the track data.
              */
-            std::vector<StdHepParticle*> particles;
+            std::vector<StdHepParticle> particles;
             int nTracks = reader_->nTracks();
             for (int iTrack = 0; iTrack < nTracks; iTrack++) {
-                //reader_->printTrack(iTrack);
-                lStdTrack* track = &stdEvent_[iTrack];
-                particles.push_back(new StdHepParticle(track));
+                lStdTrack& track = stdEvent_[iTrack];
+                particles.push_back(StdHepParticle(track));
             }
 
             /*
@@ -57,30 +56,30 @@ class StdHepPrimaryGenerator : public PrimaryGenerator {
              */
             for (auto particle : particles) {
 
-                const StdHepParticle::Data& data = particle->getData();
+                const lStdTrack& data = particle.getData();
 
                 //std::cout << "mom1, mom2, dau1, dau2: " << data.daughter1 << " " << data.daughter2 << " "
                 //        << data.mother1 << " " << data.mother2 << std::endl;
 
                 if (data.daughter1) {
                     long idau1 = data.daughter1 % 10000 - 1;
-                    particle->setDaughter(0, particles[idau1]);
+                    particle.setDaughter(0, &particles[idau1]);
                     //std::cout << "StdHepPrimaryGenerator: Assigned daughter index " << idau1 << "." << std::endl;
                 }
 
                 if (data.daughter2) {
                     long idau2 = data.daughter2 % 10000 - 1;
-                    particle->setDaughter(1, particles[idau2]);
+                    particle.setDaughter(1, &particles[idau2]);
                 }
 
                 if (data.mother1) {
                     long imom1 = data.mother1 % 10000 - 1;
-                    particle->setMother(0, particles[imom1]);
+                    particle.setMother(0, &particles[imom1]);
                 }
 
                 if (data.mother2) {
                     long imom2 = data.mother2  % 10000 - 1;
-                    particle->setMother(1, particles[imom2]);
+                    particle.setMother(1, &particles[imom2]);
                 }
             }
 
@@ -89,16 +88,15 @@ class StdHepPrimaryGenerator : public PrimaryGenerator {
              */
             std::map<StdHepParticle*, G4PrimaryParticle*> particleMap;
             G4PrimaryVertex* vertex = nullptr;
-            for (std::vector<StdHepParticle*>::const_iterator it = particles.begin(); it != particles.end(); it++) {
+            for (std::vector<StdHepParticle>::iterator it = particles.begin(); it != particles.end(); it++) {
 
                 /*
                  * Get particle to generate, its data, and parentage info.
                  */
-                StdHepParticle* particle = (*it);
-                const StdHepParticle::Data& data = particle->getData();
+                StdHepParticle* particle = &(*it);
+                const lStdTrack& data = particle->getData();
                 StdHepParticle* mom = particle->getMother(0);
                 StdHepParticle* dau1 = particle->getDaughter(0);
-                //StdHepParticle* dau2 = particle->getDaughter(1);
 
                 /*
                  * Create a new primary particle for this track.
@@ -118,7 +116,7 @@ class StdHepPrimaryGenerator : public PrimaryGenerator {
                     //std::cout << "StdHepPrimaryGenerator: Creating new vertex at ( "
                     //        << data.x << ", " << data.y << ", " << data.z << " )." << std::endl;
                     vertex = new G4PrimaryVertex();
-                    vertex->SetPosition(data.x, data.y, data.z);
+                    vertex->SetPosition(data.X, data.Y, data.Z);
                     anEvent->AddPrimaryVertex(vertex);
                     vertex->SetPrimary(primary);
                 } else {
@@ -137,19 +135,13 @@ class StdHepPrimaryGenerator : public PrimaryGenerator {
                 // Copied from the MCParticleManager in SLIC and LCIO's LCStdHepRdr class.
                 // TODO: This needs to be double checked!
                 if (dau1) {
-                    const StdHepParticle::Data& dauData = dau1->getData();
+                    const lStdTrack& dauData = dau1->getData();
                     double properTime = fabs(((dauData.T / c_light) - (data.T / c_light))
                             * data.M) / data.E;
                     //std::cout << "StdHepPrimaryGenerator: Setting proper time " << properTime << " on particle." << std::endl;
                     primary->SetProperTime(properTime * ns);
                 }
             }
-
-            // Cleanup StdHep particle list.
-            for (auto particle : particles) {
-                delete particle;
-            }
-            particles.clear();
         }
 
         bool supportsRandomAccess() {
@@ -186,7 +178,7 @@ class StdHepPrimaryGenerator : public PrimaryGenerator {
 
         void readNextEvent() throw(EndOfFileException) {
             long res = reader_->readEvent(stdEvent_);
-            if (LSH_ENDOFFILE) {
+            if (res == LSH_ENDOFFILE) {
                 throw EndOfFileException();
             } else if (res) {
                 std::cerr << "StdHepPrimaryGenerator: Got non-zero LSH error code " << res << std::endl;
