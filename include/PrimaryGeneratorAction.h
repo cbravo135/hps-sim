@@ -201,28 +201,41 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction {
          */
         void readNextEvent(hpssim::PrimaryGenerator* gen) throw (EndOfDataException) {
             try {
+                // Perform read on the generator to load data.
                 doNextRead(gen);
             } catch (EndOfFileException& eof) {
-                /*
-                 * Ran out of files so try to open the next file and read an event.
-                 */
+                // End of this file, so load next file...
                 try {
+
+                    // Read in next file.
                     gen->readNextFile();
+
+                    // Read the first event from the new file.
                     try {
                         doNextRead(gen);
                     } catch (EndOfFileException& e) {
+                        // No events in the file!
                         G4Exception("", "", RunMustBeAborted,
                                 G4String("Failed to read events from '" + gen->getName() + "' after opening next file."));
+                    } catch (std::exception& err) {
+                        // Some unknown error occurred while reading an event.
+                        G4Exception("", "", RunMustBeAborted,
+                                G4String("Error reading events from '" + gen->getName() + "'."));
                     }
                 } catch (EndOfDataException& eod) {
+                    // Caught this typed exception thrown by readNextFile() which means we ran out of files.
                     G4Exception("", "", RunMustBeAborted,
                             G4String("Event generator '" + gen->getName() + "' ran out of files."));
                 }
+            } catch (std::exception& err) {
+                // Some unknown error occurred while reading an event.
+                G4Exception("", "", RunMustBeAborted,
+                        G4String("Error reading events from '" + gen->getName() + "'."));
             }
         }
 
         /**
-         * Performs the low level method calls to read the next generator event.
+         * Performs the method calls on PrimaryGenerator to read the next generator event.
          */
         void doNextRead(hpssim::PrimaryGenerator* gen) {
             if (gen->getReadMode() == PrimaryGenerator::Random) {
