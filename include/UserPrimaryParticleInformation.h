@@ -7,7 +7,9 @@
 #ifndef SIMAPPLICATION_USERPRIMARYPARTICLEINFORMATION_H_
 #define SIMAPPLICATION_USERPRIMARYPARTICLEINFORMATION_H_
 
-// Geant4
+/*
+ * Geant4
+ */
 #include "G4VUserPrimaryParticleInformation.hh"
 
 namespace hpssim {

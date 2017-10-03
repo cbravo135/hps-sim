@@ -43,12 +43,24 @@ class EndOfDataException: public std::exception {
  * @class PrimaryGenerator
  * @brief Abstract class which event generators must implement
  *
+ * @par
+ * Features:
+ * <ul>
+ * <li>Generators can be run sequentially or in random mode to uniformly sample from an input file.</li>
+ * <li>Generators can have any number of named double parameters.</li>
+ * <li>An EventSampling object determines how many events to overlay from this source for a single Geant4 event.</li>
+ * <li>Each generator has an arbitrarily long list of input files which is copied into a queue that is emptied during job processing.</li>
+ * <li>For file-based generators, there are a series of methods that should be implemented for reading event data (see method comments).</li>
+ * <li>There is an optional list of EventTransform objects that can be used to transform events from the generator.</li>
+ * <li>A verbose level can be set between (following Geant4 convention).
+ * </ul>
+ *
  * @todo
  * <ul>
  * <li>activate and deactivate</li>
  * <li>print out info: name, parameters, event sampling and transforms</li>
  * <li>delete</li>
- * <li>go to next file after sampling N records randomly (max records could be param on 'random' command)</li>
+ * <li>params for random sampling of events: max nevents to buffer and max to sample before moving to next input file</li>
  * <li>implement a hasNextEvent() method to simplify file management</li>
  * </ul>
  */
@@ -66,6 +78,10 @@ class PrimaryGenerator : public G4VPrimaryGenerator {
             Random
         };
 
+        /**
+         * Constructor which takes a name so each event generator can be
+         * managed using macro commands.
+         */
         PrimaryGenerator(std::string name);
 
         virtual ~PrimaryGenerator();
@@ -153,6 +169,15 @@ class PrimaryGenerator : public G4VPrimaryGenerator {
          */
         const std::vector<EventTransform*>& getTransforms() {
             return transforms_;
+        }
+
+        /**
+         * Apply transforms to a generated event.
+         */
+        void applyTransforms(G4Event* anEvent) {
+            for (auto transform : transforms_) {
+                transform->transform(anEvent);
+            }
         }
 
         /*

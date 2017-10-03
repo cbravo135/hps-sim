@@ -7,10 +7,15 @@
 #ifndef HPSSIM_TRACKMAP_H_
 #define HPSSIM_TRACKMAP_H_
 
-// Geant4
+/*
+ * Geant4
+ */
 #include "G4Event.hh"
 #include "G4VTrajectory.hh"
 
+/*
+ * HPS
+ */
 #include "Trajectory.h"
 
 namespace hpssim {

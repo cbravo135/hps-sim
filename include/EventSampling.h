@@ -7,8 +7,9 @@
 namespace hpssim {
 
 /**
- * @brief Interface for sampling from an event generator into a single Geant4 event.
- * @note The sampling distributions have a single double parameter.
+ * @class EventSampling
+ * @brief Calculates how many events to read from a generator to overlay onto a single Geant4 event.
+ * @note The sampling distributions may use a single generic double parameter for configuration.
  */
 class EventSampling {
 
@@ -22,10 +23,16 @@ class EventSampling {
          */
         virtual int getNumberOfEvents(G4Event* event) = 0;
 
+        /**
+         * Set the double param value.
+         */
         void setParam(double param) {
             param_ = param;
         }
 
+        /**
+         * Get the double param value.
+         */
         double getParam() {
             return param_;
         }
@@ -48,7 +55,8 @@ class UniformEventSampling : public EventSampling {
 };
 
 /**
- * Sample number of events from sampling Poisson distribution.
+ * @class PoissonEventSampling
+ * @brief Sample the number of events from a Poisson distribution.
  */
 class PoissonEventSampling : public EventSampling {
 
@@ -56,13 +64,13 @@ class PoissonEventSampling : public EventSampling {
 
         int getNumberOfEvents(G4Event*) {
             double nevents = G4Poisson(param_);
-            //std::cout << "PoissonEventSampling: Rand sample " << nevents << " events." << std::endl;
             return nevents;
         }
 };
 
 /**
- * Sample one event every Nth Geant4 event using a modulus.
+ * @class PeriodicEventSampling
+ * @brief Sample one event every Nth Geant4 event using a modulus.
  */
 class PeriodicEventSampling : public EventSampling {
 
@@ -79,7 +87,9 @@ class PeriodicEventSampling : public EventSampling {
 };
 
 /**
- * Sample from Poisson distribution based on physics cross section calculation.
+ * @class CrossSectionEventSampling
+ * @brief Sample the number of events from a Poisson distribution determined from the
+ * physics cross section.
  */
 class CrossSectionEventSampling : public PoissonEventSampling {
 

@@ -9,6 +9,10 @@
 
 namespace hpssim {
 
+/**
+ * @class UserEventAction
+ * @brief Implementation of Geant4 user event action
+ */
 class UserEventAction : public G4UserEventAction {
 
     public:

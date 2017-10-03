@@ -1,13 +1,22 @@
 #ifndef HPSSIM_USERTRACKINGACTION_H_
 #define HPSSIM_USERTRACKINGACTION_H_ 1
 
+/*
+ * Geant4
+ */
 #include "G4UserTrackingAction.hh"
 #include "G4TrackingManager.hh"
 #include "G4RunManager.hh"
 
+/*
+ * LCDD
+ */
 #include "lcdd/core/UserRegionInformation.hh"
 #include "lcdd/detectors/CurrentTrackState.hh"
 
+/*
+ * HPS
+ */
 #include "PluginManager.h"
 #include "TrackMap.h"
 #include "UserPrimaryParticleInformation.h"
@@ -15,6 +24,10 @@
 
 namespace hpssim {
 
+/**
+ * @class UserTrackingAction
+ * @brief Implementation of Geant4 user tracking action
+ */
 class UserTrackingAction : public G4UserTrackingAction {
 
     public:

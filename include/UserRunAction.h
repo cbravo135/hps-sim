@@ -1,12 +1,22 @@
 #ifndef HPSSIM_USERRUNACTION_H_
 #define HPSSIM_USERRUNACTION_H_
 
+/*
+ * Geant4
+ */
 #include "G4UserRunAction.hh"
 
+/*
+ * HPS
+ */
 #include "PluginManager.h"
 
 namespace hpssim {
 
+/*
+ * @class UserRunAction
+ * @brief Implementation of Geant4 user run action
+ */
 class UserRunAction : public G4UserRunAction {
 
     public:

@@ -1,10 +1,16 @@
 #ifndef HPSSIM_LCIOPERSISTENCYMANAGER_H_
 #define HPSSIM_LCIOPERSISTENCYMANAGER_H_
 
+/*
+ * LCDD
+ */
 #include "lcdd/core/LCDDProcessor.hh"
 #include "lcdd/hits/CalorimeterHit.hh"
 #include "lcdd/hits/TrackerHit.hh"
 
+/*
+ * Geant4
+ */
 #include "G4PersistencyManager.hh"
 #include "G4PersistencyCenter.hh"
 #include "G4Run.hh"
@@ -12,6 +18,9 @@
 #include "G4SDManager.hh"
 #include "G4SystemOfUnits.hh"
 
+/*
+ * LCIO
+ */
 #include "IO/LCWriter.h"
 #include "IMPL/LCEventImpl.h"
 #include "IMPL/LCCollectionVec.h"
@@ -23,33 +32,48 @@
 #include "EVENT/LCIO.h"
 #include "IOIMPL/LCFactory.h"
 
+/*
+ * HPS
+ */
 #include "LcioPersistencyMessenger.h"
 #include "MCParticleBuilder.h"
 
+/*
+ * LCIO
+ */
 using IMPL::LCCollectionVec;
 using EVENT::LCIO;
 
 namespace hpssim {
 
+/**
+ * @class LcioPersistencyManager
+ * @brief Manages persistence of Geant4 objects to an LCIO output file
+ * @see http://lcio.desy.de/
+ */
 class LcioPersistencyManager : public G4PersistencyManager {
 
     public:
 
+        /** File write mode. */
         enum WriteMode {
-            /* Make a new file and throw an error if it exists already. */
+            /** Make a new file and throw an error if it exists already. */
             NEW = -1,
-            /* Make a new file and overwrite an existing one if it exists. */
+            /** Make a new file and overwrite an existing one if it exists. */
             RECREATE = LCIO::WRITE_NEW,
-            /* Append to an existing file. */
+            /** Append to an existing file. */
             APPEND = LCIO::WRITE_APPEND
         };
 
+        /**
+         * Class constructor, which will register this persistency manager as the global default within Geant4.
+         */
         LcioPersistencyManager() :
                 G4PersistencyManager(G4PersistencyCenter::GetPersistencyCenter(), "LcioPersistencyManager") {
             G4PersistencyCenter::GetPersistencyCenter()->RegisterPersistencyManager(this);
             G4PersistencyCenter::GetPersistencyCenter()->SetPersistencyManager(this, "LcioPersistencyManager");
             writer_ = nullptr;
-            builder_ = new MCParticleBuilder(UserTrackingAction::getUserTrackingAction()->getTrackMap());
+            builder_ = new MCParticleBuilder(UserTrackingAction::getUserTrackingAction()->getTrackMap()); // FIXME: Probably shouldn't set this here!
             messenger_ = new LcioPersistencyMessenger(this);
         }
 
@@ -61,10 +85,16 @@ class LcioPersistencyManager : public G4PersistencyManager {
             delete messenger_;
         }
 
+        /**
+         * Get the global instance of the persistency manager.
+         */
         static LcioPersistencyManager* getInstance() {
             return (LcioPersistencyManager*) G4PersistencyCenter::GetPersistencyCenter()->CurrentPersistencyManager();
         }
 
+        /**
+         * Store a Geant4 event to an LCIO output event.
+         */
         G4bool Store(const G4Event* anEvent) {
             if (!anEvent->IsAborted()) {
 
@@ -106,6 +136,9 @@ class LcioPersistencyManager : public G4PersistencyManager {
             }
         }
 
+        /**
+         * End of run hook which is used to close the current LCIO writer.
+         */
         G4bool Store(const G4Run* aRun) {
             if (m_verbose > 1) {
                 std::cout << "LcioPersistencyManager: Store run " << aRun->GetRunID() << "." << std::endl;
@@ -120,7 +153,10 @@ class LcioPersistencyManager : public G4PersistencyManager {
             return false;
         }
 
-        // executed manually at start of run
+        /**
+         * Initialize an object of this class at the beginning of the run.
+         * Opens an LCIO file for writing using the current file name and write mode.
+         */
         void Initialize() {
 
             if (m_verbose > 1) {
@@ -152,14 +188,23 @@ class LcioPersistencyManager : public G4PersistencyManager {
             writer_->writeRunHeader(static_cast<EVENT::LCRunHeader*>(runHeader));
         }
 
+        /**
+         * Set the name of the output file.
+         */
         void setOutputFile(std::string outputFile) {
             outputFile_ = outputFile;
         }
 
+        /**
+         * Set the WriteMode of the LCIO writer.
+         */
         void setWriteMode(WriteMode writeMode) {
             writeMode_ = writeMode;
         }
 
+        /**
+         * Convert a string to a WriteMode enum value.
+         */
         const std::string& modeToString(WriteMode writeMode) {
             static std::vector<std::string> writeModes{"NEW", "RECREATE", "APPEND"};
             if (writeMode == NEW) {
@@ -177,6 +222,9 @@ class LcioPersistencyManager : public G4PersistencyManager {
 
     private:
 
+        /**
+         * Write hits collections from the Geant4 event to an LCIO event.
+         */
         void writeHitsCollections(const G4Event* g4Event, IMPL::LCEventImpl* lcioEvent) {
             G4HCofThisEvent* hce = g4Event->GetHCofThisEvent();
             if (hce) {
@@ -205,6 +253,9 @@ class LcioPersistencyManager : public G4PersistencyManager {
             }
         }
 
+        /**
+         * Write a TrackerHitsCollection (LCDD) to LCIO.
+         */
         IMPL::LCCollectionVec* writeTrackerHitsCollection(G4VHitsCollection* hc) {
             auto trackerHits = dynamic_cast<TrackerHitsCollection*>(hc);
             auto collVec = new LCCollectionVec(LCIO::SIMTRACKERHIT);
@@ -263,6 +314,9 @@ class LcioPersistencyManager : public G4PersistencyManager {
             return collVec;
         }
 
+        /**
+         * Write a CalorimeterHitsCollection (LCDD) to LCIO.
+         */
         IMPL::LCCollectionVec* writeCalorimeterHitsCollection(G4VHitsCollection* hc) {
 
             auto calHits = dynamic_cast<CalorimeterHitsCollection*>(hc);
@@ -345,9 +399,16 @@ class LcioPersistencyManager : public G4PersistencyManager {
 
     private:
 
+        /** Name of the output file. */
         std::string outputFile_{"hps_sim_events.slcio"};
+
+        /** The current LCIO data writer. */
         IO::LCWriter* writer_;
+
+        /** Builds MCParticle collection for the persistency manager. */
         MCParticleBuilder* builder_;
+
+        /** Messenger for macro command processing. */
         LcioPersistencyMessenger* messenger_;
 
         /** LCIO write mode. */

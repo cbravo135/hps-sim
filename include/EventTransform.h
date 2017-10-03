@@ -13,7 +13,9 @@
 namespace hpssim {
 
 /**
- * Interface for transforming generated events.
+ * @class EventTransform
+ * @brief Interface for transforming a generated Geant4
+ * by applying changes to particle positions, momentum, etc.
  */
 class EventTransform {
 
@@ -26,7 +28,8 @@ class EventTransform {
 };
 
 /**
- * Transform vertices to a fixed position.
+ * @class PositionTransform
+ * @brief Transform vertices to a fixed position.
  */
 class PositionTransform : public EventTransform {
 
@@ -55,7 +58,8 @@ class PositionTransform : public EventTransform {
 };
 
 /**
- * Gaussian smearing of vertex positions.
+ * @class SmearTransform
+ * @brief Gaussian smearing of vertex positions.
  */
 class SmearTransform : public EventTransform {
 
@@ -125,7 +129,8 @@ class SmearTransform : public EventTransform {
 };
 
 /**
- * Rotation into "beam coordinates" which transforms Px and Pz as well as the vertex X and Z positions.
+ * @class RotateTransform
+ * @brief Rotation into "beam coordinates" which transforms Px and Pz as well as the vertex X and Z positions.
  *
  * @note Based on algorithm from this StdHep tool:
  * @link https://github.com/JeffersonLab/hps-mc/blob/master/tools/stdhep-tools/src/beam_coords.cc
@@ -179,7 +184,8 @@ class RotateTransform : public EventTransform {
 };
 
 /**
- * Transform the vertex Z position in a uniform random range.
+ * @class RandZTransform
+ * @brief Transform the vertex Z position in a uniform random range.
  */
 class RandZTransform : public EventTransform {
 

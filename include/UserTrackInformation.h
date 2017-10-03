@@ -66,10 +66,21 @@ class UserTrackInformation : public VUserTrackInformation {
             initialMomentum_.set(p.x(), p.y(), p.z()); 
         }
 
+        /**
+         * Toggle flag to indicate this track has a tracker hit.
+         *
+         * @note This is here for LCDD.  The saveFlag_ is the preferred
+         * flag to use for persistency.
+         */
         void setHasTrackerHit() {
             hasTrackerHit_ = true;
         }
 
+        /**
+         * Get flag indicating if this track has a tracker hit.
+         * @note This is here for LCDD.  The saveFlag_ is the preferred
+         * flag to use for persistency.
+         */
         bool hasTrackerHit() {
             return hasTrackerHit_;
         }

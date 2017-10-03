@@ -11,7 +11,8 @@ namespace hpssim {
 class PrimaryGenerator;
 
 /**
- * Messenger assigned to a single primary generator to configure and customize it.
+ * @class PrimaryGeneratorMessenger
+ * @brief Messenger assigned to a single primary generator to configure and customize it.
  */
 class PrimaryGeneratorMessenger : public G4UImessenger {
 

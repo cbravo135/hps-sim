@@ -167,14 +167,6 @@ class StdHepPrimaryGenerator : public PrimaryGenerator {
                 records_.clear();
             }
 
-            //int numEvents = reader_->numEvents();
-            //if (verbose_ > 1) {
-            //    std::cout << "StdHepPrimaryGenerator: Caching " << numEvents
-            //            << " events from '" << reader_->getFileName() << "'" << std::endl;
-            //}
-
-            //records_.resize(numEvents);
-
             while (true) {
                 lStdEvent lse;
                 long res = reader_->readEvent(lse);
@@ -187,17 +179,9 @@ class StdHepPrimaryGenerator : public PrimaryGenerator {
                 records_.push_back(lse);
             }
 
-            /*
-            for (int i = 0; i < numEvents; i++) {
-                lStdEvent& lse = records_[i];
-                long res = reader_->readEvent(lse);
-                if (res != LSH_SUCCESS) {
-                    std::cerr << "StdHepPrimaryGenerator: LSH error code " << res << std::endl;
-                    G4Exception("", "", FatalException, "Error while reading StdHep event during caching.");
-                }
+            if (verbose_ > 1) {
+                std::cout << "StdHepPrimaryGenerator: Cached " << records_.size() << " records for random access" << std::endl;
             }
-            */
-            std::cout << "StdHepPrimaryGenerator: Cached " << records_.size() << " records for random access" << std::endl;
         }
 
         void readNextEvent() throw(EndOfFileException) {

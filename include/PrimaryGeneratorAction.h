@@ -12,6 +12,10 @@
 
 namespace hpssim {
 
+/**
+ * @class PrimaryGeneratorAction
+ * @brief Performs event generation using the currently registered list of PrimaryGenerator objects.
+ */
 class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction {
 
     public:
@@ -28,10 +32,35 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction {
             }
         }
 
+        /**
+         * Set the verbose level.
+         */
         void setVerbose(int verbose) {
             verbose_ = verbose;
         }
 
+        /**
+         * Generate primaries using the current set of event generators.
+         *
+         * Instead of using a single generator, this class iterates over a list of
+         * PrimaryGenerator objects that generate single events and optionally
+         * transform them before they are overlaid over the actual Geant4 event.
+         *
+         * @note
+         * Method pseudo-code:
+         * @code
+         * GeneratorPrimaries(G4Event anEvent)
+         *     foreach gen in generators:
+         *         nevents = gen.getNumberOfEventsToOverlay()
+         *         for i = 0 to nevents:
+         *             overlayEvent = new G4Event()
+         *             gen.readNextEvent()
+         *             gen.generatePrimaryVertex(overlayEvent)
+         *             gen.applyTransforms(overlayEvent)
+         *             overlayFromTo(overlayEvent, anEvent)
+         *             delete overlayEvent
+         * @endcode
+         */
         virtual void GeneratePrimaries(G4Event* anEvent) {
 
             if (verbose_ > 1) {
@@ -67,9 +96,7 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction {
                     if (overlayEvent->GetNumberOfPrimaryVertex()) {
 
                         // Apply event transforms to the overlay event.
-                        for (auto transform : transforms) {
-                            transform->transform(overlayEvent);
-                        }
+                        gen->applyTransforms(overlayEvent);
 
                         if (verbose_ > 2) {
                             std::cout << "PrimaryGeneratorAction: Generator '" << gen->getName() << "' created "
@@ -90,18 +117,33 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction {
             setGenStatus(anEvent);
         }
 
+        /**
+         * Add a PrimaryGenerator to the list.
+         */
         void addGenerator(PrimaryGenerator* generator) {
             generators_.push_back(generator);
         }
 
+        /**
+         * Initialize all PrimaryGenerator objects before run starts.
+         */
         void initialize() {
             for (auto gen : generators_) {
+
+                // Queues up all files for the generator for processing (if applicable).
                 gen->queueFiles();
+
+                // Reads the next file from the generator (if applicable).
                 gen->readNextFile();
+
+                // Call generator's initialization hook.
                 gen->initialize();
             }
         }
 
+        /**
+         * Get the global instance of this class.
+         */
         static PrimaryGeneratorAction* getPrimaryGeneratorAction() {
             const PrimaryGeneratorAction* pga =
                     static_cast<const PrimaryGeneratorAction*>(G4RunManager::GetRunManager()->GetUserPrimaryGeneratorAction());
@@ -110,6 +152,10 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction {
 
     private:
 
+        /**
+         * Set the generator status on G4PrimaryParticle objects in the event with
+         * extra user info.
+         */
         void setGenStatus(G4Event* anEvent) {
             for (int iVtx = 0; iVtx < anEvent->GetNumberOfPrimaryVertex(); iVtx++) {
                 auto vertex = anEvent->GetPrimaryVertex(iVtx);
@@ -121,6 +167,10 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction {
             }
         }
 
+        /**
+         * This method is called recursively to set the generator status on the G4PrimaryParticle
+         * objects and their daughters.
+         */
         void setGenStatus(G4PrimaryParticle* primaryParticle) {
 
             auto info = UserPrimaryParticleInformation::getUserPrimaryParticleInformation(primaryParticle);
@@ -146,6 +196,9 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction {
             }
         }
 
+        /**
+         * Reads in the next event from the generator and manages exceptions that might occur.
+         */
         void readNextEvent(hpssim::PrimaryGenerator* gen) throw (EndOfDataException) {
             try {
                 doNextRead(gen);
@@ -168,14 +221,18 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction {
             }
         }
 
+        /**
+         * Performs the low level method calls to read the next generator event.
+         */
         void doNextRead(hpssim::PrimaryGenerator* gen) {
             if (gen->getReadMode() == PrimaryGenerator::Random) {
                 /*
-                 * Read a random event from this file.
+                 * Read a random event from this file generating a number between zero
+                 * and the max event index.
                  */
                 int numEvents = gen->getNumEvents();
                 if (numEvents > 0) {
-                    long randEvent = CLHEP::RandFlat::shootInt(1, numEvents) - 1;
+                    long randEvent = CLHEP::RandFlat::shootInt((long)0, (long)(numEvents - 1));
                     if (verbose_ > 1) {
                         std::cout << "PrimaryGeneratorAction: Reading random event " << randEvent << " from '"
                                 << gen->getName() + "'" << std::endl;
@@ -184,7 +241,7 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction {
                 } else {
                     // The generator could not provide us the number of events for the random number range.
                     G4Exception("", "", RunMustBeAborted,
-                            G4String("Unable to get valid number of events from '" + gen->getName() + "' for random read"));
+                            G4String("Unable to get valid total number of events from '" + gen->getName() + "' for random read"));
                 }
             } else {
                 /*
@@ -196,10 +253,12 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction {
 
     protected:
 
+        /** Verbose level with access for sub-classes. */
         int verbose_{1};
 
     private:
 
+        /** Geant4 UI messenger for macro command processing. */
         G4UImessenger* messenger_;
 
         /** List of primary generators to run for every Geant4 event. */

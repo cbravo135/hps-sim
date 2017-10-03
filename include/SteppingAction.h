@@ -7,6 +7,10 @@
 
 namespace hpssim {
 
+/**
+ * @class SteppingAction
+ * @brief Implementing of Geant4 stepping action
+ */
 class SteppingAction : public G4UserSteppingAction {
 
     public:

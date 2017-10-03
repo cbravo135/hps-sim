@@ -7,13 +7,17 @@
 #ifndef HPSSIM_TRAJECTORY_H_
 #define HPSSIM_TRAJECTORY_H_
 
-// Geant4
+/*
+ * Geant4
+ */
 #include "G4TrajectoryContainer.hh"
 #include "G4VTrajectory.hh"
 #include "G4Allocator.hh"
 #include "G4Track.hh"
 
-// STL
+/*
+ * C++
+ */
 #include <vector>
 #include <cmath>
 
@@ -173,6 +177,9 @@ class Trajectory : public G4VTrajectory {
          */
         static Trajectory* findByTrackID(G4TrajectoryContainer* trajCont, int trackID);
 
+        /**
+         * Set the end point momentum of the trajectory.
+         */
         void setEndPointMomentum(const G4Track* aTrack) {
             G4ThreeVector p = aTrack->GetMomentum();
             double px = p.x();
@@ -184,13 +191,15 @@ class Trajectory : public G4VTrajectory {
             endPointMomentum_.set(px, py, pz);
         }
 
+        /*
+         * Get the end point momentum of the trajectory.
+         */
         const G4ThreeVector& getEndPointMomentum() const {
             return endPointMomentum_;
         }
 
         /**
-         * Get the flag which indicates whether this track should be saved
-         * as a Trajectory.
+         * Get the flag which indicates whether this track should be persisted.
          * @return The save flag.
          */
         bool getSaveFlag() {

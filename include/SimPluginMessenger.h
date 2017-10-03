@@ -23,6 +23,11 @@ class SimPlugin;
  * By default, this class creates a directory for the plugin and provides
  * a command for setting of the verbose level.  Users can override this
  * class to provide additional commands for their specific plugins.
+ *
+ * @note
+ * This class is not automatically created within a SimPlugin.  Instead, within
+ * their plugin constructor, the user should create an instance of this
+ * or a derived class.
  */
 class SimPluginMessenger : public G4UImessenger {
 

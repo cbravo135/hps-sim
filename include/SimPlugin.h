@@ -25,16 +25,16 @@ namespace hpssim {
  *
  * @note
  * This class defines a plugin interface to the Geant4 simulation engine
- * which is activated in the "user action" hooks.  An implementation
- * class must define "create" and "destroy" functions as entry points for
- * the dynamic library loading.  By default, the plugin does not activate
- * any of the user actions, and the user should override the methods
- * which return boolean flags to activate these hooks.
+ * which is activated in the "user action" hooks.
  */
 class SimPlugin {
 
     public:
 
+        /**
+         * Defines callbacks in the Geant4 engine for which
+         * a plugin should be activated.
+         */
         enum PluginAction {
             RUN = 1,
             EVENT,
@@ -85,9 +85,15 @@ class SimPlugin {
             return verbose_;
         }
 
+        /**
+         * Perform any custom initialization of this plugin.
+         */
         virtual void initialize() {
         }
 
+        /**
+         * Get the list of double parameters.
+         */
         Parameters& getParameters() {
             return params_;
         }
@@ -166,6 +172,7 @@ class SimPlugin {
         /** Protected access to verbose level for convenience of sub-classes. */
         int verbose_{1};
 
+        /** The double parameters for this plugin. */
         Parameters params_;
 };
 }
