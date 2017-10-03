@@ -187,6 +187,9 @@ class PrimaryGenerator : public G4VPrimaryGenerator {
             fileQueue_  = std::queue<std::string>(); // Reset queue for new run.
             for (auto file : files_) {
                 fileQueue_.push(file);
+                if (verbose_ > 1) {
+                    std::cout << "PrimaryGenerator: Queuing '" << file << "' for processing" << std::endl;
+                }
             }
         }
 
@@ -196,6 +199,9 @@ class PrimaryGenerator : public G4VPrimaryGenerator {
         void readNextFile() throw(EndOfDataException) {
             if (fileQueue_.size()) {
                 std::string nextFile = popFile();
+                if (verbose_ > 1) {
+                    std::cout << "PrimaryGenerator: Opening next file '" << nextFile << "'" << std::endl;
+                }
                 openFile(nextFile);
                 if (getReadMode() == PrimaryGenerator::Random) {
                     cacheEvents();
