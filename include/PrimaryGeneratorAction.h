@@ -1,6 +1,8 @@
 #ifndef HPSSIM_PRIMARYGENERATORACTION_H_
 #define HPSSIM_PRIMARYGENERATORACTION_H_
 
+#include "CLHEP/Random/RandFlat.h"
+
 #include "G4VUserPrimaryGeneratorAction.hh"
 #include "G4VPrimaryGenerator.hh"
 #include "G4Event.hh"
@@ -55,13 +57,8 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction {
                     // Create a new event to overlay.
                     G4Event* overlayEvent = new G4Event();
 
-                    // Read next event if using a file source.
-                    bool readNext = gen->readNextEvent();
-
-                    if (!readNext) {
-                        // Probably the generator ran out of events so the run must be aborted.
-                        G4Exception("", "", RunMustBeAborted, G4String("Event generator '" + gen->getName() + "' ran out of events."));
-                    }
+                    // Read next event.
+                    readNextEvent(gen);
 
                     // Generate a primary vertex.
                     gen->GeneratePrimaryVertex(overlayEvent);
@@ -100,6 +97,7 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction {
         void initialize() {
             for (auto gen : generators_) {
                 gen->queueFiles();
+                gen->readNextFile();
                 gen->initialize();
             }
         }
@@ -145,6 +143,54 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction {
             } else {
                 // Particles with no daughters are given status of 'final state'.
                 info->setGenStatus(1);
+            }
+        }
+
+        void readNextEvent(hpssim::PrimaryGenerator* gen) throw (EndOfDataException) {
+            try {
+                doNextRead(gen);
+            } catch (EndOfFileException& eof) {
+                /*
+                 * Ran out of files so try to open the next file and read an event.
+                 */
+                try {
+                    gen->readNextFile();
+                    try {
+                        doNextRead(gen);
+                    } catch (EndOfFileException& e) {
+                        G4Exception("", "", RunMustBeAborted,
+                                G4String("Failed to read events from '" + gen->getName() + "' after opening next file."));
+                    }
+                } catch (EndOfDataException& eod) {
+                    G4Exception("", "", RunMustBeAborted,
+                            G4String("Event generator '" + gen->getName() + "' ran out of files."));
+                }
+            }
+        }
+
+        void doNextRead(hpssim::PrimaryGenerator* gen) {
+            if (gen->getReadMode() == PrimaryGenerator::Random) {
+                /*
+                 * Read a random event from this file.
+                 */
+                int numEvents = gen->getNumEvents();
+                if (numEvents > 0) {
+                    long randEvent = CLHEP::RandFlat::shootInt(1, numEvents) - 1;
+                    if (verbose_ > 1) {
+                        std::cout << "PrimaryGeneratorAction: Reading random event " << randEvent << " from '"
+                                << gen->getName() + "'" << std::endl;
+                    }
+                    gen->readEvent(randEvent);
+                } else {
+                    // The generator could not provide us the number of events for the random number range.
+                    G4Exception("", "", RunMustBeAborted,
+                            G4String("Unable to get valid number of events from '" + gen->getName() + "' for random read"));
+                }
+            } else {
+                /*
+                 * Sequentially read next event.
+                 */
+                gen->readNextEvent();
             }
         }
 

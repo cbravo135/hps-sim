@@ -1,0 +1,38 @@
+#
+# Event overlay macro similar to tritrig-wab-beam generation
+#
+
+# load detector
+/lcdd/url detector.lcdd
+
+# print info as event generation runs
+/hps/generators/verbose 2
+
+# LHE generator
+/hps/generators/create LHEGen LHE
+/hps/generators/LHEGen/file events.lhe
+/hps/generators/LHEGen/random 
+/hps/generators/LHEGen/verbose 2
+
+# StdHep generator
+/hps/generators/create StdHepGen STDHEP
+/hps/generators/StdHepGen/file events.stdhep 
+/hps/generators/StdHepGen/random
+/hps/generators/StdHepGen/verbose 2
+
+# LCIO
+/hps/generators/create LcioGen LCIO
+/hps/generators/LcioGen/file events.slcio
+/hps/generators/LcioGen/random
+/hps/generators/LcioGen/verbose 2
+
+# init the run
+/run/initialize
+
+# LCIO output
+/hps/lcio/verbose 2
+/hps/lcio/recreate
+/hps/lcio/file rand_test.slcio
+
+# number of events
+/run/beamOn 100

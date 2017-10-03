@@ -84,7 +84,9 @@ void LHEPrimaryGenerator::GeneratePrimaryVertex(G4Event* anEvent) {
     anEvent->AddPrimaryVertex(vertex);
 
     // Delete the LHE event container to avoid memory leak.
-    delete lheEvent_;
+    if (getReadMode() != PrimaryGenerator::Random) {
+        delete lheEvent_;
+    }
 }
 
 }

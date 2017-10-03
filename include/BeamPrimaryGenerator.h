@@ -10,11 +10,41 @@
 
 namespace hpssim {
 
+/**
+ * @class BeamPrimaryGenerator
+ * @brief Generates particles matching the HPS beam profile
+ * @note
+ *
+ * @par
+ * This class accepts the following parameters through its PrimaryGenerator command interface.
+ * <ul>
+ * <li>nelectrons - fixed number of electrons to fire (which will not be smeared)</li>
+ * <li>current - beam current in nA for calculating number of electrons</li>
+ * <li>energy - beam energy in GeV</li>
+ * </ul>
+ *
+ * @par
+ * This class has the following features and assumptions:
+ * <ul>
+ * <li>The energy and current of the beam can be used to calculate the number of electrons (625 electrons per event by default).</li>
+ * <li>Number of electrons can be explicitly set to override the calculated value.</li>
+ * <li>Gaussian smearing is applied to the number of electrons, if it is not overridden via a parameter.</li>
+ * <li>Vertex X and Y positions are smeared according to the beam's transverse profile.</li>
+ * <li>Rotation into beam coordinates is automatically applied using the RotateTransform.</li>
+ * <li>Particle direction is (0,0,1) before rotation.
+ * <li>Origin of beam particles is currently hard-coded to 10 mm upstream of the target at (0,0,0).
+ * <li>Position of the target is assumed to be (0,0,0) in the world coordinate system.
+ * </ul>
+ */
 class BeamPrimaryGenerator : public PrimaryGenerator {
 
     public:
 
         BeamPrimaryGenerator(std::string name) : PrimaryGenerator(name) {
+        }
+
+        bool supportsRandomAccess() {
+            return false;
         }
 
         void GeneratePrimaryVertex(G4Event* anEvent) {
@@ -58,6 +88,13 @@ class BeamPrimaryGenerator : public PrimaryGenerator {
         }
 
         void initialize() {
+
+            /*
+             * Handle two basic cases:
+             * 1) If nelectrons is set then this is the number of particles fired, without Gaussian smearing.
+             * 2) If nelectrons is not set, then the beam parameters are calculated from the current and energy
+             * settings, and the number of electrons is smeared.
+             */
             Parameters& params = getParameters();
             energy_ = params.get("energy", energy_);
             if (params.has("nelectrons")) {
@@ -82,6 +119,9 @@ class BeamPrimaryGenerator : public PrimaryGenerator {
                 }
                 smearNElectrons_ = true;
             }
+
+            // Add transformation into beam coordinates.
+            this->addTransform(new RotateTransform);
         }
 
     private:

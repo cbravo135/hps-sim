@@ -7,15 +7,25 @@
 #include <string>
 #include <vector>
 
+#include <stdexcept>
+
 namespace hpssim {
 
 LHEReader::LHEReader(std::string& filename) {
-    std::cout << "LHEReader: Opening LHE file " << filename << std::endl;
+    std::cout << "LHEReader: Opening LHE file '" << filename << "'" << std::endl;
     ifs_.open(filename.c_str(), std::ifstream::in);
 
-    std::cout << "LHEReader: Reading cross section ..." << std::endl;
+    // Read number of events from header.
+    //std::cout << "LHEReader: Reading number of events ..." << std::endl;
+    readNumEvents();
+
+    // Read cross section from header.
+    //std::cout << "LHEReader: Reading cross section ..." << std::endl;
     readCrossSection();
-    std::cout << "LHEReader: Done reading cross section!" << std::endl;
+
+    std::cout << "LHEReader: Number of events " << numEvents_ << " from header data" << std::endl;
+
+    //std::cout << "LHEReader: Done reading in LHE file '" << filename << "'" << std::endl;
 }
 
 LHEReader::~LHEReader() {
@@ -99,6 +109,25 @@ LHEEvent* LHEReader::readNextEvent() {
     }
 
     return nextEvent;
+}
+
+void LHEReader::readNumEvents() {
+    std::string line;
+    while (getline(ifs_, line)) {
+        if (line.find("nevents") != std::string::npos) {
+            std::stringstream ss(line);
+            std::vector<std::string> tokens;
+            std::string token;
+            while (ss >> token) {
+                tokens.push_back(token);
+            }
+            numEvents_ = atoi(tokens[0].c_str());
+            break;
+        }
+        if (line == "</MGRunCard>") {
+            break;
+        }
+    }
 }
 
 }

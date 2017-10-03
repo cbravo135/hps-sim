@@ -38,10 +38,23 @@ class LHEReader {
          */
         LHEEvent* readNextEvent();
 
+        /**
+         * Get the cross section for the file, read from header data.
+         */
         double getCrossSection() {
             return crossSection_;
         }
 
+        /**
+         * Get the number of events, read from the header data.
+         */
+        int getNumEvents() {
+            return numEvents_;
+        }
+
+        /**
+         * Close the current file.
+         */
         void close() {
             if (ifs_.is_open()) {
                 ifs_.close();
@@ -50,16 +63,26 @@ class LHEReader {
 
     private:
 
+        /**
+         * Read cross section from header.
+         */
         void readCrossSection();
+
+        /**
+         * Read number of events in file from header.
+         */
+        void readNumEvents();
 
     private:
 
+        /** Cross section of physics process read from header. */
         double crossSection_{0};
 
-        /**
-         * The input file stream.
-         */
+        /** The input file stream. */
         std::ifstream ifs_;
+
+        /** Number of events in the file. */
+        int numEvents_{-1};
 };
 
 }

@@ -7,28 +7,31 @@
 namespace hpssim {
 
 PrimaryGeneratorMessenger::PrimaryGeneratorMessenger(PrimaryGenerator* generator) : generator_(generator) {
-    dir_ = new G4UIdirectory(G4String("/hps/generators/" + generator->getName() + "/"), this);
 
-    fileCmd_ = new G4UIcmdWithAString(G4String("/hps/generators/" + generator->getName() + "/file"), this);
+    auto genDir = G4String("/hps/generators/" + generator->getName() + "/");
 
-    sampleCmd_ = new G4UIcommand(G4String("/hps/generators/" + generator->getName() + "/sample"), this);
+    dir_ = new G4UIdirectory(genDir, this);
+
+    fileCmd_ = new G4UIcmdWithAString(G4String(genDir + "file"), this);
+
+    sampleCmd_ = new G4UIcommand(G4String(genDir + "sample"), this);
     G4UIparameter* p = new G4UIparameter("distribution", 's', false);
     sampleCmd_->SetParameter(p);
     p = new G4UIparameter("param", 'd', false);
     sampleCmd_->SetParameter(p);
 
-    verboseCmd_ = new G4UIcmdWithAnInteger(G4String("/hps/generators/" + generator->getName() + "/verbose"), this);
+    verboseCmd_ = new G4UIcmdWithAnInteger(G4String(genDir + "verbose"), this);
 
-    paramCmd_ = new G4UIcommand(G4String("/hps/generators/" + generator->getName() + "/param"), this);
+    paramCmd_ = new G4UIcommand(G4String(genDir + "param"), this);
     p = new G4UIparameter("name", 's', false);
     paramCmd_->SetParameter(p);
     p = new G4UIparameter("value", 'd', false);
     paramCmd_->SetParameter(p);
 
-    auto transformPath = G4String("/hps/generators/" + generator->getName() + "/transform/");
-    transformDir_ = new G4UIdirectory(transformPath, this);
+    auto transformDir = G4String(genDir + "transform/");
+    transformDir_ = new G4UIdirectory(transformDir, this);
 
-    posCmd_ = new G4UIcommand(G4String(transformPath + "pos"), this);
+    posCmd_ = new G4UIcommand(G4String(transformDir + "pos"), this);
     p = new G4UIparameter("x", 'd', false);
     posCmd_->SetParameter(p);
     p = new G4UIparameter("y", 'd', false);
@@ -36,7 +39,7 @@ PrimaryGeneratorMessenger::PrimaryGeneratorMessenger(PrimaryGenerator* generator
     p = new G4UIparameter("z", 'd', false);
     posCmd_->SetParameter(p);
 
-    smearCmd_ = new G4UIcommand(G4String(transformPath + "smear"), this);
+    smearCmd_ = new G4UIcommand(G4String(transformDir + "smear"), this);
     p = new G4UIparameter("sigma_x", 'd', false);
     smearCmd_->SetParameter(p);
     p = new G4UIparameter("sigma_y", 'd', false);
@@ -44,13 +47,17 @@ PrimaryGeneratorMessenger::PrimaryGeneratorMessenger(PrimaryGenerator* generator
     p = new G4UIparameter("sigma_z", 'd', false);
     smearCmd_->SetParameter(p);
 
-    rotCmd_ = new G4UIcommand(G4String(transformPath + "rot"), this);
+    rotCmd_ = new G4UIcommand(G4String(transformDir + "rot"), this);
     p = new G4UIparameter("theta", 'd', false);
     rotCmd_->SetParameter(p);
 
-    randzCmd_ = new G4UIcommand(G4String(transformPath + "randz"), this);
+    randzCmd_ = new G4UIcommand(G4String(transformDir + "randz"), this);
     p = new G4UIparameter("width", 'd', false);
     randzCmd_->SetParameter(p);
+
+    randomCmd_ = new G4UIcommand(G4String(genDir + "random"), this);
+
+    sequentialCmd_ = new G4UIcommand(G4String(genDir + "sequential"), this);
 }
 
 PrimaryGeneratorMessenger::~PrimaryGeneratorMessenger() {
@@ -114,6 +121,14 @@ void PrimaryGeneratorMessenger::SetNewValue(G4UIcommand* command, G4String newVa
         double width;
         sstream >> width;
         generator_->addTransform(new RandZTransform(width));
+    } else if (command == randomCmd_) {
+        if (!generator_->supportsRandomAccess()) {
+            G4Exception("", "", FatalException,
+                    G4String("The generator " + G4String(generator_->getName()) + " does not support random access."));
+        }
+        generator_->setReadMode(PrimaryGenerator::Random);
+    } else if (command == sequentialCmd_) {
+        generator_->setReadMode(PrimaryGenerator::Sequential);
     }
 }
 

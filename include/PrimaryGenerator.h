@@ -10,19 +10,61 @@
 
 #include <map>
 #include <queue>
+#include <exception>
 
 namespace hpssim {
 
 class PrimaryGeneratorMessenger;
 
-// TODO:
-// -activate and deactivate
-// -print out
-// -delete
-// -file management: current file, file queue, hook on new file, etc.
+/*
+ * Exception to throw when all events are read from file.
+ */
+class EndOfFileException: public std::exception {
+    public:
+
+        virtual const char* what() const throw() {
+            return "No more events to read from this generator file.";
+        }
+};
+
+/*
+ * Exception to throw when all files have been read.
+ */
+class EndOfDataException: public std::exception {
+
+    public:
+
+        virtual const char* what() const throw() {
+            return "No more event files to read from this generator.";
+        }
+};
+
+/**
+ * @class PrimaryGenerator
+ * @brief Abstract class which event generators must implement
+ *
+ * @todo
+ * <ul>
+ * <li>activate and deactivate</li>
+ * <li>print out info: name, parameters, event sampling and transforms</li>
+ * <li>delete</li>
+ * <li>go to next file after sampling N records randomly (max records could be param on 'random' command)</li>
+ * <li>implement a hasNextEvent() method to simplify file management</li>
+ * </ul>
+ */
 class PrimaryGenerator : public G4VPrimaryGenerator {
 
     public:
+
+        /**
+         * Generator read mode, either sequential or random.
+         * Random mode requires that this generator support
+         * random access by index of its event data.
+         */
+        enum ReadMode {
+            Sequential,
+            Random
+        };
 
         PrimaryGenerator(std::string name);
 
@@ -34,37 +76,56 @@ class PrimaryGenerator : public G4VPrimaryGenerator {
         virtual void GeneratePrimaryVertex(G4Event* anEvent) = 0;
 
         /**
-         * Initialization callback to open reader.
+         * Initialization callback to perform extra setup before run starts.
          */
         virtual void initialize() {
         }
 
         /**
-         * Cleanup callback to close open readers.
+         * Cleanup callback to close open readers at end of run.
          */
         virtual void cleanup() {
         }
 
+        /**
+         * Get the list of name-value double parameters assigned to this generator.
+         */
         Parameters& getParameters() {
             return params_;
         }
 
+        /**
+         * Get the unique name of this generator.
+         */
         const std::string& getName() {
             return name_;
         }
 
-        virtual void addFile(std::string file) {
+        /**
+         * Add a file to process.
+         */
+        void addFile(std::string file) {
             files_.push_back(file);
         }
 
+        /**
+         * Get the list of files to be processed by this generator.
+         */
         const std::vector<std::string>& getFiles() {
             return files_;
         }
 
+        /**
+         * Set the verbose level (1-4).
+         */
         void setVerbose(int verbose) {
             verbose_ = verbose;
         }
 
+        /**
+         * Set the event sampling which determines how many generator events
+         * are read for each Geant4 event.
+         */
         void setEventSampling(EventSampling* sampling) {
             if (sampling_) {
                 delete sampling_;
@@ -72,48 +133,155 @@ class PrimaryGenerator : public G4VPrimaryGenerator {
             sampling_ = sampling;
         }
 
+        /**
+         * Get the event sampling which determines how many generator events
+         * to read for each Geant4 event.
+         */
         EventSampling* getEventSampling() {
             return sampling_;
         }
 
+        /**
+         * Add a transform to be applied to this generator's events.
+         */
         void addTransform(EventTransform* transform) {
             transforms_.push_back(transform);
         }
 
+        /**
+         * Get the list of event transforms to apply to this generator's events.
+         */
         const std::vector<EventTransform*>& getTransforms() {
             return transforms_;
-        }
-
-        /*
-         * Generators that are using files should read in the data for the
-         * next event here and return true if the read was successful.
-         *
-         * Non-file based generators should not override this hook.
-         */
-        virtual bool readNextEvent() {
-            return true;
         }
 
         /*
          * Called in initialization to queue up all files for processing.
          */
         void queueFiles() {
+            fileQueue_  = std::queue<std::string>(); // Reset queue for new run.
             for (auto file : files_) {
                 fileQueue_.push(file);
             }
         }
 
-    protected:
-        int verbose_{1};
-        std::vector<std::string> files_;
-        std::queue<std::string> fileQueue_;
+        /*
+         * Open the next file for reading but do not read the first event.
+         */
+        void readNextFile() throw(EndOfDataException) {
+            if (fileQueue_.size()) {
+                std::string nextFile = popFile();
+                openFile(nextFile);
+                if (getReadMode() == PrimaryGenerator::Random) {
+                    cacheEvents();
+                }
+            } else {
+                throw EndOfDataException();
+            }
+        }
+
+        /**
+         * Set the generator read mode, either Random or Sequential.
+         * The validity of the read mode for a particular generator
+         * is checked from the PrimaryGeneratorMessenger before this is set.
+         */
+        void setReadMode(ReadMode readMode) {
+            readMode_ = readMode;
+        }
+
+        /**
+         * Get the generator read mode, either Random or Sequential.
+         */
+        ReadMode getReadMode() {
+            return readMode_;
+        }
+
+        /**
+         * This should be overridden to return the total number of events in the
+         * current input file.
+         */
+        virtual int getNumEvents() {
+            return 0;
+        }
+
+        /**
+         * File-based generators should override this hook to return true
+         * if they support random access of their event data by sequential
+         * index in the file.
+         */
+        virtual bool supportsRandomAccess() {
+            return false;
+        }
+
+        /**
+         * File-based generators should override this hook to return an event
+         * by its sequential index in the file.
+         */
+        virtual void readEvent(long) {
+        }
+
+        /**
+         * File-based generators should override this to cache all the events from
+         * a file into a data structure for random access.
+         */
+        virtual void cacheEvents() {
+        }
+
+        /*
+         * File-based generators should use this hook to read in the next event
+         * from the current file for processing and throw an EndOfFileException
+         * if there are no more events in the file.
+         */
+        virtual void readNextEvent() throw(EndOfFileException) {
+        }
+
+        /**
+         * File-based generators should use this hook to open the specified file.
+         */
+        virtual void openFile(std::string) {
+        }
 
     private:
+
+        /**
+         * Pop the next file to open.
+         */
+        std::string popFile() {
+            std::string nextFile = fileQueue_.front();
+            fileQueue_.pop();
+            return nextFile;
+        }
+
+    protected:
+
+        /** Verbose level for print output (1-4). */
+        int verbose_{1};
+
+    private:
+
+        /** Unique name of the generator. */
         std::string name_;
+
+        /** List of files with generator data. */
+        std::vector<std::string> files_;
+
+        /** File processing queue. */
+        std::queue<std::string> fileQueue_;
+
+        /** Messenger for command steering. */
         PrimaryGeneratorMessenger* messenger_;
+
+        /** List of transforms that are applied to the events from this generator. */
         std::vector<EventTransform*> transforms_;
+
+        /** The event sampling for getting the number of events to overlay (default of 1). */
         EventSampling* sampling_{new UniformEventSampling};
+
+        /** Access to simple key-value double parameters set from steering macros. */
         Parameters params_;
+
+        /** The read mode of the generator: either sequential or random. */
+        ReadMode readMode_{Sequential};
 };
 
 }

@@ -46,59 +46,61 @@ class LHEPrimaryGenerator: public PrimaryGenerator {
          */
         void GeneratePrimaryVertex(G4Event* anEvent);
 
-        void initialize() {
-            if (fileQueue_.size()) {
-                std::string nextFile = fileQueue_.front();
-                fileQueue_.pop();
-                reader_ = new LHEReader(nextFile);
-            } else {
-                G4Exception("", "", RunMustBeAborted,
-                        G4String("No files were specified for generator '" + this->getName() + "'"));
+        /**
+         * Random access is supported using a data cache.
+         */
+        bool supportsRandomAccess() {
+            return true;
+        }
+
+        int getNumEvents() {
+            return reader_->getNumEvents();
+        }
+
+        void readNextEvent() throw(EndOfFileException) {
+            lheEvent_ = reader_->readNextEvent();
+            if (!lheEvent_) {
+                throw EndOfFileException();
             }
+        }
+
+        void openFile(std::string file) {
+
+            // Cleanup the prior reader.
+            if (reader_) {
+                reader_->close();
+                delete reader_;
+            }
+
+            // Create reader for next file.
+            reader_ = new LHEReader(file);
 
             // Setup event sampling if using cross section.
             setupEventSampling();
         }
 
-        /*
-         * Read the next LHE event from the file.
-         * If the current file ran out of events then go to the next file.
-         */
-        bool readNextEvent() {
-            lheEvent_ = reader_->readNextEvent();
-            if (lheEvent_ == nullptr) {
-                if (reader_) {
-                    reader_->close();
-                    delete reader_;
-                }
-                if (fileQueue_.size()) {
+        void readEvent(long index) {
+            lheEvent_ = events_[index];
+        }
 
-                    std::string nextFile = fileQueue_.front();
-                    std::cout << "LHEPrimaryGenerator: Opening '" << nextFile << "' for reading" << std::endl;
-                    fileQueue_.pop();
+        void cacheEvents() {
 
-                    // Create reader for next file.
-                    reader_ = new LHEReader(nextFile);
-
-                    // Setup event sampling if using cross section.
-                    setupEventSampling();
-
-                    // Read in the next event.
-                    lheEvent_ = reader_->readNextEvent();
-
-                    if (!lheEvent_) {
-                        // Should never happen unless the next file is invalid or empty.
-                        std::cerr << "LHEPrimaryGenerator: Next file '" << nextFile << "' does not have any events!"
-                                << std::endl;
-                        return false;
-                    }
-                } else {
-                    // Ran out of files.
-                    std::cerr << "LHEPrimaryGenerator: No more files to process!" << std::endl;
-                    return false;
+            // Clear record cache.
+            if (events_.size()) {
+                for (auto event : events_) {
+                    delete event;
                 }
             }
-            return true;
+
+            LHEEvent* event = reader_->readNextEvent();
+            while (event != nullptr) {
+                events_.push_back(event);
+                event = reader_->readNextEvent();
+            }
+            
+            if (verbose_ > 1) {
+                std::cout << "LHEPrimaryGenerator: Cached " << events_.size() << " LHE events for random access" << std::endl;
+            }
         }
 
     private:
@@ -121,7 +123,7 @@ class LHEPrimaryGenerator: public PrimaryGenerator {
                 // Calculate poisson mu from cross section.
                 sampling->calculateMu();
                 if (verbose_ > 1) {
-                    std::cout << "LHEPrimaryGenerator: Calculated mu = " << sampling->getParam()
+                    std::cout << "LHEPrimaryGenerator: Calculated mu of " << sampling->getParam()
                             << " from cross-section " << reader_->getCrossSection() << std::endl;
                 }
             }
@@ -129,13 +131,14 @@ class LHEPrimaryGenerator: public PrimaryGenerator {
 
     private:
 
-        /**
-         * The LHE reader with the event data.
-         */
+        /** The LHE reader with the event data. */
         LHEReader* reader_;
 
+        /** The current LHE event. */
         LHEEvent* lheEvent_;
 
+        /** Queue of LHE events when running in random mode. */
+        std::vector<LHEEvent*> events_;
 };
 
 }
