@@ -151,8 +151,8 @@ class RotateTransform : public EventTransform {
                 double y = pos.y();
                 double z = pos.z() * std::cos(theta_) - pos.x() * std::sin(theta_);
                 vertex->SetPosition(x, y, z);
-                std::cout << "RotateTransform: Transformed position of vertex " << vertex
-                        << " to " << vertex->GetPosition() << "." << std::endl;
+                //std::cout << "RotateTransform: Transformed position of vertex " << vertex
+                //        << " to " << vertex->GetPosition() << "." << std::endl;
                 int nPrim = vertex->GetNumberOfParticle();
                 for (int iPrim = 0; iPrim < nPrim; iPrim++) {
                     rotatePrimary(vertex->GetPrimary(iPrim));
@@ -167,8 +167,8 @@ class RotateTransform : public EventTransform {
             double py = primary->GetMomentum().y();
             double pz = primary->GetMomentum().z() * std::cos(theta_) - primary->GetMomentum().x() * std::sin(theta_);
             primary->SetMomentum(px, py, pz);
-            std::cout << "RotateTransform: Rotated primary momentum to " << primary->GetMomentum()
-                    << " for particle " << primary << std::endl;
+            //std::cout << "RotateTransform: Rotated primary momentum to " << primary->GetMomentum()
+            //        << " for particle " << primary << std::endl;
 
             // Recursively process the daughter particles.
             auto dau = primary->GetDaughter();
