@@ -1,7 +1,3 @@
-#
-# Event overlay macro similar to tritrig-wab-beam generation
-#
-
 # load detector
 /lcdd/url detector.lcdd
 
@@ -10,13 +6,15 @@
 
 # LHE generator
 /hps/generators/create LHEGen LHE
-/hps/generators/LHEGen/file events.lhe
+/hps/generators/LHEGen/file signal1.lhe
+#/hps/generators/LHEGen/file signal2.lhe
 /hps/generators/LHEGen/random 
 /hps/generators/LHEGen/verbose 2
 
 # StdHep generator
 /hps/generators/create StdHepGen STDHEP
-/hps/generators/StdHepGen/file events.stdhep 
+/hps/generators/StdHepGen/file ap_events1.stdhep 
+#/hps/generators/StdHepGen/file ap_events2.stdhep 
 /hps/generators/StdHepGen/random
 /hps/generators/StdHepGen/verbose 2
 
@@ -35,4 +33,4 @@
 /hps/lcio/file rand_test.slcio
 
 # number of events
-/run/beamOn 100
+/run/beamOn 20001

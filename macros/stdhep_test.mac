@@ -4,15 +4,14 @@
 # define LHE event generator
 /hps/generators/create EventGen STDHEP
 /hps/generators/EventGen/file events.stdhep
-
-# debug
-#/hps/generators/create TestGen TEST
+/hps/generators/EventGen/verbose 4
 
 # init the run
 /run/initialize
 
 # LCIO output
 /hps/lcio/verbose 2
+/hps/lcio/recreate
 /hps/lcio/file stdhep_test.slcio
 
 /run/beamOn 10

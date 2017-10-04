@@ -1,17 +1,20 @@
 # load detector
 /lcdd/url detector.lcdd
 
+/hps/generators/verbose 4
+
 # define LHE event generator
 /hps/generators/create EventGen LCIO
 /hps/generators/EventGen/file events.slcio
+#/hps/generators/EventGen/random
 /hps/generators/EventGen/verbose 4
 
 # init the run
 /run/initialize
 
 # LCIO output
-/hps/lcio/verbose 2
+/hps/lcio/verbose 4
 /hps/lcio/recreate
 /hps/lcio/file lcio_test.slcio
 
-/run/beamOn 10
+/run/beamOn 100000

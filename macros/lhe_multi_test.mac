@@ -14,8 +14,8 @@
 /run/initialize
 
 # LCIO output
-#/hps/lcio/verbose 2
+/hps/lcio/verbose 2
 /hps/lcio/recreate
 /hps/lcio/file lhe_multi_test.slcio
 
-/run/beamOn 999999
+/run/beamOn 99999

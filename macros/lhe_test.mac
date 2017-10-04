@@ -10,6 +10,7 @@
 
 # LCIO output
 /hps/lcio/verbose 2
+/hps/lcio/recreate
 /hps/lcio/file lhe_test.slcio
 
 /run/beamOn 10
