@@ -6,8 +6,6 @@ namespace hpssim {
 /**
  * @class StdHepParticle
  * @brief Provides access to StdHep track data with direct pointers to mother and daughter particles
- * @note Data member values are copied directly from the lStdTrack object, because the way that class is managed
- * by the lStdHep interface means that trying to store direct references or pointers to it causes memory corruption.
  */
 class StdHepParticle {
 
