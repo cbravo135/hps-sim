@@ -130,11 +130,15 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction {
         void initialize() {
             for (auto gen : generators_) {
 
-                // Queues up all files for the generator for processing (if applicable).
-                gen->queueFiles();
+                // Initialization for generators with files.
+                if (gen->isFileBased()) {
 
-                // Reads the next file from the generator (if applicable).
-                gen->readNextFile();
+                    // Queues up all files for the generator for processing.
+                    gen->queueFiles();
+
+                    // Reads the next file from the generator.
+                    gen->readNextFile();
+                }
 
                 // Call generator's initialization hook.
                 gen->initialize();
@@ -198,6 +202,9 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction {
 
         /**
          * Reads in the next event from the generator and manages exceptions that might occur.
+         *
+         * @todo The logic in this method would be helped if the generators could peek into their
+         * data stream to see if there are more events left.
          */
         void readNextEvent(hpssim::PrimaryGenerator* gen) throw (EndOfDataException) {
             try {
@@ -207,23 +214,23 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction {
                 // End of this file, so load next file...
                 try {
 
-                    // Read in next file.
+                    // Read in the next file, which will throw an exception if there are no more files left.
                     gen->readNextFile();
 
-                    // Read the first event from the new file.
+                    // Now try to read the first event from the new file.
                     try {
                         doNextRead(gen);
                     } catch (EndOfFileException& e) {
-                        // No events in the file!
+                        // No events in the file or it is corrupt!
                         G4Exception("", "", RunMustBeAborted,
-                                G4String("Failed to read events from '" + gen->getName() + "' after opening next file."));
+                                G4String("Failed to read first event from '" + gen->getName() + "'."));
                     } catch (std::exception& err) {
-                        // Some unknown error occurred while reading an event.
+                        // Some unknown error occurred while reading this event.
                         G4Exception("", "", RunMustBeAborted,
                                 G4String("Error reading events from '" + gen->getName() + "'."));
                     }
                 } catch (EndOfDataException& eod) {
-                    // Caught this typed exception thrown by readNextFile() which means we ran out of files.
+                    // Caught this typed exception, probably thrown by readNextFile() because we ran out of files.
                     G4Exception("", "", RunMustBeAborted,
                             G4String("Event generator '" + gen->getName() + "' ran out of files."));
                 }
@@ -250,13 +257,19 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction {
                         std::cout << "PrimaryGeneratorAction: Reading random event " << randEvent << " from '"
                                 << gen->getName() + "'" << std::endl;
                     }
-                    gen->readEvent(randEvent);
+                    gen->readEvent(randEvent, true);
                 } else {
-                    // The generator could not provide us the number of events for the random number range.
-                    G4Exception("", "", RunMustBeAborted,
-                            G4String("Unable to get valid total number of events from '" + gen->getName() + "' for random read"));
+                    /*
+                     * Generator ran out of events so throw an exception that indicates this.
+                     */
+                    throw EndOfFileException();
                 }
             } else {
+
+                if (verbose_ > 2) {
+                    std::cout << "PrimaryGeneratorAction: Reading event read from '" << gen->getName() << "' sequentially" << std::endl;
+                }
+
                 /*
                  * Sequentially read next event.
                  */

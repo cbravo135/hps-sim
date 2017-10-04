@@ -43,10 +43,6 @@ class BeamPrimaryGenerator : public PrimaryGenerator {
         BeamPrimaryGenerator(std::string name) : PrimaryGenerator(name) {
         }
 
-        bool supportsRandomAccess() {
-            return false;
-        }
-
         void GeneratePrimaryVertex(G4Event* anEvent) {
             if (verbose_ > 1) {
                 std::cout << "BeamPrimaryGenerator: Generating " << nelectrons_

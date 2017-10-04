@@ -39,6 +39,27 @@ class EndOfDataException: public std::exception {
         }
 };
 
+/*
+ * Exception to throw when an invalid index is used to access a file.
+ */
+class NoSuchRecordException: public std::exception {
+
+    public:
+
+        NoSuchRecordException(int recordIndex) {
+            recordIndex_ = recordIndex;
+        }
+
+        virtual const char* what() const throw() {
+            auto indexStr = std::to_string(recordIndex_);
+            return std::string("No such record index: " + indexStr).c_str();
+        }
+
+    private:
+
+        int recordIndex_ = -1;
+};
+
 /**
  * @class PrimaryGenerator
  * @brief Abstract class which event generators must implement
@@ -98,12 +119,6 @@ class PrimaryGenerator : public G4VPrimaryGenerator {
         }
 
         /**
-         * Cleanup callback to close open readers at end of run.
-         */
-        virtual void cleanup() {
-        }
-
-        /**
          * Get the list of name-value double parameters assigned to this generator.
          */
         Parameters& getParameters() {
@@ -139,8 +154,8 @@ class PrimaryGenerator : public G4VPrimaryGenerator {
         }
 
         /**
-         * Set the event sampling which determines how many generator events
-         * are read for each Geant4 event.
+         * Set the event sampling, which determines how many events are generated
+         * and then overlaid onto each Geant4 event.
          */
         void setEventSampling(EventSampling* sampling) {
             if (sampling_) {
@@ -187,21 +202,17 @@ class PrimaryGenerator : public G4VPrimaryGenerator {
             fileQueue_  = std::queue<std::string>(); // Reset queue for new run.
             for (auto file : files_) {
                 fileQueue_.push(file);
-                if (verbose_ > 1) {
-                    std::cout << "PrimaryGenerator: Queuing '" << file << "' for processing" << std::endl;
-                }
             }
         }
 
         /*
          * Open the next file for reading but do not read the first event.
+         * This method will also build the event cache if the generator is
+         * running in random mode.
          */
-        void readNextFile() throw(EndOfDataException) {
+        virtual void readNextFile() throw(EndOfDataException) {
             if (fileQueue_.size()) {
                 std::string nextFile = popFile();
-                if (verbose_ > 1) {
-                    std::cout << "PrimaryGenerator: Opening next file '" << nextFile << "'" << std::endl;
-                }
                 openFile(nextFile);
                 if (getReadMode() == PrimaryGenerator::Random) {
                     cacheEvents();
@@ -228,17 +239,26 @@ class PrimaryGenerator : public G4VPrimaryGenerator {
         }
 
         /**
-         * This should be overridden to return the total number of events in the
-         * current input file.
+         * This should be overridden to return the total number of events left in the
+         * cache that is used for randomly sampling events by their index.
          */
         virtual int getNumEvents() {
             return 0;
         }
 
         /**
+         * Override to return true if the generator has files that it manages
+         * as input.
+         */
+        virtual bool isFileBased() {
+           return false;
+        }
+
+        /**
          * File-based generators should override this hook to return true
          * if they support random access of their event data by sequential
-         * index in the file.
+         * index in the file.  Random access is actually implemented using
+         * data caches in each generator implementation.
          */
         virtual bool supportsRandomAccess() {
             return false;
@@ -246,9 +266,11 @@ class PrimaryGenerator : public G4VPrimaryGenerator {
 
         /**
          * File-based generators should override this hook to return an event
-         * by its sequential index in the file.
+         * by its sequential index in an internal data cache.  By default, this
+         * event will then be removed for subsequent usage in random access
+         * according to the flag.
          */
-        virtual void readEvent(long) {
+        virtual void readEvent(long, bool) throw(NoSuchRecordException) {
         }
 
         /**
@@ -275,7 +297,7 @@ class PrimaryGenerator : public G4VPrimaryGenerator {
     private:
 
         /**
-         * Pop the next file to open.
+         * Pop and return the next file to open.
          */
         std::string popFile() {
             std::string nextFile = fileQueue_.front();

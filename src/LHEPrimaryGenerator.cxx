@@ -74,6 +74,7 @@ void LHEPrimaryGenerator::GeneratePrimaryVertex(G4Event* anEvent) {
             //primary->Print();
 
         } else {
+            // TODO: Handle doc particles!
         }
 
         //std::cout << std::endl;
@@ -83,10 +84,8 @@ void LHEPrimaryGenerator::GeneratePrimaryVertex(G4Event* anEvent) {
 
     anEvent->AddPrimaryVertex(vertex);
 
-    // Delete the LHE event container to avoid memory leak.
-    if (getReadMode() != PrimaryGenerator::Random) {
-        delete lheEvent_;
-    }
+    delete lheEvent_;
+    lheEvent_ = nullptr;
 }
 
 }

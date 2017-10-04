@@ -144,14 +144,23 @@ class StdHepPrimaryGenerator : public PrimaryGenerator {
             }
         }
 
+        bool isFileBased() {
+            return true;
+        }
+
         bool supportsRandomAccess() {
             return true;
         }
 
         int getNumEvents() {
-            return reader_->numEvents();
+            return records_.size();
         }
 
+        /**
+         * Cache a list of events for random access.
+         * The StdHep data is copied so pointers are not used in the event vector.
+         * Memory will be reclaimed when the vector is cleared.
+         */
         void cacheEvents() {
 
             // Clear record cache.
@@ -159,6 +168,7 @@ class StdHepPrimaryGenerator : public PrimaryGenerator {
                 records_.clear();
             }
 
+            // Cache a list of StdHep events.
             while (true) {
                 lStdEvent lse;
                 long res = reader_->readEvent(lse);
@@ -198,8 +208,11 @@ class StdHepPrimaryGenerator : public PrimaryGenerator {
             reader_ = new lStdHep(file.c_str());
         }
 
-        void readEvent(long index) {
+        void readEvent(long index, bool removeEvent) throw(NoSuchRecordException) {
             stdEvent_ = records_[index];
+            if (removeEvent) {
+                records_.erase(records_.begin() + index);
+            }
         }
 
     private:

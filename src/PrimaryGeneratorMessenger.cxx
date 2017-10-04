@@ -71,8 +71,8 @@ void PrimaryGeneratorMessenger::SetNewValue(G4UIcommand* command, G4String newVa
     } else if (command == verboseCmd_ ) {
         int newLevel = verboseCmd_->ConvertToInt(newValues);
         generator_->setVerbose(newLevel);
-        std::cout << "PrimaryGeneratorMessenger: Set verbose level to " << newLevel
-                << " for generator " << generator_->getName() << "." << std::endl;
+        std::cout << "PrimaryGeneratorMessenger: Set verbose level of " << generator_->getName()
+                << " to " << newLevel << std::endl;
     } else if (command == paramCmd_) {
         std::string name;
         double value;

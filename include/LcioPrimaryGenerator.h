@@ -17,13 +17,18 @@
 
 #include "PrimaryGenerator.h"
 
+#include <set>
+
 namespace hpssim {
 
 /**
  * @class LHEPrimaryGenerator
- * @brief Generates a Geant4 event from an LHEEvent
- * @note The readNextEvent() hook does not need to be implemented because the LCIO
- * reader can accept a list of files to process.
+ * @brief Generates a Geant4 event from an LCIO MCParticle collection
+ *
+ * @note It appears that the current incarnation of the SIOReader is 'clever'
+ * about how it manages the LCEvent objects, so deleting them explicitly causes
+ * seg faults!  For this reason, none of the events read from the file are
+ * deleted.  This does not appear to cause a memory leak.
  */
 class LcioPrimaryGenerator : public PrimaryGenerator {
 
@@ -39,7 +44,7 @@ class LcioPrimaryGenerator : public PrimaryGenerator {
         }
 
         /**
-         * Generate vertices in the Geant4 event.
+         * Generate vertices in the Geant4 event from the MCParticle data.
          * @param anEvent The Geant4 event.
          */
         void GeneratePrimaryVertex(G4Event* anEvent) {
@@ -95,36 +100,82 @@ class LcioPrimaryGenerator : public PrimaryGenerator {
                         particleMap[particle] = primaryParticle;
                     }
                 }
-            } 
-            if (getReadMode() != PrimaryGenerator::Random) {
-                delete lcEvent_;
             }
+        }
+
+        bool isFileBased() {
+            return true;
         }
 
         bool supportsRandomAccess() {
             return true;
         }
 
-        void readEvent(long index) {
-            lcEvent_ = reader_->readEvent(runHeader_->getRunNumber(), index);
+        /**
+         * Read an event by index for random access.
+         * This method uses the cache of event numbers to find the event in the file
+         * for that index, and then removes that record from the cache so it
+         * is not reused.
+         */
+        void readEvent(long index, bool removeEvent) throw(NoSuchRecordException) {
+            long eventNumber = events_[index];
+            lcEvent_ = reader_->readEvent(runHeader_->getRunNumber(), eventNumber);
+            if (removeEvent) {
+                events_.erase(events_.begin() + index);
+            }
         }
 
-        int getNumEvents() {
-            return reader_->getNumberOfEvents();
-        }
-
+        /**
+         * Read the next event sequentially from the SIO reader.
+         */
         void readNextEvent() throw(EndOfFileException) {
             lcEvent_ = reader_->readNextEvent();
         }
 
+        /**
+         * Open a new reader, deleting the old one if necessary, and get the first run header
+         * from the file.  If there is no run header found, there will be a fatal exception,
+         * because this is required for random access support.
+         */
         void openFile(std::string file) {
             if (reader_) {
                 reader_->close();
                 delete reader_;
             }
-            reader_ = IOIMPL::LCFactory::getInstance()->createLCReader();
+            reader_ = IOIMPL::LCFactory::getInstance()->createLCReader(IO::LCReader::directAccess);
             reader_->open(file);
-            runHeader_ = reader_->readNextRunHeader();
+            runHeader_ = reader_->readNextRunHeader(); // FIXME: Hope there isn't more than one of these in the file!
+            if (!runHeader_) {
+                G4Exception("", "", FatalException, G4String("Failed to read run header from LCIO file '" + file + "'"));
+            }
+        }
+
+        /**
+         * Return the number of events left in the cache for random access.
+         */
+        int getNumEvents() {
+            return events_.size();
+        }
+
+        /**
+         * Cache a list of valid event numbers in the file that can be used when running in random access mode.
+         */
+        void cacheEvents() {
+
+            if (events_.size()) {
+                events_.clear();
+            }
+
+            // Create a list of event numbers in the file to be used for random access.
+            EVENT::LCEvent* event = reader_->readNextEvent();
+            while (event) {
+                events_.push_back(event->getEventNumber());
+                event = reader_->readNextEvent();
+            }
+
+            if (verbose_ > 1) {
+                std::cout << "LcioPrimaryGenerator: Cached " << events_.size() << " events for random access" << std::endl;
+            }
         }
 
     private:
@@ -137,6 +188,9 @@ class LcioPrimaryGenerator : public PrimaryGenerator {
 
         /** The current run header. */
         EVENT::LCRunHeader* runHeader_{nullptr};
+
+        /** List of event indices that is used for random access via the reader. */
+        std::vector<long> events_;
 };
 
 }

@@ -46,21 +46,29 @@ class LHEPrimaryGenerator: public PrimaryGenerator {
          */
         void GeneratePrimaryVertex(G4Event* anEvent);
 
-        /**
-         * Random access is supported using a data cache.
-         */
+        bool isFileBased() {
+            return true;
+        }
+
         bool supportsRandomAccess() {
             return true;
         }
 
         int getNumEvents() {
-            return reader_->getNumEvents();
+            return events_.size();
         }
 
         void readNextEvent() throw(EndOfFileException) {
             lheEvent_ = reader_->readNextEvent();
             if (!lheEvent_) {
                 throw EndOfFileException();
+            }
+        }
+
+        void readEvent(long index, bool removeEvent) throw(NoSuchRecordException) {
+            lheEvent_ = events_[index];
+            if (removeEvent) {
+                events_.erase(events_.begin() + index);
             }
         }
 
@@ -77,10 +85,6 @@ class LHEPrimaryGenerator: public PrimaryGenerator {
 
             // Setup event sampling if using cross section.
             setupEventSampling();
-        }
-
-        void readEvent(long index) {
-            lheEvent_ = events_[index];
         }
 
         void cacheEvents() {
