@@ -1664,7 +1664,7 @@
     </materials>
     <solids>
       <box name="world_box" x="world_x" y="world_y" z="world_z" />
-      <box name="target_box" x="10.0" y="10.0" z="0.0004062"/>
+      <box name="target_box" x="10.0" y="10.0" z="0.004062"/>
       <tube name="tracking_cylinder" deltaphi="6.283185307179586" rmin="0.0" rmax="tracking_region_radius" z="2*tracking_region_zmax" />
       <box name="baseBox" x="406.4" y="1282.6999999999998" z="171.196" />
       <box name="base_plateBox" x="406.4" y="1282.6999999999998" z="6.35" />
@@ -3961,7 +3961,7 @@
         <physvol> 
           <volumeref ref="target_vol" /> 
           <position name="target_position" x="-21.336" y="349.9358" z="0.0" />
-          <rotation name="target_rotation" x="-1.5707963267948963" y="0.0" z="0.0" unit="radian" />
+          <rotation name="target_rotation" x="-1.5707963267948963" y="-0.03" z="0.0" unit="radian" />
         </physvol> 
         <physvol>
           <volumeref ref="base_plate_volume" />
