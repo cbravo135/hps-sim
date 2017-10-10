@@ -118,6 +118,7 @@ class LcioPrimaryGenerator : public PrimaryGenerator {
          * is not reused.
          */
         void readEvent(long index, bool removeEvent) throw(NoSuchRecordException) {
+            // TODO: check validity of index
             long eventNumber = events_[index];
             lcEvent_ = reader_->readEvent(runHeader_->getRunNumber(), eventNumber);
             if (removeEvent) {

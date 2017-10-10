@@ -73,7 +73,7 @@ class NoSuchRecordException: public std::exception {
  * <li>Each generator has an arbitrarily long list of input files which is copied into a queue that is emptied during job processing.</li>
  * <li>For file-based generators, there are a series of methods that should be implemented for reading event data (see method comments).</li>
  * <li>There is an optional list of EventTransform objects that can be used to transform events from the generator.</li>
- * <li>A verbose level can be set between (following Geant4 convention).
+ * <li>A verbose level can be set between 1 and 4 (following Geant4 convention).
  * </ul>
  *
  * @todo
@@ -81,7 +81,7 @@ class NoSuchRecordException: public std::exception {
  * <li>activate and deactivate</li>
  * <li>print out info: name, parameters, event sampling and transforms</li>
  * <li>delete</li>
- * <li>params for random sampling of events: max nevents to buffer and max to sample before moving to next input file</li>
+ * <li>max events to buffer from file in random mode</li>
  * <li>implement a hasNextEvent() method to simplify file management</li>
  * </ul>
  */
@@ -266,9 +266,9 @@ class PrimaryGenerator : public G4VPrimaryGenerator {
 
         /**
          * File-based generators should override this hook to return an event
-         * by its sequential index in an internal data cache.  By default, this
-         * event will then be removed for subsequent usage in random access
-         * according to the flag.
+         * by its sequential index in an internal data cache.  This event will 
+         * then be removed for subsequent usage in random access according 
+         * to the flag (true to remove the record after sampling it).
          */
         virtual void readEvent(long, bool) throw(NoSuchRecordException) {
         }
@@ -300,6 +300,7 @@ class PrimaryGenerator : public G4VPrimaryGenerator {
          * Pop and return the next file to open.
          */
         std::string popFile() {
+            // TODO: check if queue is empty
             std::string nextFile = fileQueue_.front();
             fileQueue_.pop();
             return nextFile;

@@ -209,6 +209,7 @@ class StdHepPrimaryGenerator : public PrimaryGenerator {
         }
 
         void readEvent(long index, bool removeEvent) throw(NoSuchRecordException) {
+            // TODO: check validity of index
             stdEvent_ = records_[index];
             if (removeEvent) {
                 records_.erase(records_.begin() + index);

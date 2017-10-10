@@ -66,6 +66,7 @@ class LHEPrimaryGenerator: public PrimaryGenerator {
         }
 
         void readEvent(long index, bool removeEvent) throw(NoSuchRecordException) {
+            // TODO: check validity of index
             lheEvent_ = events_[index];
             if (removeEvent) {
                 events_.erase(events_.begin() + index);

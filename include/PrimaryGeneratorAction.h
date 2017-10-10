@@ -44,21 +44,20 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction {
          *
          * Instead of using a single generator, this class iterates over a list of
          * PrimaryGenerator objects that generate single events and optionally
-         * transform them before they are overlaid over the actual Geant4 event.
+         * transforms them before they are overlaid over the actual Geant4 event.
          *
          * @note
          * Method pseudo-code:
          * @code
          * GeneratorPrimaries(G4Event anEvent)
          *     foreach gen in generators:
-         *         nevents = gen.getNumberOfEventsToOverlay()
+         *         nevents = gen.getNumberOfEventsFromSampling()
          *         for i = 0 to nevents:
          *             overlayEvent = new G4Event()
          *             gen.readNextEvent()
          *             gen.generatePrimaryVertex(overlayEvent)
          *             gen.applyTransforms(overlayEvent)
          *             overlayFromTo(overlayEvent, anEvent)
-         *             delete overlayEvent
          * @endcode
          */
         virtual void GeneratePrimaries(G4Event* anEvent) {
@@ -230,7 +229,7 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction {
                                 G4String("Error reading events from '" + gen->getName() + "'."));
                     }
                 } catch (EndOfDataException& eod) {
-                    // Caught this typed exception, probably thrown by readNextFile() because we ran out of files.
+                    // Probably we are out of files.
                     G4Exception("", "", RunMustBeAborted,
                             G4String("Event generator '" + gen->getName() + "' ran out of files."));
                 }
