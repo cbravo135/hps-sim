@@ -39,16 +39,22 @@ class StdHepPrimaryGenerator : public PrimaryGenerator {
 
         void GeneratePrimaryVertex(G4Event* anEvent) {
 
-            //std::cout << "StdHepPrimaryGenerator: Generate event " << anEvent->GetEventID() << "." << std::endl;
+            if (verbose_ > 1) {
+                std::cout << "StdHepPrimaryGenerator: Generate event " << anEvent->GetEventID() << std::endl;
+            }
 
             /*
              * Create a vector with the track data.
              */
             std::vector<StdHepParticle> particles;
-            int nTracks = reader_->nTracks();
+            int nTracks = stdEvent_.nTracks();
             for (int iTrack = 0; iTrack < nTracks; iTrack++) {
                 lStdTrack& track = stdEvent_[iTrack];
                 particles.push_back(StdHepParticle(track));
+            }
+
+            if (verbose_ > 1) {
+                std::cout << "StdHepPrimaryGenerator: Read " << particles.size() << " StdHep tracks" << std::endl;
             }
 
             /*
@@ -64,7 +70,6 @@ class StdHepPrimaryGenerator : public PrimaryGenerator {
                 if (data.daughter1) {
                     long idau1 = data.daughter1 % 10000 - 1;
                     particle.setDaughter(0, &particles[idau1]);
-                    //std::cout << "StdHepPrimaryGenerator: Assigned daughter index " << idau1 << "." << std::endl;
                 }
 
                 if (data.daughter2) {
@@ -104,17 +109,22 @@ class StdHepPrimaryGenerator : public PrimaryGenerator {
                 G4PrimaryParticle* primary = new G4PrimaryParticle();
                 primary->SetPDGcode(data.pid);
                 primary->Set4Momentum(data.Px * GeV, data.Py * GeV, data.Pz * GeV, data.E * GeV);
-                //std::cout << "StdHepPrimaryGenerator: Creating primary with PDG ID " << data.pid << " and four-momentum: "
-                //        << data.Px * GeV << " " << data.Py * GeV << " " << data.Pz * GeV << " " << data.E * GeV
-                //        << " [GeV]" << std::endl;
+
+                if (verbose_ > 3) {
+                    std::cout << "StdHepPrimaryGenerator: Creating primary with PDG ID " << data.pid << " and four-momentum: "
+                            << data.Px * GeV << " " << data.Py * GeV << " " << data.Pz * GeV << " " << data.E * GeV
+                            << " [GeV]" << std::endl;
+                }
                 particleMap[particle] = primary;
 
                 if (!mom) {
                     /*
                      * This is a primary without a mother particle which needs its own vertex position.
                      */
-                    //std::cout << "StdHepPrimaryGenerator: Creating new vertex at ( "
-                    //        << data.x << ", " << data.y << ", " << data.z << " )." << std::endl;
+                    if (verbose_ > 3) {
+                        std::cout << "StdHepPrimaryGenerator: Creating new vertex at ( "
+                                << data.X << ", " << data.Y << ", " << data.Z << " )." << std::endl;
+                    }
                     vertex = new G4PrimaryVertex();
                     vertex->SetPosition(data.X, data.Y, data.Z);
                     anEvent->AddPrimaryVertex(vertex);
