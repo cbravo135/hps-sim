@@ -5,6 +5,7 @@
 #include "G4UIcmdWithADoubleAndUnit.hh"
 #include "G4UIcmdWithAnInteger.hh"
 #include "G4UIcmdWithAString.hh"
+#include "G4UIcmdWithABool.hh"
 
 namespace hpssim {
 
@@ -26,8 +27,9 @@ class LcioMergeMessenger : public G4UImessenger {
         G4UIdirectory* filterDir_;
 
         G4UIcmdWithAString* fileCmd_;
+        G4UIcmdWithABool* combineHitsCmd_;
 
-        //G4UIcmdWithADoubleAndUnit* ecalEnergyFilterCmd_;
+        G4UIcmdWithADoubleAndUnit* ecalEnergyFilterCmd_;
         G4UIcmdWithAnInteger* eventModulusFilterCmd_;
 };
 

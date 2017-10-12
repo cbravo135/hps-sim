@@ -16,10 +16,17 @@ LcioMergeMessenger::LcioMergeMessenger(LcioMergeTool* merge) : merge_(merge) {
     fileCmd_ = new G4UIcmdWithAString(filePath, this);
 
     G4String eventModulusPath = filterPath + "eventModulus";
-    //std::cout << eventModulusPath << std::endl;
     eventModulusFilterCmd_ = new G4UIcmdWithAnInteger(eventModulusPath, this);
 
-    //ecalEnergyFilterCmd_
+    G4String combineHitsPath = mergePath + "combineCalHits";
+    combineHitsCmd_ = new G4UIcmdWithABool(combineHitsPath, this);
+    combineHitsCmd_->SetDefaultValue(true);
+
+    G4String ecalEnergyFilterPath = filterPath + "ecalEnergy";
+    ecalEnergyFilterCmd_ = new G4UIcmdWithADoubleAndUnit(ecalEnergyFilterPath, this);
+    ecalEnergyFilterCmd_->GetParameter(0)->SetOmittable(false);
+    ecalEnergyFilterCmd_->GetParameter(1)->SetOmittable(true);
+    ecalEnergyFilterCmd_->GetParameter(1)->SetDefaultValue("MeV");
 }
 
 void LcioMergeMessenger::SetNewValue(G4UIcommand* command, G4String newValues) {
@@ -29,6 +36,12 @@ void LcioMergeMessenger::SetNewValue(G4UIcommand* command, G4String newValues) {
         auto filter = new LcioMergeTool::EventModulusFilter();
         auto modulus = G4UIcmdWithAnInteger::GetNewIntValue(newValues);
         filter->setModulus(modulus);
+        merge_->addFilter(filter);
+    } else if (command == combineHitsCmd_) {
+        merge_->setCombineCalHits(G4UIcmdWithABool::GetNewBoolValue(newValues));
+    } else if (command == ecalEnergyFilterCmd_) {
+        auto filter = new LcioMergeTool::EcalEnergyFilter();
+        filter->setEnergyCut(G4UIcmdWithADoubleAndUnit::GetNewDoubleValue(newValues));
         merge_->addFilter(filter);
     }
 }

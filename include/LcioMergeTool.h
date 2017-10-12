@@ -27,7 +27,7 @@ namespace hpssim {
  * @class LcioMergeTool
  * @brief Tool for merging LCIO events
  * @note This class is meant to configure a single LCIO event stream.
- * If there are multiple LCIO event streams being used, then an instance
+ * If there are multiple LCIO event streams being merged, then an instance
  * of this class should be created for each one.
  */
 class LcioMergeTool {
@@ -81,6 +81,10 @@ class LcioMergeTool {
                         e += hit->getEnergy() * GeV;
                     }
                     return e >= energyCut_;
+                }
+
+                void setEnergyCut(float energyCut) {
+                    energyCut_ = energyCut;
                 }
 
             private:
@@ -144,6 +148,14 @@ class LcioMergeTool {
         }
 
         /**
+         * Set whether SimCalorimeterHit objects with the same cell IDs should be combined
+         * into a single output hit.
+         */
+        void setCombineCalHits(bool combineCalHits) {
+            combineCalHits_ = combineCalHits;
+        }
+
+        /**
          * Merge source event into target event.
          *
          * If writeColls is not empty then only collection names that it
@@ -182,7 +194,7 @@ class LcioMergeTool {
                     // Add all elements from source to target collection.
                     addElements(srcColl, targetColl);
 
-                    // Combine SimCalorimeterHit objects.
+                    // Combine SimCalorimeterHit objects in place.
                     if (srcColl->getTypeName() == EVENT::LCIO::SIMCALORIMETERHIT
                             && combineCalHits_ && !createdNewCollection
                             && srcColl->getNumberOfElements() != targetColl->getNumberOfElements()) {
@@ -190,7 +202,7 @@ class LcioMergeTool {
                             std::cout << "LcioMergeTool: Combining " << targetColl->getNumberOfElements() << " hits in '"
                                     << collName << "'" << std::endl;
                         }
-                        combineCalHits(targetColl);
+                        combine(targetColl);
                         if (verbose_ > 1) {
                             std::cout << "LcioMergeTool: Created " << targetColl->getNumberOfElements() << " combined cal hits" << std::endl;
                         }
@@ -203,6 +215,9 @@ class LcioMergeTool {
             }
         }
 
+        /**
+         * Clear all data members of an LCCollection.
+         */
         static void clear(EVENT::LCCollection* coll) {
             for (int iElem = coll->getNumberOfElements() - 1; iElem >= 0; iElem--) {
                 coll->removeElementAt(iElem);
@@ -235,12 +250,20 @@ class LcioMergeTool {
             // read next src event
             auto event = reader_->readNextEvent(EVENT::LCIO::UPDATE);
 
-            // if necessary read events until get one that passes filter
+            // if necessary read events until one passes the filters
             if (filters_.size()) {
                 bool acceptEvent = accept(event, filters_);
                 while (!acceptEvent) {
+                    if (verbose_ > 2) {
+                        std::cout << "LcioMergeTool: Event " << event->getEventNumber()
+                                << " rejected by filters of '" << getName() << "'" << std::endl;
+                    }
                     event = reader_->readNextEvent(EVENT::LCIO::UPDATE);
                     acceptEvent = accept(event, filters_);
+                }
+                if (verbose_ > 2) {
+                    std::cout << "LcioMergeTool: Event " << event->getEventNumber()
+                            << " accepted by filters of '" << getName() << "'" << std::endl;
                 }
             }
 
@@ -290,12 +313,11 @@ class LcioMergeTool {
         }
 
         /**
-         * Returns true if event filters request to skip this output event (not merge
-         * anything into the target output event). 
+         * Returns true if event filters request to skip this output event.
          */
         bool skip(EVENT::LCEvent* event, const std::vector<MergeFilter*>& filters) {
             for (MergeFilter* filter : filters) {
-                if (!filter->skip(event)) {
+                if (filter->skip(event)) {
                     return true;
                 }
             }
@@ -314,7 +336,7 @@ class LcioMergeTool {
         /**
          * Combine all SimCalorimeterHit objects with the same cell IDs into a single set of hits.
          */
-        void combineCalHits(IMPL::LCCollectionVec* hits) {
+        void combine(IMPL::LCCollectionVec* hits) {
 
             // create a list with combined hits
             std::set<CellID> processedHits;
