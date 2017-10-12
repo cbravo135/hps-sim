@@ -170,19 +170,30 @@ class LcioMergeTool {
 
                     // Get target collection from output event if it exists, or create new one if not.
                     IMPL::LCCollectionVec* targetColl = nullptr;
+                    bool createdNewCollection = false;
                     if (std::find(targetCollNames->begin(), targetCollNames->end(), collName) != targetCollNames->end()) {
                         targetColl = (IMPL::LCCollectionVec*) target->getCollection(collName);
                     } else {
                         targetColl = new IMPL::LCCollectionVec(srcColl->getTypeName());
                         target->addCollection(targetColl, collName);
+                        createdNewCollection = true;
                     }
 
                     // Add all elements from source to target collection.
                     addElements(srcColl, targetColl);
 
                     // Combine SimCalorimeterHit objects.
-                    if (srcColl->getTypeName() == EVENT::LCIO::SIMCALORIMETERHIT && combineCalHits_) {
+                    if (srcColl->getTypeName() == EVENT::LCIO::SIMCALORIMETERHIT
+                            && combineCalHits_ && !createdNewCollection
+                            && srcColl->getNumberOfElements() != targetColl->getNumberOfElements()) {
+                        if (verbose_ > 1) {
+                            std::cout << "LcioMergeTool: Combining " << targetColl->getNumberOfElements() << " hits in '"
+                                    << collName << "'" << std::endl;
+                        }
                         combineCalHits(targetColl);
+                        if (verbose_ > 1) {
+                            std::cout << "LcioMergeTool: Created " << targetColl->getNumberOfElements() << " combined cal hits" << std::endl;
+                        }
                     }
 
                     // Clear and delete the source collection which we took from the event.
@@ -305,10 +316,6 @@ class LcioMergeTool {
          */
         void combineCalHits(IMPL::LCCollectionVec* hits) {
 
-            if (verbose_ > 1) {
-                std::cout << "LcioMergeTool: Combining " << hits->getNumberOfElements() << " cal hits" << std::endl;
-            }
-
             // create a list with combined hits
             std::set<CellID> processedHits;
             auto combinedColl = std::vector<EVENT::SimCalorimeterHit*>();
@@ -330,10 +337,6 @@ class LcioMergeTool {
             // add combined hits back to the collection
             for (auto hit : combinedColl) {
                 hits->addElement(hit);
-            }
-
-            if (verbose_ > 1) {
-                std::cout << "LcioMergeTool: Created " << hits->getNumberOfElements() << " combined cal hits" << std::endl;
             }
         }
 
