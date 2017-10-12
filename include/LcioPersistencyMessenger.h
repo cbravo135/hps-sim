@@ -4,6 +4,7 @@
 #include "G4UImessenger.hh"
 #include "G4UIcmdWithAString.hh"
 #include "G4UIcmdWithAnInteger.hh"
+#include "G4UIcmdWithABool.hh"
 
 namespace hpssim {
 
@@ -14,8 +15,6 @@ class LcioPersistencyManager;
 // -enable/disable persistency engine
 // -set coll flags
 // -configure cal hit contribs
-// -print collection info in current event
-// -file merge config
 class LcioPersistencyMessenger : public G4UImessenger {
 
     public:
@@ -26,8 +25,16 @@ class LcioPersistencyMessenger : public G4UImessenger {
 
     private:
 
+        /* The associated persistency manager. */
+        LcioPersistencyManager* mgr_{nullptr};
+
+        /* Primary dir for LCIO commands. */
         G4UIdirectory* dir_;
+
+        /* Command to set the output file path. */
         G4UIcmdWithAString* fileCmd_;
+
+        /* Command to set the verbosity. */
         G4UIcmdWithAnInteger* verboseCmd_;
 
         /*
@@ -37,11 +44,17 @@ class LcioPersistencyMessenger : public G4UImessenger {
         G4UIcommand* appendCmd_;
         G4UIcommand* recreateCmd_;
 
+        /*
+         * Merge tool commands.
+         */
         G4UIdirectory* mergeDir_;
-        G4UIdirectory* filterDir_;
         G4UIcmdWithAString* mergeAddCmd_;
 
-        LcioPersistencyManager* mgr_{nullptr};
+        /*
+         * Dump event during processing.
+         */
+        G4UIcmdWithABool* dumpEventDetailedCmd_;
+        G4UIcmdWithABool* dumpEventSummaryCmd_;
 };
 
 }

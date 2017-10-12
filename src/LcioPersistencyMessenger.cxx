@@ -20,9 +20,16 @@ LcioPersistencyMessenger::LcioPersistencyMessenger(LcioPersistencyManager* mgr) 
     appendCmd_->SetGuidance("Append events to an existing LCIO file.");
 
     mergeDir_ = new G4UIdirectory("/hps/lcio/merge", this);
-    filterDir_ = new G4UIdirectory("/hps/lcio/merge/filter", this);
 
     mergeAddCmd_ = new G4UIcmdWithAString("/hps/lcio/merge/add", this);
+
+    dumpEventDetailedCmd_ = new G4UIcmdWithABool("/hps/lcio/dumpEventDetailed", this);
+    dumpEventDetailedCmd_->GetParameter(0)->SetOmittable(true);
+    dumpEventDetailedCmd_->GetParameter(0)->SetDefaultValue("true");
+
+    dumpEventSummaryCmd_ = new G4UIcmdWithABool("/hps/lcio/dumpEventSummary", this);
+    dumpEventSummaryCmd_->GetParameter(0)->SetOmittable(true);
+    dumpEventSummaryCmd_->GetParameter(0)->SetDefaultValue("true");
 }
 
 void LcioPersistencyMessenger::SetNewValue(G4UIcommand* command, G4String newValues) {
@@ -40,6 +47,10 @@ void LcioPersistencyMessenger::SetNewValue(G4UIcommand* command, G4String newVal
         mgr_->setWriteMode(LcioPersistencyManager::APPEND);
     } else if (command == this->mergeAddCmd_) {
         mgr_->addMerge(new LcioMergeTool(newValues));
+    } else if (command == dumpEventDetailedCmd_) {
+        mgr_->setDumpEventDetailed(G4UIcmdWithABool::GetNewBoolValue(newValues));
+    } else if (command == dumpEventSummaryCmd_) {
+        mgr_->setDumpEventSummary(G4UIcmdWithABool::GetNewBoolValue(newValues));
     }
 }
 

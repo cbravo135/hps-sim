@@ -32,6 +32,7 @@
 #include "IMPL/SimTrackerHitImpl.h"
 #include "EVENT/LCIO.h"
 #include "IOIMPL/LCFactory.h"
+#include "UTIL/LCTOOLS.h"
 
 /*
  * HPS
@@ -116,13 +117,13 @@ class LcioPersistencyManager : public G4PersistencyManager {
                     std::cout << "LcioPersistencyManager: Storing event " << anEvent->GetEventID() << std::endl;
                 }
 
-                // create new LCIO event
+                // Create new LCIO event.
                 IMPL::LCEventImpl* lcioEvent = new IMPL::LCEventImpl();
                 lcioEvent->setEventNumber(anEvent->GetEventID());
                 lcioEvent->setRunNumber(G4RunManager::GetRunManager()->GetCurrentRun()->GetRunID());
                 lcioEvent->setDetectorName(LCDDProcessor::instance()->getDetectorName());
 
-                // write MCParticles to LCIO event (allowed to be empty)
+                // Write MCParticles to LCIO event (allowed to be empty).
                 auto particleColl = builder_->buildMCParticleColl(anEvent);
                 if (m_verbose > 1) {
                     std::cout << "LcioPersistencyManager: Storing " << particleColl->size() << " MC particles in event "
@@ -130,10 +131,10 @@ class LcioPersistencyManager : public G4PersistencyManager {
                 }
                 lcioEvent->addCollection(particleColl, EVENT::LCIO::MCPARTICLE);
 
-                // write hits collections to LCIO event
+                // Write hits collections to LCIO event.
                 writeHitsCollections(anEvent, lcioEvent);
 
-                // optionally apply LCIO event merging into output event
+                // Optionally apply LCIO event merging into output event.
                 if (this->merge_.size()) {
                     for (auto entry : merge_) {
                         if (m_verbose > 1) {
@@ -144,11 +145,11 @@ class LcioPersistencyManager : public G4PersistencyManager {
                     }
                 }
 
-                // write event and flush writer
+                // Write event and flush writer.
                 writer_->writeEvent(static_cast<EVENT::LCEvent*>(lcioEvent));
                 writer_->flush();
 
-                // print final number of objects in collections, including those added by merging LCIO files
+                // Print final number of objects in collections, including those added by merging LCIO files.
                 if (m_verbose > 1) {
                     for (auto collName : *lcioEvent->getCollectionNames()) {
                         try {
@@ -161,7 +162,10 @@ class LcioPersistencyManager : public G4PersistencyManager {
                     }
                 }
 
-                // delete the event object to avoid memory leak
+                // Dump event information to std out (optional).
+                dumpEvent(lcioEvent);
+
+                // Delete the event object to avoid memory leak.
                 delete lcioEvent;
 
                 return true;
@@ -285,6 +289,14 @@ class LcioPersistencyManager : public G4PersistencyManager {
             } else {
                 return nullptr;
             }
+        }
+
+        void setDumpEventSummary(bool dumpEventSummary) {
+            dumpEventSummary_ = dumpEventSummary;
+        }
+
+        void setDumpEventDetailed(bool dumpEventDetailed) {
+            dumpEventDetailed_ = dumpEventDetailed;
         }
 
     private:
@@ -464,6 +476,53 @@ class LcioPersistencyManager : public G4PersistencyManager {
             return collVec;
         }
 
+        void dumpEvent(EVENT::LCEvent* event) {
+            if (dumpEventSummary_) {
+                UTIL::LCTOOLS::dumpEvent(event);
+            }
+            if (dumpEventDetailed_) {
+                UTIL::LCTOOLS::dumpEventDetailed(event);
+            }
+        }
+
+        /*
+        void print(std::string fileName = "",
+                int nevents = 1,
+                int nskip = 0,
+                bool detailed = true,
+                bool summary = false) {
+            auto reader = IOIMPL::LCFactory::getInstance()->createLCReader();
+            if (fileName != "") {
+                reader->open(this->outputFile_);
+            } else {
+                reader->open(fileName);
+            }
+            if (nskip > 0) {
+                reader->skipNEvents(nskip);
+            }
+            int nread = 0;
+            while (nread <= nevents) {
+                auto event = reader->readNextEvent();
+                if (!event) {
+                    break;
+                }
+                if (summary) {
+                    UTIL::LCTOOLS::dumpEvent(event);
+                }
+                if (detailed) {
+                    UTIL::LCTOOLS::dumpEventDetailed(event);
+                }
+                ++nread;
+            }
+            try {
+                reader->close();
+            } catch (std::exception& e) {
+                std::cerr << "LcioPersistencyManager: " << e.what() << std::endl;
+            }
+            delete reader;
+        }
+        */
+
     private:
 
         /** Name of the output file. */
@@ -483,6 +542,12 @@ class LcioPersistencyManager : public G4PersistencyManager {
 
         /** LCIO files to merge into every Geant4 event (optional). */
         std::map<std::string, LcioMergeTool*> merge_;
+
+        /** Flag to dump collection summary info after writing an event. */
+        bool dumpEventSummary_{false};
+
+        /** Flag to dump detailed collection info after writing an event. */
+        bool dumpEventDetailed_{false};
 
 };
 
