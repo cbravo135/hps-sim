@@ -1,21 +1,19 @@
 /lcdd/url detector.lcdd
 
-# LCIO events to merge
-/hps/lcio/merge/add MergeTest
-/hps/lcio/merge/MergeTest/file tritrig1.slcio
-/hps/lcio/merge/MergeTest/file tritrig2.slcio
-/hps/lcio/merge/MergeTest/filter/eventModulus 250
+# merge in event stream
+/hps/lcio/merge/add MergeTest1
+/hps/lcio/merge/MergeTest1/file tritrig1.slcio
+/hps/lcio/merge/MergeTest1/filter/eventModulus 2
 
-# beam background generator
-/hps/generators/create BeamGen BEAM
-
-# beam track selection plugin
-/hps/plugins/load BeamTrackSelectionPlugin
+# merge in the same event stream for testing
+/hps/lcio/merge/add MergeTest2
+/hps/lcio/merge/MergeTest2/file tritrig1.slcio
+/hps/lcio/merge/MergeTest2/filter/ecalEnergy 50 MeV
 
 /run/initialize
 
-/hps/lcio/verbose 2
+/hps/lcio/verbose 4
 /hps/lcio/file lcio_merge_test.slcio
 /hps/lcio/recreate
 
-/run/beamOn 1000
+/run/beamOn 100
