@@ -109,6 +109,8 @@ class LcioPersistencyManager : public G4PersistencyManager {
 
         /**
          * Store a Geant4 event to an LCIO output event.
+         *
+         * @note Events marked as aborted are skipped and not stored.
          */
         G4bool Store(const G4Event* anEvent) {
             if (!anEvent->IsAborted()) {
@@ -162,7 +164,7 @@ class LcioPersistencyManager : public G4PersistencyManager {
                     }
                 }
 
-                // Dump event information to std out (optional).
+                // Dump event information (optional).
                 dumpEvent(lcioEvent);
 
                 // Delete the event object to avoid memory leak.
@@ -205,7 +207,7 @@ class LcioPersistencyManager : public G4PersistencyManager {
                 std::cout << "LcioPersistencyManager: Initializing the persistency manager" << std::endl;
             }
 
-            // open output writer with configured mode
+            // Open output writer with configured mode.
             if (m_verbose > 1) {
                 std::cout << "LcioPersistencyManager: Opening '" << outputFile_
                         << "' with mode " << modeToString(writeMode_) << std::endl;
@@ -221,14 +223,14 @@ class LcioPersistencyManager : public G4PersistencyManager {
                 G4Exception("LcioPersistencyManager::Initialize()", "FileExists", RunMustBeAborted, e.what());
             }
 
-            // create run header and write to beginning of output file
+            // Create run header and write to beginning of output file.
             auto runHeader = new IMPL::LCRunHeaderImpl();
             runHeader->setDetectorName(LCDDProcessor::instance()->getDetectorName());
             runHeader->setRunNumber(G4RunManager::GetRunManager()->GetCurrentRun()->GetRunID());
             runHeader->setDescription("HPS MC events");
             writer_->writeRunHeader(static_cast<EVENT::LCRunHeader*>(runHeader));
 
-            // initialize file merge tools
+            // Initialize file merge tools.
             for (auto entry : merge_) {
                 if (m_verbose > 1) {
                     std::cout << "LcioPersistencyManager: Initializing merge tool '"
@@ -291,10 +293,16 @@ class LcioPersistencyManager : public G4PersistencyManager {
             }
         }
 
+        /**
+         * Turn on dump of event summary during processing.
+         */
         void setDumpEventSummary(bool dumpEventSummary) {
             dumpEventSummary_ = dumpEventSummary;
         }
 
+        /**
+         * Turn on detailed dump during processing.
+         */
         void setDumpEventDetailed(bool dumpEventDetailed) {
             dumpEventDetailed_ = dumpEventDetailed;
         }
@@ -476,6 +484,10 @@ class LcioPersistencyManager : public G4PersistencyManager {
             return collVec;
         }
 
+        /**
+         * Dump an event summary and/or detailed information depending on the
+         * current flag settings.
+         */
         void dumpEvent(EVENT::LCEvent* event) {
             if (dumpEventSummary_) {
                 UTIL::LCTOOLS::dumpEvent(event);
@@ -485,18 +497,15 @@ class LcioPersistencyManager : public G4PersistencyManager {
             }
         }
 
+        // TODO: Add command for dumping data from an arbitrary file.
         /*
-        void print(std::string fileName = "",
+        static void dumpFile(std::string fileName,
                 int nevents = 1,
                 int nskip = 0,
                 bool detailed = true,
                 bool summary = false) {
             auto reader = IOIMPL::LCFactory::getInstance()->createLCReader();
-            if (fileName != "") {
-                reader->open(this->outputFile_);
-            } else {
-                reader->open(fileName);
-            }
+            reader->open(fileName);
             if (nskip > 0) {
                 reader->skipNEvents(nskip);
             }
