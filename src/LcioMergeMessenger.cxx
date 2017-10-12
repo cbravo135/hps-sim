@@ -18,9 +18,9 @@ LcioMergeMessenger::LcioMergeMessenger(LcioMergeTool* merge) : merge_(merge) {
     G4String eventModulusPath = filterPath + "eventModulus";
     eventModulusFilterCmd_ = new G4UIcmdWithAnInteger(eventModulusPath, this);
 
-    G4String combineHitsPath = mergePath + "combineCalHits";
-    combineHitsCmd_ = new G4UIcmdWithABool(combineHitsPath, this);
-    combineHitsCmd_->SetDefaultValue(true);
+    G4String combineCalHitsPath = mergePath + "combineCalHits";
+    combineCalHitsCmd_ = new G4UIcmdWithABool(combineCalHitsPath, this);
+    combineCalHitsCmd_->SetDefaultValue(true);
 
     G4String ecalEnergyFilterPath = filterPath + "ecalEnergy";
     ecalEnergyFilterCmd_ = new G4UIcmdWithADoubleAndUnit(ecalEnergyFilterPath, this);
@@ -37,7 +37,7 @@ void LcioMergeMessenger::SetNewValue(G4UIcommand* command, G4String newValues) {
         auto modulus = G4UIcmdWithAnInteger::GetNewIntValue(newValues);
         filter->setModulus(modulus);
         merge_->addFilter(filter);
-    } else if (command == combineHitsCmd_) {
+    } else if (command == combineCalHitsCmd_) {
         merge_->setCombineCalHits(G4UIcmdWithABool::GetNewBoolValue(newValues));
     } else if (command == ecalEnergyFilterCmd_) {
         auto filter = new LcioMergeTool::EcalEnergyFilter();

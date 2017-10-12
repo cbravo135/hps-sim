@@ -27,7 +27,7 @@ class LcioMergeMessenger : public G4UImessenger {
         G4UIdirectory* filterDir_;
 
         G4UIcmdWithAString* fileCmd_;
-        G4UIcmdWithABool* combineHitsCmd_;
+        G4UIcmdWithABool* combineCalHitsCmd_;
 
         G4UIcmdWithADoubleAndUnit* ecalEnergyFilterCmd_;
         G4UIcmdWithAnInteger* eventModulusFilterCmd_;
