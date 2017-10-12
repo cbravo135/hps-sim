@@ -95,7 +95,7 @@ class LcioMergeTool {
         
         /**
          * @class EventModoulusFilter 
-         * @brief Skips target events if their event number does not dividie evenly into a modulus.
+         * @brief Skips target events if a modulus does not divide evenly into their event numbers.
          */
         class EventModulusFilter : public MergeFilter {
 
