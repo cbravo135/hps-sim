@@ -134,6 +134,16 @@ class LcioMergeTool {
         }
 
         /**
+         * Set the verbose level.
+         *
+         * @note The LcioPersistencyManager will copy its verbose level to the registered
+         * LcioMergeTool objects during beginning-of-run initialization.
+         */
+        void setVerbose(int verbose) {
+            verbose_ = verbose;
+        }
+
+        /**
          * Merge source event into target event.
          *
          * If writeColls is not empty then only collection names that it
@@ -154,7 +164,7 @@ class LcioMergeTool {
                 if (writeColls.size() == 0 || 
                         std::find(writeColls.begin(), writeColls.end(), collName) != writeColls.end()) {
 
-                    // Get source collection and take ownership so it is not automatically deleted.
+                    // Get source collection and take ownership so it is not automatically deleted by the reader.
                     auto srcColl = src->getCollection(collName);
                     src->takeCollection(collName);
 
@@ -170,17 +180,21 @@ class LcioMergeTool {
                     // Add all elements from source to target collection.
                     addElements(srcColl, targetColl);
 
-                    // Clear out and delete the source collection to avoid memory leak.
-                    for (int iElem = srcColl->getNumberOfElements() -1; iElem >= 0; iElem--) {
-                        srcColl->removeElementAt(iElem);
-                    }
-                    delete srcColl;
-
                     // Combine SimCalorimeterHit objects.
-                    //if (srcColl->getTypeName() == EVENT::LCIO::SIMCALORIMETERHIT && combineCalHits_) {
-                    //    combineSimCalorimeterHits(targetColl);
-                    //}
+                    if (srcColl->getTypeName() == EVENT::LCIO::SIMCALORIMETERHIT && combineCalHits_) {
+                        combineCalHits(targetColl);
+                    }
+
+                    // Clear and delete the source collection which we took from the event.
+                    clear(srcColl);
+                    delete srcColl;
                 }
+            }
+        }
+
+        static void clear(EVENT::LCCollection* coll) {
+            for (int iElem = coll->getNumberOfElements() - 1; iElem >= 0; iElem--) {
+                coll->removeElementAt(iElem);
             }
         }
 
@@ -289,9 +303,13 @@ class LcioMergeTool {
         /**
          * Combine all SimCalorimeterHit objects with the same cell IDs into a single set of hits.
          */
-        void combineSimCalorimeterHits(IMPL::LCCollectionVec* hits) {
+        void combineCalHits(IMPL::LCCollectionVec* hits) {
 
-            // create new collection with combined hit output
+            if (verbose_ > 1) {
+                std::cout << "LcioMergeTool: Combining " << hits->getNumberOfElements() << " cal hits" << std::endl;
+            }
+
+            // create a list with combined hits
             std::set<CellID> processedHits;
             auto combinedColl = std::vector<EVENT::SimCalorimeterHit*>();
             for (int iElem = 0; iElem < hits->getNumberOfElements(); iElem++) {
@@ -306,14 +324,16 @@ class LcioMergeTool {
                 }
             }
 
-            // empty the old un-combined collection
-            for (int iElem = 0; iElem < hits->getNumberOfElements(); iElem++) {
-                hits->removeElementAt(iElem);
-            }
+            // clear the old collection
+            clear(hits);
 
-            // add hits from combined collection back to output
+            // add combined hits back to the collection
             for (auto hit : combinedColl) {
                 hits->addElement(hit);
+            }
+
+            if (verbose_ > 1) {
+                std::cout << "LcioMergeTool: Created " << hits->getNumberOfElements() << " combined cal hits" << std::endl;
             }
         }
 
@@ -364,6 +384,7 @@ class LcioMergeTool {
         std::vector<std::string> files_;
         std::vector<MergeFilter*> filters_;
         bool combineCalHits_{true};
+        int verbose_{1};
 };
 
 }

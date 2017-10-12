@@ -230,6 +230,7 @@ class LcioPersistencyManager : public G4PersistencyManager {
                     std::cout << "LcioPersistencyManager: Initializing merge tool '"
                             << entry.second->getName() << "'" << std::endl;
                 }
+                entry.second->setVerbose(m_verbose);
                 entry.second->initialize();
             }
         }
