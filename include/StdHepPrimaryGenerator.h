@@ -123,7 +123,7 @@ class StdHepPrimaryGenerator : public PrimaryGenerator {
                      */
                     if (verbose_ > 3) {
                         std::cout << "StdHepPrimaryGenerator: Creating new vertex at ( "
-                                << data.X << ", " << data.Y << ", " << data.Z << " )." << std::endl;
+                                << data.X << ", " << data.Y << ", " << data.Z << " )" << std::endl;
                     }
                     vertex = new G4PrimaryVertex();
                     vertex->SetPosition(data.X, data.Y, data.Z);

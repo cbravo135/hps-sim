@@ -18,6 +18,11 @@ LcioPersistencyMessenger::LcioPersistencyMessenger(LcioPersistencyManager* mgr) 
 
     appendCmd_ = new G4UIcommand("/hps/lcio/append", this);
     appendCmd_->SetGuidance("Append events to an existing LCIO file.");
+
+    mergeDir_ = new G4UIdirectory("/hps/lcio/merge", this);
+    filterDir_ = new G4UIdirectory("/hps/lcio/merge/filter", this);
+
+    mergeAddCmd_ = new G4UIcmdWithAString("/hps/lcio/merge/add", this);
 }
 
 void LcioPersistencyMessenger::SetNewValue(G4UIcommand* command, G4String newValues) {
@@ -33,6 +38,8 @@ void LcioPersistencyMessenger::SetNewValue(G4UIcommand* command, G4String newVal
         mgr_->setWriteMode(LcioPersistencyManager::RECREATE);
     } else if (command == this->appendCmd_) {
         mgr_->setWriteMode(LcioPersistencyManager::APPEND);
+    } else if (command == this->mergeAddCmd_) {
+        mgr_->addMerge(new LcioMergeTool(newValues));
     }
 }
 

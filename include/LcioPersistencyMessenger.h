@@ -14,6 +14,8 @@ class LcioPersistencyManager;
 // -enable/disable persistency engine
 // -set coll flags
 // -configure cal hit contribs
+// -print collection info in current event
+// -file merge config
 class LcioPersistencyMessenger : public G4UImessenger {
 
     public:
@@ -34,6 +36,10 @@ class LcioPersistencyMessenger : public G4UImessenger {
         G4UIcommand* newCmd_;
         G4UIcommand* appendCmd_;
         G4UIcommand* recreateCmd_;
+
+        G4UIdirectory* mergeDir_;
+        G4UIdirectory* filterDir_;
+        G4UIcmdWithAString* mergeAddCmd_;
 
         LcioPersistencyManager* mgr_{nullptr};
 };

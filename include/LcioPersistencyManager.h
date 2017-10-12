@@ -21,6 +21,7 @@
 /*
  * LCIO
  */
+#include "Exceptions.h"
 #include "IO/LCWriter.h"
 #include "IMPL/LCEventImpl.h"
 #include "IMPL/LCCollectionVec.h"
@@ -35,8 +36,14 @@
 /*
  * HPS
  */
+#include "LcioMergeTool.h"
 #include "LcioPersistencyMessenger.h"
 #include "MCParticleBuilder.h"
+
+/*
+ * C++
+ */
+#include <map>
 
 /*
  * LCIO
@@ -78,11 +85,18 @@ class LcioPersistencyManager : public G4PersistencyManager {
         }
 
         virtual ~LcioPersistencyManager() {
+
             if (writer_) {
                 delete writer_;
             }
+
             delete builder_;
             delete messenger_;
+
+            for (auto entry : merge_) {
+                delete entry.second;
+            }
+            merge_.clear();
         }
 
         /**
@@ -108,7 +122,7 @@ class LcioPersistencyManager : public G4PersistencyManager {
                 lcioEvent->setRunNumber(G4RunManager::GetRunManager()->GetCurrentRun()->GetRunID());
                 lcioEvent->setDetectorName(LCDDProcessor::instance()->getDetectorName());
 
-                // write MCParticles to LCIO event
+                // write MCParticles to LCIO event (allowed to be empty)
                 auto particleColl = builder_->buildMCParticleColl(anEvent);
                 if (m_verbose > 1) {
                     std::cout << "LcioPersistencyManager: Storing " << particleColl->size() << " MC particles in event "
@@ -119,9 +133,33 @@ class LcioPersistencyManager : public G4PersistencyManager {
                 // write hits collections to LCIO event
                 writeHitsCollections(anEvent, lcioEvent);
 
+                // optionally apply LCIO event merging into output event
+                if (this->merge_.size()) {
+                    for (auto entry : merge_) {
+                        if (m_verbose > 1) {
+                            std::cout << "LcioPersistencyManager: Merging from '" << entry.first << "' into event "
+                                    << anEvent->GetEventID() << std::endl;
+                        }
+                        entry.second->mergeEvents(lcioEvent);
+                    }
+                }
+
                 // write event and flush writer
                 writer_->writeEvent(static_cast<EVENT::LCEvent*>(lcioEvent));
                 writer_->flush();
+
+                // print final number of objects in collections, including those added by merging LCIO files
+                if (m_verbose > 1) {
+                    for (auto collName : *lcioEvent->getCollectionNames()) {
+                        try {
+                            EVENT::LCCollection* coll = lcioEvent->getCollection(collName);
+                            std::cout << "LcioPersistencyManager: Stored " << coll->getNumberOfElements()
+                                    << " objects in '" << collName << "'" << std::endl;
+                        } catch (EVENT::DataNotAvailableException& e) {
+                            std::cerr << e.what() << std::endl;
+                        }
+                    }
+                }
 
                 // delete the event object to avoid memory leak
                 delete lcioEvent;
@@ -130,7 +168,7 @@ class LcioPersistencyManager : public G4PersistencyManager {
 
             } else {
                 if (m_verbose > 1) {
-                    std::cout << "LcioPersistencyManager: Skipping aborted event " << anEvent->GetEventID() << "." << std::endl;
+                    std::cout << "LcioPersistencyManager: Skipping aborted event " << anEvent->GetEventID() << std::endl;
                 }
                 return false;
             }
@@ -141,7 +179,7 @@ class LcioPersistencyManager : public G4PersistencyManager {
          */
         G4bool Store(const G4Run* aRun) {
             if (m_verbose > 1) {
-                std::cout << "LcioPersistencyManager: Store run " << aRun->GetRunID() << "." << std::endl;
+                std::cout << "LcioPersistencyManager: Store run " << aRun->GetRunID() << std::endl;
             }
 
             writer_->close();
@@ -160,16 +198,15 @@ class LcioPersistencyManager : public G4PersistencyManager {
         void Initialize() {
 
             if (m_verbose > 1) {
-                std::cout << "LcioPersistencyManager: Initializing." << std::endl;
+                std::cout << "LcioPersistencyManager: Initializing the persistency manager" << std::endl;
             }
 
-            writer_ = IOIMPL::LCFactory::getInstance()->createLCWriter();
-
+            // open output writer with configured mode
             if (m_verbose > 1) {
                 std::cout << "LcioPersistencyManager: Opening '" << outputFile_
-                        << "' with write mode " << modeToString(writeMode_) << std::endl;
+                        << "' with mode " << modeToString(writeMode_) << std::endl;
             }
-
+            writer_ = IOIMPL::LCFactory::getInstance()->createLCWriter();
             try {
                 if (writeMode_ == NEW) {
                     writer_->open(outputFile_);
@@ -180,12 +217,21 @@ class LcioPersistencyManager : public G4PersistencyManager {
                 G4Exception("LcioPersistencyManager::Initialize()", "FileExists", RunMustBeAborted, e.what());
             }
 
+            // create run header and write to beginning of output file
             auto runHeader = new IMPL::LCRunHeaderImpl();
             runHeader->setDetectorName(LCDDProcessor::instance()->getDetectorName());
             runHeader->setRunNumber(G4RunManager::GetRunManager()->GetCurrentRun()->GetRunID());
             runHeader->setDescription("HPS MC events");
-
             writer_->writeRunHeader(static_cast<EVENT::LCRunHeader*>(runHeader));
+
+            // initialize file merge tools
+            for (auto entry : merge_) {
+                if (m_verbose > 1) {
+                    std::cout << "LcioPersistencyManager: Initializing merge tool '"
+                            << entry.second->getName() << "'" << std::endl;
+                }
+                entry.second->initialize();
+            }
         }
 
         /**
@@ -214,10 +260,30 @@ class LcioPersistencyManager : public G4PersistencyManager {
             } else if (writeMode == APPEND) {
                 return writeModes[2];
             } else {
-                G4Exception("", "", FatalException, G4String("Unknown write mode: " + writeMode));
+                G4Exception("LcioPersistencyManager::modeToString", "",
+                        FatalException, G4String("Unknown write mode: " + writeMode));
             }
             // This will never happen.
-            return "";
+            static std::string empty("");
+            return empty;
+        }
+
+        /**
+         * Add an LCIO file to merge into the output event during processing.
+         */
+        void addMerge(LcioMergeTool* merge) {
+            merge_[merge->getName()] = merge;
+        }
+
+        /**
+         * Get the named merge configuration.
+         */
+        LcioMergeTool* getMerge(std::string name) {
+            if (merge_.find(name) != merge_.end()) {
+                return merge_[name];
+            } else {
+                return nullptr;
+            }
         }
 
     private:
@@ -245,8 +311,8 @@ class LcioPersistencyManager : public G4PersistencyManager {
                     if (collVec) {
                         lcioEvent->addCollection(collVec, collName);
                         if (m_verbose > 1) {
-                            std::cout << "LcioPersistencyManager: Stored " << collVec->size() << " hits in " << collName
-                                    << std::endl;
+                            std::cout << "LcioPersistencyManager: Stored " << collVec->size()
+                                    << " hits in " << collName << std::endl;
                         }
                     }
                 }
@@ -265,7 +331,7 @@ class LcioPersistencyManager : public G4PersistencyManager {
 
             int nhits = trackerHits->GetSize();
             if (m_verbose > 2) {
-                std::cout << "LcioPersistencyManager: Converting " << nhits << " tracker hits to LCIO." << std::endl;
+                std::cout << "LcioPersistencyManager: Converting " << nhits << " tracker hits to LCIO" << std::endl;
             }
             for (int i = 0; i < nhits; i++) {
 
@@ -328,7 +394,7 @@ class LcioPersistencyManager : public G4PersistencyManager {
 
             int nhits = calHits->GetSize();
             if (m_verbose > 2) {
-                std::cout << "LcioPersistencyManager: Converting " << nhits << " cal hits to LCIO" << std::endl;
+                std::cout << "LcioPersistencyManager: Converting " << nhits << " calorimeter hits to LCIO" << std::endl;
             }
             for (int i = 0; i < nhits; i++) {
 
@@ -384,7 +450,7 @@ class LcioPersistencyManager : public G4PersistencyManager {
                     simCalHit->addMCParticleContribution(static_cast<EVENT::MCParticle*>(mcp), (float)edep, (float)hitTime, (int)pdg, (float*)contribPos);
 
                     if (m_verbose > 3) {
-                        std::cout << "LcioPersistencyManager: Assigned cal hit contrib with "
+                        std::cout << "LcioPersistencyManager: Assigned hit contrib with "
                                 << "trackID = " << trackID << "; "
                                 << "edep = " << edep << "; "
                                 << "time = " << hitTime << "; "
@@ -413,6 +479,9 @@ class LcioPersistencyManager : public G4PersistencyManager {
 
         /** LCIO write mode. */
         WriteMode writeMode_{NEW};
+
+        /** LCIO files to merge into every Geant4 event (optional). */
+        std::map<std::string, LcioMergeTool*> merge_;
 
 };
 
