@@ -9,7 +9,14 @@
 /hps/lcio/verbose 4
 /hps/lcio/file lcio_merge_test.slcio
 /hps/lcio/recreate
+
+# enable detailed event info
 /hps/lcio/dumpEventDetailed
+
+# enable event summary
 /hps/lcio/dumpEventSummary
 
 /run/beamOn 100
+
+# test dump of file
+/hps/lcio/dumpFile lcio_merge_test.slcio 10 42

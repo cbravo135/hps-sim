@@ -55,6 +55,9 @@ class LcioPersistencyMessenger : public G4UImessenger {
          */
         G4UIcmdWithABool* dumpEventDetailedCmd_;
         G4UIcmdWithABool* dumpEventSummaryCmd_;
+
+        /** Dump file. */
+        G4UIcommand* dumpFileCmd_;
 };
 
 }

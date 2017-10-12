@@ -307,6 +307,34 @@ class LcioPersistencyManager : public G4PersistencyManager {
             dumpEventDetailed_ = dumpEventDetailed;
         }
 
+        /**
+         * Dump detailed collection data for a single file.
+         */
+        static void dumpFile(std::string fileName,
+                int nevents = -1,
+                int nskip = 0) {
+            auto reader = IOIMPL::LCFactory::getInstance()->createLCReader();
+            reader->open(fileName);
+            if (nskip > 0) {
+                reader->skipNEvents(nskip);
+            }
+            int nread = 0;
+            while (nread < nevents || nevents == -1) {
+                auto event = reader->readNextEvent();
+                if (!event) {
+                    break;
+                }
+                UTIL::LCTOOLS::dumpEventDetailed(event);
+                ++nread;
+            }
+            try {
+                reader->close();
+            } catch (std::exception& e) {
+                std::cerr << e.what() << std::endl;
+            }
+            delete reader;
+        }
+
     private:
 
         /**
@@ -496,41 +524,6 @@ class LcioPersistencyManager : public G4PersistencyManager {
                 UTIL::LCTOOLS::dumpEventDetailed(event);
             }
         }
-
-        // TODO: Add command for dumping data from an arbitrary file.
-        /*
-        static void dumpFile(std::string fileName,
-                int nevents = 1,
-                int nskip = 0,
-                bool detailed = true,
-                bool summary = false) {
-            auto reader = IOIMPL::LCFactory::getInstance()->createLCReader();
-            reader->open(fileName);
-            if (nskip > 0) {
-                reader->skipNEvents(nskip);
-            }
-            int nread = 0;
-            while (nread <= nevents) {
-                auto event = reader->readNextEvent();
-                if (!event) {
-                    break;
-                }
-                if (summary) {
-                    UTIL::LCTOOLS::dumpEvent(event);
-                }
-                if (detailed) {
-                    UTIL::LCTOOLS::dumpEventDetailed(event);
-                }
-                ++nread;
-            }
-            try {
-                reader->close();
-            } catch (std::exception& e) {
-                std::cerr << "LcioPersistencyManager: " << e.what() << std::endl;
-            }
-            delete reader;
-        }
-        */
 
     private:
 

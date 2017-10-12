@@ -3,6 +3,8 @@
 // include only in cxx file due to circular dep!
 #include "LcioPersistencyManager.h"
 
+#include <sstream>
+
 namespace hpssim {
 
 LcioPersistencyMessenger::LcioPersistencyMessenger(LcioPersistencyManager* mgr) : mgr_{mgr} {
@@ -30,6 +32,16 @@ LcioPersistencyMessenger::LcioPersistencyMessenger(LcioPersistencyManager* mgr) 
     dumpEventSummaryCmd_ = new G4UIcmdWithABool("/hps/lcio/dumpEventSummary", this);
     dumpEventSummaryCmd_->GetParameter(0)->SetOmittable(true);
     dumpEventSummaryCmd_->GetParameter(0)->SetDefaultValue("true");
+
+    dumpFileCmd_ = new G4UIcommand("/hps/lcio/dumpFile", this);
+    auto p = new G4UIparameter("file", 's', false);
+    dumpFileCmd_->SetParameter(p);
+    p = new G4UIparameter("nevents", 'i', true);
+    p->SetDefaultValue(-1);
+    dumpFileCmd_->SetParameter(p);
+    p = new G4UIparameter("skip", 'i', true);
+    p->SetDefaultValue(0);
+    dumpFileCmd_->SetParameter(p);
 }
 
 void LcioPersistencyMessenger::SetNewValue(G4UIcommand* command, G4String newValues) {
@@ -51,6 +63,15 @@ void LcioPersistencyMessenger::SetNewValue(G4UIcommand* command, G4String newVal
         mgr_->setDumpEventDetailed(G4UIcmdWithABool::GetNewBoolValue(newValues));
     } else if (command == dumpEventSummaryCmd_) {
         mgr_->setDumpEventSummary(G4UIcmdWithABool::GetNewBoolValue(newValues));
+    } else if (command == dumpFileCmd_) {
+        std::stringstream ss(newValues);
+        std::string fileName;
+        int nevents;        
+        int nskip;
+        ss >> fileName;
+        ss >> nevents;
+        ss >> nskip;
+        LcioPersistencyManager::dumpFile(fileName, nevents, nskip);
     }
 }
 
