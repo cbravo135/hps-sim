@@ -256,7 +256,9 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction {
                         std::cout << "PrimaryGeneratorAction: Reading random event " << randEvent << " from '"
                                 << gen->getName() + "'" << std::endl;
                     }
-                    gen->readEvent(randEvent, true);
+                    if (gen->getReadFlag()) {
+                        gen->readEvent(randEvent, true);
+                    }
                 } else {
                     /*
                      * Generator ran out of events so throw an exception that indicates this.
@@ -272,7 +274,9 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction {
                 /*
                  * Sequentially read next event.
                  */
-                gen->readNextEvent();
+                if (gen->getReadFlag()) {
+                    gen->readNextEvent();
+                } 
             }
         }
 

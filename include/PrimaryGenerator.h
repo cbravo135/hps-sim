@@ -294,6 +294,14 @@ class PrimaryGenerator : public G4VPrimaryGenerator {
         virtual void openFile(std::string) {
         }
 
+        void setReadFlag(bool readFlag) {
+            readFlag_ = readFlag;
+        }
+  
+        bool getReadFlag() {
+            return readFlag_;
+        }
+
     private:
 
         /**
@@ -336,6 +344,9 @@ class PrimaryGenerator : public G4VPrimaryGenerator {
 
         /** The read mode of the generator: either sequential or random. */
         ReadMode readMode_{Sequential};
+ 
+        /* Flag that controls whether generator rereads the same event (e.g. for biasing). */
+        bool readFlag_{true};
 };
 
 }
