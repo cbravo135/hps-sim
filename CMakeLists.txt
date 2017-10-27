@@ -1,5 +1,5 @@
 ##########################################################
-# CMake configuration for SLIC application.              #
+# CMake configuration for HPS sim application.           #
 #                                                        #
 # @author Jeremy McCormick <jeremym@slac.stanford.edu>   #
 #                                                        #
