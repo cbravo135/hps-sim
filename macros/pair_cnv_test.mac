@@ -18,7 +18,7 @@
 /run/initialize
 
 # LCIO output
-#/hps/lcio/verbose 2
+/hps/lcio/verbose 2
 /hps/lcio/recreate
 /hps/lcio/file pair_cnv_test.slcio
 
