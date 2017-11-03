@@ -52,6 +52,17 @@ namespace hpssim {
                 addVolume("module_L2t_halfmodule_axial_sensor_volume");
             }
 
+            void postTracking(const G4Track* aTrack) {
+                if (aTrack->GetDynamicParticle()->GetPrimaryParticle()) {
+                    if (aTrack->GetDynamicParticle()->GetPDGcode() == 22) {
+                        if (!cnvFlag_) {
+                            auto anEvent = const_cast<G4Event*>(G4RunManager::GetRunManager()->GetCurrentEvent());
+                            const_cast<G4Event*>(anEvent)->SetEventAborted();
+                        }
+                    }
+                }
+            }
+
             void stepping(const G4Step* step) {
                 auto track = step->GetTrack();
                 auto pdef = track->GetParticleDefinition();
@@ -103,7 +114,7 @@ namespace hpssim {
                 }
             }
 
-            void endEvent(const G4Event*) {
+            void endEvent(const G4Event* event) {
                 auto generators = PrimaryGeneratorAction::getPrimaryGeneratorAction()->getGenerators();
                 std::cout << "PairCnvPlugin: Setting read flag to " << cnvFlag_ << std::endl;
                 generators[0]->setReadFlag(cnvFlag_);
