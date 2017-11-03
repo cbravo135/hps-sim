@@ -168,6 +168,10 @@ class UserTrackingAction : public G4UserTrackingAction {
             return static_cast<UserTrackingAction*>(const_cast<G4UserTrackingAction*>(G4RunManager::GetRunManager()->GetUserTrackingAction()));
         }
 
+        G4TrackingManager* getTrackingManager() {
+            return fpTrackingManager;
+        }
+
     private:
 
         TrackMap trackMap_;

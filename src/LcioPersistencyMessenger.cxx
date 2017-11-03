@@ -21,7 +21,7 @@ LcioPersistencyMessenger::LcioPersistencyMessenger(LcioPersistencyManager* mgr) 
     appendCmd_ = new G4UIcommand("/hps/lcio/append", this);
     appendCmd_->SetGuidance("Append events to an existing LCIO file.");
 
-    mergeDir_ = new G4UIdirectory("/hps/lcio/merge", this);
+    mergeDir_ = new G4UIdirectory("/hps/lcio/merge/", this);
 
     mergeAddCmd_ = new G4UIcmdWithAString("/hps/lcio/merge/add", this);
 

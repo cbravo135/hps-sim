@@ -83,9 +83,6 @@ void LHEPrimaryGenerator::GeneratePrimaryVertex(G4Event* anEvent) {
     }
 
     anEvent->AddPrimaryVertex(vertex);
-
-    delete lheEvent_;
-    lheEvent_ = nullptr;
 }
 
 }

@@ -108,6 +108,14 @@ class LHEPrimaryGenerator: public PrimaryGenerator {
             }
         }
 
+        void deleteEvent() {
+            if (lheEvent_) {
+                std::cout << "LHEPrimaryGenerator: Deleting LHE event" << std::endl;
+                delete lheEvent_;
+                lheEvent_ = nullptr;
+            }
+        }
+
     private:
 
         // Setup event sampling if using cross section.

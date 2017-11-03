@@ -6,6 +6,7 @@
 #include "G4VUserPrimaryGeneratorAction.hh"
 #include "G4VPrimaryGenerator.hh"
 #include "G4Event.hh"
+#include "G4RunManager.hh"
 
 #include "PGAMessenger.h"
 #include "UserPrimaryParticleInformation.h"
@@ -37,6 +38,10 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction {
          */
         void setVerbose(int verbose) {
             verbose_ = verbose;
+        }
+
+        std::vector<PrimaryGenerator*>& getGenerators() {
+            return generators_;
         }
 
         /**
@@ -109,6 +114,11 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction {
                         // Delete the overlay event to avoid memory leak.
                         delete overlayEvent;
                     }
+
+                    // When reading multiple events at a time, we cannot reread the same event again so must delete here.
+                    if (nevents > 1) {
+                        gen->deleteEvent();
+                    }
                 }
             }
 
@@ -141,6 +151,14 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction {
 
                 // Call generator's initialization hook.
                 gen->initialize();
+            }
+        }
+
+        void endEvent(const G4Event*) {
+            for (auto gen : generators_) {
+                if (gen->getReadFlag()) {
+                    gen->deleteEvent();
+                }
             }
         }
 
@@ -258,6 +276,11 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction {
                     }
                     if (gen->getReadFlag()) {
                         gen->readEvent(randEvent, true);
+                    } else { 
+                        if (verbose_ > 1) {
+                            std::cout << "PrimaryGeneratorAction: New event was not read from '" << gen->getName() 
+                                    << "' because read flag was set to 'false'." << std::endl;
+                        }
                     }
                 } else {
                     /*
@@ -276,9 +299,15 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction {
                  */
                 if (gen->getReadFlag()) {
                     gen->readNextEvent();
-                } 
+                } else { 
+                    if (verbose_ > 1) {
+                        std::cout << "PrimaryGeneratorAction: New event was not read from '" << gen->getName() 
+                                << "' because read flag was set to 'false'." << std::endl;
+                    }
+                }
             }
         }
+
 
     protected:
 
