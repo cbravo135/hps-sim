@@ -9,6 +9,11 @@
 
 namespace hpssim {
 
+/**
+ * @class PairCnvPlugin
+ * @brief Plugin to select events where pair conversions occur in specified detector volumes
+ * @note Generator events are reread until a conversion occurs or max events is reached.
+ */
 class PairCnvPlugin : public SimPlugin {
 
     public:
@@ -83,8 +88,8 @@ class PairCnvPlugin : public SimPlugin {
                                 auto pv = step->GetPreStepPoint()->GetPhysicalVolume();
                                 if (proc->GetProcessName() == "conv") {
                                     if (verbose_ > 1) {
-                                        std::cout << "PairCnvPlugin: seco created by proc '" << proc->GetProcessName()
-                                                << "' in pv '" << pv->GetName() << "'" << std::endl;
+                                        std::cout << "PairCnvPlugin: Secondary created by process '" << proc->GetProcessName()
+                                                << "' in volume '" << pv->GetName() << "'" << std::endl;
                                     }
                                     cnvFlag_ = true;
                                     break;
@@ -101,9 +106,8 @@ class PairCnvPlugin : public SimPlugin {
             for (int iDepth = depth; iDepth >= 0; iDepth--) {
                 G4VPhysicalVolume* pv = touchable->GetVolume(iDepth);
                 if (pv) {
-                    //std::cout << pv->GetName() << std::endl;
                     if(std::find(volumes_.begin(), volumes_.end(), pv) != volumes_.end()) {
-                        std::cout << "PairCnvPlugin: found vol '" << pv->GetName() << "' in list." << std::endl;
+                        std::cout << "PairCnvPlugin: Found volume '" << pv->GetName() << "' in list." << std::endl;
                         return true;
                     }
                 }
@@ -116,7 +120,8 @@ class PairCnvPlugin : public SimPlugin {
             if (vol) {
                 volumes_.push_back(G4PhysicalVolumeStore::GetInstance()->GetVolume(volName));
             } else {
-                G4Exception("", "", FatalException, "Volume not found in PV store.");
+                //G4Exception("", "", FatalException, "Volume not found in PV store.");
+                std::cerr << "PairCnvPlugin: WARNING - Volume '" << volName << "' was not found in PV store." << std::endl;
             }
         }
 
@@ -128,7 +133,7 @@ class PairCnvPlugin : public SimPlugin {
                 // Conversion occurred so propagate event weight.
                 auto anEvent = const_cast<G4Event*>(G4RunManager::GetRunManager()->GetCurrentEvent());
                 float weight = 1.0 / nEventsRead_;
-                anEvent->GetPrimaryVertex()->SetWeight(1.0 / nEventsRead_);
+                anEvent->GetPrimaryVertex()->SetWeight(weight);
                 if (verbose_ > 1) {
                     std::cout << "PairCnvPlugin: Set weight to " << weight << " from " << nEventsRead_ << " events generated." << std::endl;
                 }
