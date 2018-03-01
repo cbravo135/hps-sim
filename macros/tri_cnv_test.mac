@@ -1,0 +1,30 @@
+# load detector
+/lcdd/url detector.lcdd
+
+# print info as event generation runs
+/hps/generators/verbose 2
+
+# overlay WAB events using cross section from LHE file
+/hps/generators/create WabGen LHE
+/hps/generators/WabGen/file wab_unweighted_events.lhe
+/hps/generators/WabGen/transform/rot 0.0305
+/hps/generators/WabGen/verbose 2
+
+# uncomment to enable pair conversion event selection before running trident plugin
+#/hps/plugins/load PairCnvPlugin
+#/hps/plugins/PairCnvPlugin/verbose 2
+
+# enable trident conversion plugin
+/hps/plugins/load TridentCnvPlugin
+/hps/plugins/TridentCnvPlugin/verbose 2
+
+# init the run
+/run/initialize
+
+# LCIO output
+/hps/lcio/verbose 2
+/hps/lcio/recreate
+/hps/lcio/file tri_cnv_test.slcio
+
+# number of events
+/run/beamOn 10000
