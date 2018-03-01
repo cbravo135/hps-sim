@@ -16,6 +16,7 @@
 #include "UserTrackingAction.h"
 #include "UserRunAction.h"
 #include "UserEventAction.h"
+#include "UserStackingAction.h"
 
 using namespace hpssim;
 
@@ -41,6 +42,7 @@ int main(int argc, char* argv[]) {
     mgr->SetUserAction(new UserRunAction);
     mgr->SetUserAction(new UserEventAction);
     mgr->SetUserAction(new SteppingAction);
+    mgr->SetUserAction(new UserStackingAction);
 
     LcioPersistencyManager* lcio = new LcioPersistencyManager();
 

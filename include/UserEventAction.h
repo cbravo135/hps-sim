@@ -30,8 +30,13 @@ class UserEventAction : public G4UserEventAction {
         }
 
         void EndOfEventAction(const G4Event* anEvent) {
+
             // Activate sim plugins.
             PluginManager::getPluginManager()->endEvent(anEvent);
+
+            // Cleanup gen event data if necessary.
+            PrimaryGeneratorAction::getPrimaryGeneratorAction()->endEvent(anEvent);
+
         }
 };
 }

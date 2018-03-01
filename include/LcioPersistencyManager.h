@@ -124,6 +124,12 @@ class LcioPersistencyManager : public G4PersistencyManager {
                 lcioEvent->setEventNumber(anEvent->GetEventID());
                 lcioEvent->setRunNumber(G4RunManager::GetRunManager()->GetCurrentRun()->GetRunID());
                 lcioEvent->setDetectorName(LCDDProcessor::instance()->getDetectorName());
+                if (anEvent->GetPrimaryVertex()) {
+                    lcioEvent->setWeight(anEvent->GetPrimaryVertex()->GetWeight());
+                    if (m_verbose > 1) {
+                        std::cout << "LcioPersistencyManager: Set LCIO event weight to " << lcioEvent->getWeight() << std::endl;
+                    }
+                }
 
                 // Write MCParticles to LCIO event (allowed to be empty).
                 auto particleColl = builder_->buildMCParticleColl(anEvent);
@@ -355,13 +361,17 @@ class LcioPersistencyManager : public G4PersistencyManager {
                         collVec = writeTrackerHitsCollection(hc);
                     } else if (dynamic_cast<CalorimeterHitsCollection*>(hc)) {
                         collVec = writeCalorimeterHitsCollection(hc);
+                    } else {
+                        std::cerr << "Hits collection '" << collName << "' has unknown type." << std::endl;
+                        G4Exception("LcioPersistencyManager::writeHitsCollections", "", FatalException,
+                                "Unknown hit type.");
                     }
 
                     if (collVec) {
                         lcioEvent->addCollection(collVec, collName);
                         if (m_verbose > 1) {
                             std::cout << "LcioPersistencyManager: Stored " << collVec->size()
-                                    << " hits in " << collName << std::endl;
+                                    << " hits in '" << collName << "'" << std::endl;
                         }
                     }
                 }

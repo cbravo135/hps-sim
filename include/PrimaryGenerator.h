@@ -294,6 +294,12 @@ class PrimaryGenerator : public G4VPrimaryGenerator {
         virtual void openFile(std::string) {
         }
 
+        /**
+         * Generators should use this hook to cleanup event data that needs to be deleted.
+         */  
+        virtual void deleteEvent() {
+        }
+
         void setReadFlag(bool readFlag) {
             readFlag_ = readFlag;
         }
