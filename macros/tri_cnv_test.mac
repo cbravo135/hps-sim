@@ -11,8 +11,8 @@
 /hps/generators/WabGen/verbose 2
 
 # uncomment to enable pair conversion event selection before running trident plugin
-#/hps/plugins/load PairCnvPlugin
-#/hps/plugins/PairCnvPlugin/verbose 2
+/hps/plugins/load PairCnvPlugin
+/hps/plugins/PairCnvPlugin/verbose 2
 
 # enable trident conversion plugin
 /hps/plugins/load TridentCnvPlugin
