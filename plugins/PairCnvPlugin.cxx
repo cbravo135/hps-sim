@@ -2,6 +2,7 @@
 
 #include "PrimaryGeneratorAction.h"
 #include "SimPluginMessenger.h"
+#include "UserTrackInformation.h"
 #include "UserTrackingAction.h"
 
 #include "G4PhysicalVolumeStore.hh"
@@ -64,6 +65,10 @@ class PairCnvPlugin : public SimPlugin {
             addVolume("module_L2t_halfmodule_axial_sensor_volume");
         }
 
+        void preTracking(const G4Track* aTrack) {
+            UserTrackInformation::getUserTrackInformation(aTrack)->setFlag("pair_cnv", false);
+        }
+
         void postTracking(const G4Track* aTrack) {
             if (aTrack->GetDynamicParticle()->GetPrimaryParticle()) {
                 if (aTrack->GetDynamicParticle()->GetPDGcode() == 22) {
@@ -92,6 +97,7 @@ class PairCnvPlugin : public SimPlugin {
                                                 << "' in volume '" << pv->GetName() << "'" << std::endl;
                                     }
                                     cnvFlag_ = true;
+                                    UserTrackInformation::getUserTrackInformation(track)->setFlag("pair_cnv", true);
                                     break;
                                 }
                             }
