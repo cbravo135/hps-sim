@@ -21,6 +21,8 @@ class UserTrackInformation : public VUserTrackInformation {
 
     public:
 
+        typedef std::map<std::string, bool> TrackFlags;
+
         UserTrackInformation() {
         }
 
@@ -84,6 +86,14 @@ class UserTrackInformation : public VUserTrackInformation {
         bool hasTrackerHit() {
             return hasTrackerHit_;
         }
+
+        void setFlag(const std::string& name, bool value) {
+            flags_[name] = value;
+        }
+
+        bool getFlag(const std::string& name) {
+            return flags_[name];
+        }
     
     private:
 
@@ -94,6 +104,8 @@ class UserTrackInformation : public VUserTrackInformation {
         G4ThreeVector initialMomentum_;
 
         bool hasTrackerHit_{false};
+
+        TrackFlags flags_; 
 };
 }
 
