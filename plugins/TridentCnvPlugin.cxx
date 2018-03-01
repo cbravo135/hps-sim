@@ -7,6 +7,7 @@
 // LDMX
 #include "SimPlugin.h"
 #include "SimPluginMessenger.h"
+#include "UserTrackInformation.h"
 
 namespace hpssim {
 
@@ -54,6 +55,10 @@ namespace hpssim {
 
             void stepping(const G4Step* step) {
                 // Put stepping code here.
+                auto track = step->GetTrack();
+                if (UserTrackInformation::getUserTrackInformation(track)->getFlag("pair_cnv")) {
+                    std::cout << "TridentCnvPlugin: Found pair conversion from track " << track->GetTrackID() << std::endl;
+                }
             }
 
             void preTracking(const G4Track* aTrack) {
