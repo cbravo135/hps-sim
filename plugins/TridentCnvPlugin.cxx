@@ -6,6 +6,7 @@
 
 // LDMX
 #include "SimPlugin.h"
+#include "SimPluginMessenger.h"
 
 namespace hpssim {
 
@@ -19,10 +20,12 @@ namespace hpssim {
 
             TridentCnvPlugin() {
                 std::cout << "TridentCnvPlugin: Hello!" << std::endl;
+                messenger_ = new SimPluginMessenger(this);
             }
 
             virtual ~TridentCnvPlugin() {
                 std::cout << "TridentCnvPlugin: Goodbye!" << std::endl;
+                delete messenger_;
             }
 
             virtual std::string getName() {
@@ -60,6 +63,10 @@ namespace hpssim {
             void postTracking(const G4Track* aTrack) {
                 // Put end of track processing here.
             }
+
+        private:
+
+            G4UImessenger* messenger_{nullptr};
     };
 }
 
