@@ -1,7 +1,6 @@
 #include <iostream>
 
 #include "FTFP_BERT.hh"
-#include "G4RunManager.hh"
 #include "G4UIExecutive.hh"
 #include "G4UImanager.hh"
 #include "G4VisManager.hh"
@@ -13,6 +12,7 @@
 #include "LcioPersistencyManager.h"
 #include "PluginManager.h"
 #include "PrimaryGeneratorAction.h"
+#include "RunManager.h"
 #include "UserTrackingAction.h"
 #include "UserRunAction.h"
 #include "UserEventAction.h"
@@ -29,7 +29,7 @@ int main(int argc, char* argv[]) {
         UIExec = new G4UIExecutive(argc, argv);
     }
 
-    G4RunManager* mgr = new G4RunManager();
+    RunManager* mgr = new RunManager();
 
     auto pluginMgr = PluginManager::getPluginManager();
 
