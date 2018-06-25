@@ -30,7 +30,7 @@ namespace hpssim {
             sstream >> name;
             sstream >> value;
             userPlugin_->getParameters().set(name, value);
-            std::cout << std::cout << userPlugin_->getName() << ": Set param '" << name << "' = " << value << std::endl;
+            std::cout << userPlugin_->getName() << ": Set param '" << name << "' = " << value << std::endl;
         }
     }
 } // namespace hpssim

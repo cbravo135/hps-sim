@@ -58,7 +58,7 @@ class MCParticleBuilder {
             p->setGeneratorStatus(traj->getGenStatus());
             p->setPDG(traj->GetPDGEncoding());
             p->setCharge(traj->GetCharge());
-            p->setMass(traj->getMass());
+            p->setMass(traj->getMass()/GeV);     // MWH -- Mass is also in GeV in LCIO output.
             //p->setEnergy(traj->getEnergy());
             p->setTime(traj->getGlobalTime());
 

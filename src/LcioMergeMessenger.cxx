@@ -26,7 +26,7 @@ LcioMergeMessenger::LcioMergeMessenger(LcioMergeTool* merge) : merge_(merge) {
     ecalEnergyFilterCmd_ = new G4UIcmdWithADoubleAndUnit(ecalEnergyFilterPath, this);
     ecalEnergyFilterCmd_->GetParameter(0)->SetOmittable(false);
     ecalEnergyFilterCmd_->GetParameter(1)->SetOmittable(true);
-    ecalEnergyFilterCmd_->GetParameter(1)->SetDefaultValue("MeV");
+    ecalEnergyFilterCmd_->GetParameter(1)->SetDefaultValue("GeV");
 }
 
 void LcioMergeMessenger::SetNewValue(G4UIcommand* command, G4String newValues) {

@@ -77,7 +77,7 @@ class LcioPersistencyManager : public G4PersistencyManager {
          * Class constructor, which will register this persistency manager as the global default within Geant4.
          */
         LcioPersistencyManager() :
-                G4PersistencyManager(G4PersistencyCenter::GetPersistencyCenter(), "LcioPersistencyManager") {
+            G4PersistencyManager(G4PersistencyCenter::GetPersistencyCenter(), "LcioPersistencyManager") {
             G4PersistencyCenter::GetPersistencyCenter()->RegisterPersistencyManager(this);
             G4PersistencyCenter::GetPersistencyCenter()->SetPersistencyManager(this, "LcioPersistencyManager");
             writer_ = nullptr;
@@ -471,14 +471,14 @@ class LcioPersistencyManager : public G4PersistencyManager {
                 simCalHit->setPosition(pos);
 
                 // energy
-                simCalHit->setEnergy(calHit->getEdep());
+                simCalHit->setEnergy(calHit->getEdep()/GeV);  // MWH - Energy is in GeV.
 
                 // add to output collection
                 collVec->push_back(simCalHit);
 
                 auto contribs = calHit->getHitContributions();
                 for (auto contrib : contribs) {
-                    auto edep = contrib.getEdep();
+                    auto edep = contrib.getEdep()/GeV;       // MWH - Energy is in GeV.
                     auto hitTime = contrib.getGlobalTime();
                     auto pdg = contrib.getPDGID();
                     auto contribPos = contrib.getPosition();
