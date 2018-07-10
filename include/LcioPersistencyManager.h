@@ -470,8 +470,11 @@ class LcioPersistencyManager : public G4PersistencyManager {
                 float pos[3] = {(float)hitPos.x(), (float)hitPos.y(), (float)hitPos.z()};
                 simCalHit->setPosition(pos);
 
-                // energy
-                simCalHit->setEnergy(calHit->getEdep()/GeV);  // MWH - Energy is in GeV.
+                // Energy
+                // This is wrong, IF you also store ALL the contribs of the hit.
+                // In IOIMPL::SimCalorimeterHitImpl::addMCParticleContribution( EVENT::MCParticle *p, ...)
+                // the energy of each contributing particle is added to the energy of the simCalHit.
+                // simCalHit->setEnergy(calHit->getEdep()/GeV);  // MWH - Energy is in GeV.
 
                 // add to output collection
                 collVec->push_back(simCalHit);
