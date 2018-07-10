@@ -32,10 +32,13 @@ include_directories(${XERCES_INCLUDE_DIR} ${LCIO_INCLUDE_DIRS} ${Geant4_INCLUDE_
 # build user plugin library
 FILE(GLOB_RECURSE plugin_sources plugins/*.cxx)
 ADD_LIBRARY(SimPlugins SHARED ${plugin_sources})
+if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+   target_link_libraries(SimPlugins "-undefined dynamic_lookup" ${Geant4_LIBRARIES})
+endif()
 INSTALL(TARGETS SimPlugins DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
 ADD_DEPENDENCIES(hps-sim SimPlugins)
     
-target_link_libraries(hps-sim ${XERCES_LIBRARY} ${Geant4_LIBRARIES} ${GDML_LIBRARY} ${LCDD_LIBRARY} ${LCIO_LIBRARIES})
+target_link_libraries(hps-sim ${XERCES_LIBRARY} ${Geant4_LIBRARIES} ${GDML_LIBRARY} ${LCDD_LIBRARY} ${LCIO_LIBRARIES} dl)
 link_directories(${GDML_LIBRARY_DIR} ${LCDD_LIBRARY_DIR} ${LCIO_LIBRARY_DIRS})
 
 install(TARGETS hps-sim hps-sim DESTINATION bin)
