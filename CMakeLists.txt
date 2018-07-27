@@ -13,6 +13,11 @@ if(CMAKE_CXX_COMPILER_VERSION LESS 4.8)
     message(FATAL_ERROR "The gcc compiler version '${CMAKE_CXX_COMPILER_VERSION}' is too old (at least 4.8 required).")
 endif()
 
+#
+# This is needed for the JLab compilation to not use c++98
+#
+set (CMAKE_CXX_STANDARD 11)
+
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 find_package(XERCES REQUIRED)
