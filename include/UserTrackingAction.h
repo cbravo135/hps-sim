@@ -132,6 +132,9 @@ class UserTrackingAction : public G4UserTrackingAction {
             UserRegionInformation* regionInfo =
                     (UserRegionInformation*) aTrack->GetLogicalVolumeAtVertex()->GetRegion()->GetUserInformation();
             bool isPrimary = (aTrack->GetDynamicParticle()->GetPrimaryParticle() != nullptr);
+            //if (isPrimary) {
+            //    std::cout << "UserTrackingAction: Track " << aTrack->GetTrackID() << " is a primary." << std::endl;
+            //}
             if ((regionInfo && regionInfo->getStoreSecondaries()) || isPrimary) {
                 /*
                 if (regionInfo && regionInfo->getStoreSecondaries()) {

@@ -9,17 +9,11 @@ class UserStackingAction : public G4UserStackingAction {
 
     public:
 
-        G4ClassificationOfNewTrack ClassifyNewTrack(const G4Track *aTrack) {
-            return PluginManager::getPluginManager()->stackingClassifyNewTrack(aTrack);
-        }
+        G4ClassificationOfNewTrack ClassifyNewTrack(const G4Track *aTrack);
 
-        void NewStage() {
-            PluginManager::getPluginManager()->stackingNewStage();
-        }
+        void NewStage();
 
-        void PrepareNewEvent() {
-            PluginManager::getPluginManager()->stackingPrepareNewEvent();
-        }
+        void PrepareNewEvent();
 };
 
 

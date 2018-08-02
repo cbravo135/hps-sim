@@ -31,11 +31,14 @@
 *.out
 *.app
 
-build/
-install/
+# Build dirs
+build*/
+install*/
 scratch/
 
+# Editor swap files
 *.swp
 
+# Eclipse files
 .cproject
 .project

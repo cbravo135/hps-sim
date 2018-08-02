@@ -1,9 +1,12 @@
 #include "Trajectory.h"
 
-#include "UserTrackInformation.h"
-
+// Geant4
 #include "G4TrajectoryPoint.hh"
 #include "G4VProcess.hh"
+
+// HPS
+#include "UserPrimaryParticleInformation.h"
+#include "UserTrackInformation.h"
 
 namespace hpssim {
 
@@ -48,6 +51,15 @@ Trajectory::Trajectory(const G4Track* aTrack) :
     trajPoints_->push_back(new G4TrajectoryPoint(aTrack->GetVertexPosition()));
     if (aTrack->GetTrackStatus() == G4TrackStatus::fStopAndKill) {
         trajPoints_->push_back(new G4TrajectoryPoint(aTrack->GetPosition()));
+    }
+
+    // Set generator status which was set by the primary generator.
+    if (aTrack->GetDynamicParticle()->GetPrimaryParticle()) {
+        if (aTrack->GetDynamicParticle()->GetPrimaryParticle()->GetUserInformation()) {
+            auto info = UserPrimaryParticleInformation::getUserPrimaryParticleInformation(
+                    aTrack->GetDynamicParticle()->GetPrimaryParticle());
+            genStatus_ = info->getGenStatus();
+        }
     }
 }
 

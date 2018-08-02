@@ -130,4 +130,18 @@ void LHEReader::readNumEvents() {
     }
 }
 
+double LHEReader::getCrossSection() {
+    return crossSection_;
+}
+
+int LHEReader::getNumEvents() {
+    return numEvents_;
+}
+
+void LHEReader::close() {
+    if (ifs_.is_open()) {
+        ifs_.close();
+    }
+}
+
 }
