@@ -4,12 +4,13 @@
  * @author Jeremy McCormick, SLAC National Accelerator Laboratory
  */
 
-#ifndef SIMAPPLICATION_USERPRIMARYPARTICLEINFORMATION_H_
-#define SIMAPPLICATION_USERPRIMARYPARTICLEINFORMATION_H_
+#ifndef HPSSIM_USERPRIMARYPARTICLEINFORMATION_H_
+#define HPSSIM_USERPRIMARYPARTICLEINFORMATION_H_
 
 /*
  * Geant4
  */
+#include "G4PrimaryParticle.hh"
 #include "G4VUserPrimaryParticleInformation.hh"
 
 namespace hpssim {
