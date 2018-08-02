@@ -17,6 +17,7 @@
 #include "UserRunAction.h"
 #include "UserEventAction.h"
 #include "UserStackingAction.h"
+#include "UnknownDecayPhysics.h"
 
 using namespace hpssim;
 
@@ -29,14 +30,18 @@ int main(int argc, char* argv[]) {
         UIExec = new G4UIExecutive(argc, argv);
     }
 
-    G4RunManager* mgr = new G4RunManager();
+    G4RunManager* mgr = new G4RunManager;
 
     auto pluginMgr = PluginManager::getPluginManager();
 
-    LCDDDetectorConstruction* det = new LCDDDetectorConstruction();
+    auto physicsList = new FTFP_BERT;
+    G4VModularPhysicsList* modularPhysicsList = dynamic_cast<G4VModularPhysicsList*>(physicsList);
+    modularPhysicsList->RegisterPhysics(new UnknownDecayPhysics);
+    mgr->SetUserInitialization(physicsList);
 
+    LCDDDetectorConstruction* det = new LCDDDetectorConstruction();
     mgr->SetUserInitialization(det);
-    mgr->SetUserInitialization(new FTFP_BERT);
+
     mgr->SetUserAction(new PrimaryGeneratorAction);
     mgr->SetUserAction(new UserTrackingAction);
     mgr->SetUserAction(new UserRunAction);
