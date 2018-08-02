@@ -3,6 +3,7 @@
 
 #include "G4VPhysicsConstructor.hh"
 #include "G4Decay.hh"
+#include "G4ParticleTable.hh"
 #include "G4UnknownDecay.hh"
 #include "G4UnknownParticle.hh"
 
@@ -24,6 +25,14 @@ class UnknownDecayPhysics : public G4VPhysicsConstructor {
         }
 
         void ConstructProcess() {
+            G4ParticleTable* tbl = G4ParticleTable::GetParticleTable();
+            G4ParticleDefinition* def = tbl->FindParticle("unknown");
+            if (def) {
+                G4ProcessManager* procMgr = def->GetProcessManager();
+                procMgr->AddProcess(&fUnknownDecay);
+                procMgr->SetProcessOrdering(&fUnknownDecay, idxPostStep);
+            }
+/*
             aParticleIterator->reset();
             while( (*aParticleIterator)() ){
                 G4ParticleDefinition* particle = aParticleIterator->value();
@@ -33,6 +42,7 @@ class UnknownDecayPhysics : public G4VPhysicsConstructor {
                     pmanager ->SetProcessOrdering(&fUnknownDecay, idxPostStep);
                 }
             }
+*/
         }
 
     protected:
