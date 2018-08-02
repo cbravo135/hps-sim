@@ -13,7 +13,6 @@
 #include "LcioPersistencyManager.h"
 #include "PluginManager.h"
 #include "PrimaryGeneratorAction.h"
-#include "RunManager.h"
 #include "UserTrackingAction.h"
 #include "UserRunAction.h"
 #include "UserEventAction.h"
@@ -31,8 +30,7 @@ int main(int argc, char* argv[]) {
         UIExec = new G4UIExecutive(argc, argv);
     }
 
-    //G4RunManager* mgr = new G4RunManager;
-    RunManager* mgr = new RunManager;
+    G4RunManager* mgr = new G4RunManager;
 
     auto pluginMgr = PluginManager::getPluginManager();
 
