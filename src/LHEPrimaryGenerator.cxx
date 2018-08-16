@@ -37,7 +37,7 @@ void LHEPrimaryGenerator::GeneratePrimaryVertex(G4Event* anEvent) {
     for (std::vector<LHEParticle*>::const_iterator it = particles.begin(); it != particles.end(); it++) {
 
         LHEParticle* particle = (*it);
-        particle->print(std::cout);
+        if( verbose_ > 1) particle->print(std::cout);
 
         int idup = particle->getIDUP();
 
@@ -90,14 +90,14 @@ void LHEPrimaryGenerator::GeneratePrimaryVertex(G4Event* anEvent) {
                 vertex->SetPrimary(primary);
             }
 
-            primary->Print();
+            if( verbose_ > 1) primary->Print();
 
         } else {
             // TODO: Handle doc particles!
-            std::cout << "Skipping doc particle!!!" << std::endl;
+            if( verbose_ > 0) std::cout << "Skipping doc particle!!!" << std::endl;
         }
 
-        std::cout << std::endl;
+        if(verbose_ > 1) std::cout << std::endl;
 
         ++particleIndex;
     }
@@ -176,7 +176,7 @@ void LHEPrimaryGenerator::cacheEvents() {
 
 void LHEPrimaryGenerator::deleteEvent() {
     if (lheEvent_) {
-        std::cout << "LHEPrimaryGenerator: Deleting LHE event" << std::endl;
+        if( verbose_ > 1) std::cout << "LHEPrimaryGenerator: Deleting LHE event" << std::endl;
         delete lheEvent_;
         lheEvent_ = nullptr;
     }
