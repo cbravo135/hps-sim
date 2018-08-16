@@ -102,7 +102,7 @@ void LHEPrimaryGenerator::GeneratePrimaryVertex(G4Event* anEvent) {
         ++particleIndex;
     }
 
-    vertex->Print();
+    if(verbose_ > 1) vertex->Print();
     anEvent->AddPrimaryVertex(vertex);
 }
 
