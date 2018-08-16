@@ -3,12 +3,10 @@
 The HPS Sim project provides a physics detector simulation tool for the HPS project.  It reads an LCDD geometry description and simulates particle interactions using LHE, StdHep or LCIO generator input files.  There is also a built-in generator for overlaying beam background events.  There is a flexible set of tools for event overlay and merging, as well as components for transforming the vertices and momenta of the input particle data.
 
 ## Build Instructions
----
 
 The following instructions assume that you are using some flavor of Linux. Mac/OSX may also work but has not been tested yet.
 
 ### Prerequisites
-
 
 #### CMake
 
@@ -19,6 +17,18 @@ You should have at least CMake 3.0 installed on your machine, and preferably a c
 Support for the C++11 standard is required so you will need a version of gcc 4.8 or greater.
 
 ### External Dependencies
+
+You will first need to install or have available at your site a number of external dependencies before building the actual framework.
+
+#### CLHEP
+
+``` bash
+git clone https://gitlab.cern.ch/CLHEP/CLHEP.git
+git checkout CLHEP_2_4_1_0
+mkdir build; cd build
+cmake -DCMAKE_INSTALL_PREFIX=../install ..
+make install
+```
 
 HPS Sim also has the following software dependencies:
 
