@@ -173,6 +173,10 @@ class StdHepPrimaryGenerator : public PrimaryGenerator {
          */
         void cacheEvents() {
 
+          
+          if (verbose_ > 1) {
+            std::cout << "StdHepPrimaryGenerator::cacheEvents -- Start caching events. " << std::endl;
+          }
             // Clear record cache.
             if (records_.size()) {
                 records_.clear();
