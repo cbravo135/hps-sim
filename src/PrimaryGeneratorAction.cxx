@@ -213,7 +213,7 @@ void PrimaryGeneratorAction::doNextRead(hpssim::PrimaryGenerator* gen) {
                         << gen->getName() + "'" << std::endl;
             }
             if (gen->getReadFlag()) {
-                gen->readEvent(randEvent, true);
+                gen->readEvent(randEvent, false); // * MWH * deleting the event is wicked expensive.
             } else {
                 if (verbose_ > 1) {
                     std::cout << "PrimaryGeneratorAction: New event was not read from '" << gen->getName()
@@ -226,7 +226,7 @@ void PrimaryGeneratorAction::doNextRead(hpssim::PrimaryGenerator* gen) {
              */
             throw EndOfFileException();
         }
-    } else {
+    } else if (gen->getReadMode() == PrimaryGenerator::Sequential){
 
         if (verbose_ > 2) {
             std::cout << "PrimaryGeneratorAction: Reading event read from '" << gen->getName() << "' sequentially"
@@ -244,6 +244,36 @@ void PrimaryGeneratorAction::doNextRead(hpssim::PrimaryGenerator* gen) {
                         << "' because read flag was set to 'false'." << std::endl;
             }
         }
+    } else if (gen->getReadMode() == PrimaryGenerator::Linear){
+      /*
+       * Read a random event from this file generating a number between zero
+       * and the max event index.
+       */
+      static long current_event=0;
+      int numEvents = gen->getNumEvents();
+      if (current_event < numEvents ) {
+        long linEvent = (++current_event);
+        if (verbose_ > 1) {
+          std::cout << "PrimaryGeneratorAction: Reading linear event " << linEvent << " from '"
+          << gen->getName() + "'" << std::endl;
+        }
+        if (gen->getReadFlag()) {
+          gen->readEvent(linEvent, false);
+        } else {
+          if (verbose_ > 1) {
+            std::cout << "PrimaryGeneratorAction: New event was not read from '" << gen->getName()
+            << "' because read flag was set to 'false'." << std::endl;
+          }
+        }
+      } else {
+        /*
+         * Generator ran out of events so throw an exception that indicates this.
+         */
+        throw EndOfFileException();
+      }
+    } else if (gen->getReadMode() == PrimaryGenerator::SemiRandom){
+    } else {
+      std::cerr << "Invalid reading mode requested from PrimaryGeneratorAction::doNextRead() " << std::endl;
     }
 }
 

@@ -95,8 +95,10 @@ class PrimaryGenerator : public G4VPrimaryGenerator {
          * random access by index of its event data.
          */
         enum ReadMode {
-            Sequential,
-            Random
+            Sequential,  // Does not cache the file.
+            Random,      // Cache the file, then reads the content pure random.
+            Linear,      // Cache the file but then reads the result in order.
+            SemiRandom   // Cache the file, then reads events from a randomly chosen block of 1k.
         };
 
         /**
@@ -214,7 +216,7 @@ class PrimaryGenerator : public G4VPrimaryGenerator {
             if (fileQueue_.size()) {
                 std::string nextFile = popFile();
                 openFile(nextFile);
-                if (getReadMode() == PrimaryGenerator::Random) {
+                if (getReadMode() != PrimaryGenerator::Sequential) {
                     cacheEvents();
                 }
             } else {
