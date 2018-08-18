@@ -1,16 +1,9 @@
 #include "PrimaryGeneratorAction.h"
 
-#include "CLHEP/Random/RandFlat.h"
-
-#include "G4VUserPrimaryGeneratorAction.hh"
-#include "G4VPrimaryGenerator.hh"
-#include "G4Event.hh"
-#include "G4RunManager.hh"
-
-#include "PGAMessenger.h"
-#include "UserPrimaryParticleInformation.h"
 
 namespace hpssim {
+
+std::mt19937 PrimaryGeneratorAction::random_gen(12345);   // Static random number generator ensures all sub-classes use same one.
 
 PrimaryGeneratorAction::PrimaryGeneratorAction() {
     messenger_ = new PGAMessenger(this);
@@ -99,18 +92,41 @@ void PrimaryGeneratorAction::addGenerator(PrimaryGenerator* generator) {
 }
 
 void PrimaryGeneratorAction::initialize() {
-    for (auto gen : generators_) {
 
+    const long seed = CLHEP::HepRandom::getTheSeed();
+    random_gen.seed(seed);
+    if(verbose_ > 0){
+      std::cout << "Initialized random_gen with seed: " << seed << std::endl;
+        std::cout << "Trials: : " << random_gen() << " " << random_gen() << std::endl;
+    }
+    
+    for (auto gen : generators_) {
+        
         // Initialization for generators with files.
         if (gen->isFileBased()) {
-
+            
             // Queues up all files for the generator for processing.
             gen->queueFiles();
-
+            
             // Reads the next file from the generator.
             gen->readNextFile();
         }
-
+        
+        // If readout is unique random, we need to initialize the unique random array.
+        if (gen->getReadMode() == PrimaryGenerator::Random || gen->getReadMode() == PrimaryGenerator::Linear || gen->getReadMode() == PrimaryGenerator::SemiRandom){
+            int n_evt =gen->getNumEvents();
+            for(int i=0;i<n_evt;++i) event_list_.push_back(i); // Make the linear list of events.
+            if (gen->getReadMode() == PrimaryGenerator::Random ){
+                std::shuffle(event_list_.begin(),event_list_.end(),random_gen);  // Random shuffle the list.
+            }else if(gen->getReadMode() == PrimaryGenerator::SemiRandom ){
+                int num_blocks = n_evt/1024;
+                for(int i=0;i<num_blocks;++i){
+                    std::shuffle(event_list_.begin()+(i*1024),event_list_.begin()+((i+1)*1024),random_gen);
+                }
+                std::shuffle(event_list_.begin()+(num_blocks*1024),event_list_.end(),random_gen); // Shuffle the remainder.
+            }
+        }
+        
         // Call generator's initialization hook.
         gen->initialize();
     }
@@ -200,24 +216,32 @@ void PrimaryGeneratorAction::readNextEvent(hpssim::PrimaryGenerator* gen) throw 
 }
 
 void PrimaryGeneratorAction::doNextRead(hpssim::PrimaryGenerator* gen) {
-    if (gen->getReadMode() == PrimaryGenerator::Random) {
+    if (gen->getReadMode() == PrimaryGenerator::PureRandom) {
         /*
          * Read a random event from this file generating a number between zero
          * and the max event index.
          */
+        if (verbose_ > 2) {
+            std::cout << "PrimaryGeneratorAction: Reading event read from '" << gen->getName() << "' in random order, with duplicates."
+            << std::endl;
+        }
+        
         int numEvents = gen->getNumEvents();
         if (numEvents > 0) {
             long randEvent = CLHEP::RandFlat::shootInt((long) 0, (long) (numEvents - 1));
-            if (verbose_ > 1) {
+            if (verbose_ > 2) {
                 std::cout << "PrimaryGeneratorAction: Reading random event " << randEvent << " from '"
-                        << gen->getName() + "'" << std::endl;
+                << gen->getName() + "'" << std::endl;
             }
             if (gen->getReadFlag()) {
-                gen->readEvent(randEvent, false); // * MWH * deleting the event is wicked expensive.
+                // * MWH * deleting the event is wicked expensive.
+                // By not deleting the event, there the *same* event could possibly be used again later.
+                // That means: 1) You need a lot of input events so statistics don't go bad. 2) You don't run out of events.
+                gen->readEvent(randEvent, false);
             } else {
-                if (verbose_ > 1) {
+                if (verbose_ >= 0) {
                     std::cout << "PrimaryGeneratorAction: New event was not read from '" << gen->getName()
-                            << "' because read flag was set to 'false'." << std::endl;
+                    << "' because read flag was set to 'false'." << std::endl;
                 }
             }
         } else {
@@ -225,9 +249,35 @@ void PrimaryGeneratorAction::doNextRead(hpssim::PrimaryGenerator* gen) {
              * Generator ran out of events so throw an exception that indicates this.
              */
             throw EndOfFileException();
-        }
-    } else if (gen->getReadMode() == PrimaryGenerator::Sequential){
+      }
+    } else if(gen->getReadMode() == PrimaryGenerator::Random || gen->getReadMode() == PrimaryGenerator::Linear || gen->getReadMode() == PrimaryGenerator::SemiRandom){
+      /*
+       * Read an event from this cached events in the order determined by event_list_, which is initialized either linearly, randomly or semi-randomly.
+       * This should be the standard method for reading background events.
+       */
 
+        int numEvents = gen->getNumEvents();
+      if (current_event_ < numEvents ) {
+        int ranEvent = event_list_[++current_event_];
+        if (verbose_ > 2) {
+          std::cout << "PrimaryGeneratorAction: Reading event " << ranEvent << " from '"
+          << gen->getName() + "'" << std::endl;
+        }
+        if (gen->getReadFlag()) {
+          gen->readEvent(ranEvent, false);
+        } else {
+          if (verbose_ >= 0) {
+            std::cout << "PrimaryGeneratorAction: New event was not read from '" << gen->getName()
+            << "' because read flag was set to 'false'." << std::endl;
+          }
+        }
+      } else {
+          /*
+           * Generator ran out of events so throw an exception that indicates this.
+           */
+          throw EndOfFileException();
+      }
+    } else if (gen->getReadMode() == PrimaryGenerator::Sequential){
         if (verbose_ > 2) {
             std::cout << "PrimaryGeneratorAction: Reading event read from '" << gen->getName() << "' sequentially"
                     << std::endl;
@@ -244,34 +294,6 @@ void PrimaryGeneratorAction::doNextRead(hpssim::PrimaryGenerator* gen) {
                         << "' because read flag was set to 'false'." << std::endl;
             }
         }
-    } else if (gen->getReadMode() == PrimaryGenerator::Linear){
-      /*
-       * Read a random event from this file generating a number between zero
-       * and the max event index.
-       */
-      static long current_event=0;
-      int numEvents = gen->getNumEvents();
-      if (current_event < numEvents ) {
-        long linEvent = (++current_event);
-        if (verbose_ > 1) {
-          std::cout << "PrimaryGeneratorAction: Reading linear event " << linEvent << " from '"
-          << gen->getName() + "'" << std::endl;
-        }
-        if (gen->getReadFlag()) {
-          gen->readEvent(linEvent, false);
-        } else {
-          if (verbose_ > 1) {
-            std::cout << "PrimaryGeneratorAction: New event was not read from '" << gen->getName()
-            << "' because read flag was set to 'false'." << std::endl;
-          }
-        }
-      } else {
-        /*
-         * Generator ran out of events so throw an exception that indicates this.
-         */
-        throw EndOfFileException();
-      }
-    } else if (gen->getReadMode() == PrimaryGenerator::SemiRandom){
     } else {
       std::cerr << "Invalid reading mode requested from PrimaryGeneratorAction::doNextRead() " << std::endl;
     }

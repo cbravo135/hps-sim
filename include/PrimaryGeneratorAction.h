@@ -1,6 +1,10 @@
 #ifndef HPSSIM_PRIMARYGENERATORACTION_H_
 #define HPSSIM_PRIMARYGENERATORACTION_H_
 
+#include <vector>
+#include <deque>
+#include <random>
+
 #include "CLHEP/Random/RandFlat.h"
 
 #include "G4VUserPrimaryGeneratorAction.hh"
@@ -110,6 +114,14 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction {
 
         /** List of primary generators to run for every Geant4 event. */
         std::vector<PrimaryGenerator*> generators_;
+  
+        /** To create a random shuffle, we need one of the std:: random generators. Same generator for all sub classes. */
+        static std::mt19937 random_gen;
+  
+        /** The current event for sequential reads or unique random reads. **/
+        long current_event_=0;
+        /** The list with the events for a random or semi random sequence. **/
+        std::vector<int> event_list_;
 };
 
 }

@@ -96,9 +96,10 @@ class PrimaryGenerator : public G4VPrimaryGenerator {
          */
         enum ReadMode {
             Sequential,  // Does not cache the file.
-            Random,      // Cache the file, then reads the content pure random.
-            Linear,      // Cache the file but then reads the result in order.
-            SemiRandom   // Cache the file, then reads events from a randomly chosen block of 1k.
+            Linear,      // Cache the file, then read content in order.
+            Random,      // Cache the file, then read the events randomly, making sure there are no duplicates.
+            PureRandom,  // Cache the file, then reads the events randomly, with possible duplicates.
+            SemiRandom   // Cache the file, then read the events randomly among 1k blocks.
         };
 
         /**
@@ -225,7 +226,7 @@ class PrimaryGenerator : public G4VPrimaryGenerator {
         }
 
         /**
-         * Set the generator read mode, either Random or Sequential.
+         * Set the generator read mode, either Random or Sequential, PureRandon, Linear, SemiRandom.
          * The validity of the read mode for a particular generator
          * is checked from the PrimaryGeneratorMessenger before this is set.
          */
