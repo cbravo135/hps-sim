@@ -125,6 +125,13 @@ void PrimaryGeneratorAction::initialize() {
                 }
                 std::shuffle(event_list_.begin()+(num_blocks*1024),event_list_.end(),random_gen); // Shuffle the remainder.
             }
+            if(verbose_ > 0){
+                std::cout<<"Sample random sequence: ";
+                for(int i=0; i<20; ++i){
+                    std::cout << event_list_[i] << " ";
+                }
+                std::cout << std::endl;
+            }
         }
         
         // Call generator's initialization hook.
