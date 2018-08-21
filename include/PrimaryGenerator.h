@@ -8,9 +8,14 @@
 #include "Parameters.h"
 #include "PrimaryGeneratorMessenger.h"
 
+#include "PrimaryGeneratorAction.h"
+
 #include <map>
 #include <queue>
 #include <exception>
+#include <vector>
+#include <deque>
+#include <random>
 
 namespace hpssim {
 
@@ -117,10 +122,23 @@ class PrimaryGenerator : public G4VPrimaryGenerator {
 
         /**
          * Initialization callback to perform extra setup before run starts.
+         *
+         * Initializes the random generator so the event_list_ can be std::shuffle-ed.
+         * We want this here so the same generator is used by all sub classes.
          */
         virtual void initialize() {
+            
+//            static bool is_initialized = false;    // This static makes sure that we don't keep re-initializing the random generator.
+//            if(!is_initialized){
+//
+//                const long seed = CLHEP::HepRandom::getTheSeed();
+//                random_gen.seed(seed);
+//                if(verbose_ > 0){
+//                    std::cout << "PrimaryGenerator::initialize() -- Initialized random_gen with seed: " << seed << std::endl;
+//                    std::cout << "Trials: : " << random_gen() << " " << random_gen() << std::endl;
+//                }
+//            }
         }
-
         /**
          * Get the list of name-value double parameters assigned to this generator.
          */
@@ -225,6 +243,45 @@ class PrimaryGenerator : public G4VPrimaryGenerator {
             }
         }
 
+        /*
+         * Generate the table to read out the cached events in a particular order.
+         * This can be "linear" i.e. 0...N, or "random" where 0..N is randomized, or
+         * semirandom, where 0..N is randomized among blocks of 1K events.
+         */
+    
+        virtual void createEventList() {
+            // If readout is unique random, we need to initialize the unique random array.
+            
+            hpssim::PrimaryGeneratorAction *PGA= hpssim::PrimaryGeneratorAction::getPrimaryGeneratorAction();
+            
+            if (getReadMode() == PrimaryGenerator::Random || getReadMode() == PrimaryGenerator::Linear || getReadMode() == PrimaryGenerator::SemiRandom){
+                int n_evt =getNumEvents();
+                if(verbose_ > 3) std::cout << "Number events in file = " << n_evt << std::endl;
+                for(int i=0;i<n_evt;++i) event_list_.push_back(i); // Make the linear list of events.
+                if(verbose_ > 3) std::cout << "Number events in cache = " << event_list_.size() << std::endl;
+                if (getReadMode() == PrimaryGenerator::Random ){
+                    std::shuffle(event_list_.begin(),event_list_.end(),hpssim::PrimaryGeneratorAction::random_gen);  // Random shuffle the list.
+                }else if(getReadMode() == PrimaryGenerator::SemiRandom ){
+                    int num_blocks = n_evt/1024;
+                    for(int i=0;i<num_blocks;++i){
+                        std::shuffle(event_list_.begin()+(i*1024),event_list_.begin()+((i+1)*1024),hpssim::PrimaryGeneratorAction::random_gen);
+                    }
+                    std::shuffle(event_list_.begin()+(num_blocks*1024),event_list_.end(),hpssim::PrimaryGeneratorAction::random_gen); // Shuffle the remainder.
+                }
+                if(verbose_ > 0){
+                    std::cout<<"Sample random sequence out of " << event_list_.size() << " after shuffle. " << std::endl;;
+                    for(int i=0; i<20; ++i){
+                        std::cout << event_list_[i] << " ";
+                    }
+                    std::cout << std::endl;
+                }
+            }
+
+    }
+    
+    
+    
+    
         /**
          * Set the generator read mode, either Random or Sequential, PureRandon, Linear, SemiRandom.
          * The validity of the read mode for a particular generator
@@ -354,6 +411,9 @@ class PrimaryGenerator : public G4VPrimaryGenerator {
         /** The read mode of the generator: either sequential or random. */
         ReadMode readMode_{Sequential};
  
+        /** The event list, which determines the order in which events are read */
+        std::vector<int> event_list_;
+
         /* Flag that controls whether generator rereads the same event (e.g. for biasing). */
         bool readFlag_{true};
 };
