@@ -3,8 +3,6 @@
 
 namespace hpssim {
 
-std::mt19937 PrimaryGeneratorAction::random_gen(12345);   // Static random number generator ensures all sub-classes use same one.
-
 PrimaryGeneratorAction::PrimaryGeneratorAction() {
     messenger_ = new PGAMessenger(this);
 }
@@ -92,16 +90,6 @@ void PrimaryGeneratorAction::addGenerator(PrimaryGenerator* generator) {
 }
 
 void PrimaryGeneratorAction::initialize() {
-
-    static bool is_initialized = false;    // This static makes sure that we don't keep re-initializing the random generator.
-    if(!is_initialized){
-        const long seed = CLHEP::HepRandom::getTheSeed();
-        random_gen.seed(seed);
-        if(verbose_ > 0){
-          std::cout << "PrimaryGeneratorAction::initialize() -- Initialized random_gen with seed: " << seed << std::endl;
-            std::cout << "Trials: : " << random_gen() << " " << random_gen() << std::endl;
-        }
-    }
     
     for (auto gen : generators_) {
         
@@ -245,10 +233,10 @@ void PrimaryGeneratorAction::doNextRead(hpssim::PrimaryGenerator* gen) {
          */
         
         int numEvents = gen->getNumEvents();
-        if (current_event_ < numEvents ) {
-            int ranEvent = event_list_[++current_event_];
+        if (gen->current_event_ < numEvents ) {
+            int ranEvent = gen->event_list_[gen->current_event_++];
             if (verbose_ > 2) {
-                std::cout << "PrimaryGeneratorAction: Reading event " << ranEvent << " from '"
+                std::cout << "PrimaryGeneratorAction: Sequence: " << gen->current_event_ << " - Reading event " << ranEvent << " from '"
                 << gen->getName() + "'" << std::endl;
             }
             if (gen->getReadFlag()) {

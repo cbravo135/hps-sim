@@ -115,17 +115,6 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction {
         /** List of primary generators to run for every Geant4 event. */
         std::vector<PrimaryGenerator*> generators_;
     
-        /** The current event for sequential reads or unique random reads. **/
-        long current_event_=0;
-        /** The list with the events for a random or semi random sequence. **/
-        std::vector<int> event_list_;
-
-    public:
-        /** To create a random shuffle, we need one of the std:: random generators. Same generator for all sub classes. */
-        static std::mt19937 random_gen;
-
-
-
 };
 
 }

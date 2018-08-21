@@ -8,14 +8,14 @@
 #include "Parameters.h"
 #include "PrimaryGeneratorMessenger.h"
 
-#include "PrimaryGeneratorAction.h"
-
 #include <map>
 #include <queue>
 #include <exception>
 #include <vector>
 #include <deque>
 #include <random>
+#include <thread>
+#include <mutex>
 
 namespace hpssim {
 
@@ -120,6 +120,15 @@ class PrimaryGenerator : public G4VPrimaryGenerator {
          */
         virtual void GeneratePrimaryVertex(G4Event* anEvent) = 0;
 
+        static std::once_flag flag1;  /* make sure random initializer is called only once. Thread safe. */
+
+        static void initialize_random_once(void){
+            const long seed = CLHEP::HepRandom::getTheSeed();
+            random_gen.seed(seed);
+            std::cout << "PrimaryGeneratorAction::initialize_random_once() -- Initialized random_gen with seed: " << seed << std::endl;
+            std::cout << "Trials: : " << random_gen() << " " << random_gen() << std::endl;
+        }
+
         /**
          * Initialization callback to perform extra setup before run starts.
          *
@@ -127,17 +136,7 @@ class PrimaryGenerator : public G4VPrimaryGenerator {
          * We want this here so the same generator is used by all sub classes.
          */
         virtual void initialize() {
-            
-//            static bool is_initialized = false;    // This static makes sure that we don't keep re-initializing the random generator.
-//            if(!is_initialized){
-//
-//                const long seed = CLHEP::HepRandom::getTheSeed();
-//                random_gen.seed(seed);
-//                if(verbose_ > 0){
-//                    std::cout << "PrimaryGenerator::initialize() -- Initialized random_gen with seed: " << seed << std::endl;
-//                    std::cout << "Trials: : " << random_gen() << " " << random_gen() << std::endl;
-//                }
-//            }
+            std::call_once(flag1,initialize_random_once);
         }
         /**
          * Get the list of name-value double parameters assigned to this generator.
@@ -236,7 +235,9 @@ class PrimaryGenerator : public G4VPrimaryGenerator {
                 std::string nextFile = popFile();
                 openFile(nextFile);
                 if (getReadMode() != PrimaryGenerator::Sequential) {
+                    current_event_ = 0;         // We must reset the current event for the file.
                     cacheEvents();
+                    createEventList();
                 }
             } else {
                 throw EndOfDataException();
@@ -247,12 +248,13 @@ class PrimaryGenerator : public G4VPrimaryGenerator {
          * Generate the table to read out the cached events in a particular order.
          * This can be "linear" i.e. 0...N, or "random" where 0..N is randomized, or
          * semirandom, where 0..N is randomized among blocks of 1K events.
+         *
+         * This list is used by the PrimaryGeneratorAction to choose the next event to read.
+         * TODO: This should be re-organized in a clearner manner!
          */
     
-        virtual void createEventList() {
+        void createEventList() {
             // If readout is unique random, we need to initialize the unique random array.
-            
-            hpssim::PrimaryGeneratorAction *PGA= hpssim::PrimaryGeneratorAction::getPrimaryGeneratorAction();
             
             if (getReadMode() == PrimaryGenerator::Random || getReadMode() == PrimaryGenerator::Linear || getReadMode() == PrimaryGenerator::SemiRandom){
                 int n_evt =getNumEvents();
@@ -260,13 +262,13 @@ class PrimaryGenerator : public G4VPrimaryGenerator {
                 for(int i=0;i<n_evt;++i) event_list_.push_back(i); // Make the linear list of events.
                 if(verbose_ > 3) std::cout << "Number events in cache = " << event_list_.size() << std::endl;
                 if (getReadMode() == PrimaryGenerator::Random ){
-                    std::shuffle(event_list_.begin(),event_list_.end(),hpssim::PrimaryGeneratorAction::random_gen);  // Random shuffle the list.
+                    std::shuffle(event_list_.begin(),event_list_.end(),random_gen);  // Random shuffle the list.
                 }else if(getReadMode() == PrimaryGenerator::SemiRandom ){
                     int num_blocks = n_evt/1024;
                     for(int i=0;i<num_blocks;++i){
-                        std::shuffle(event_list_.begin()+(i*1024),event_list_.begin()+((i+1)*1024),hpssim::PrimaryGeneratorAction::random_gen);
+                        std::shuffle(event_list_.begin()+(i*1024),event_list_.begin()+((i+1)*1024),random_gen);
                     }
-                    std::shuffle(event_list_.begin()+(num_blocks*1024),event_list_.end(),hpssim::PrimaryGeneratorAction::random_gen); // Shuffle the remainder.
+                    std::shuffle(event_list_.begin()+(num_blocks*1024),event_list_.end(),random_gen); // Shuffle the remainder.
                 }
                 if(verbose_ > 0){
                     std::cout<<"Sample random sequence out of " << event_list_.size() << " after shuffle. " << std::endl;;
@@ -276,12 +278,7 @@ class PrimaryGenerator : public G4VPrimaryGenerator {
                     std::cout << std::endl;
                 }
             }
-
-    }
-    
-    
-    
-    
+        }
         /**
          * Set the generator read mode, either Random or Sequential, PureRandon, Linear, SemiRandom.
          * The validity of the read mode for a particular generator
@@ -379,7 +376,19 @@ class PrimaryGenerator : public G4VPrimaryGenerator {
             fileQueue_.pop();
             return nextFile;
         }
+   
+    public:
+    
+    /** TODO: These should be private, but that require a class re-organization. These two are needed by PrimaryGeneratorAction.
+    
+        /** The current event for sequential reads or unique random reads. **/
+        int current_event_=0;
+        /** The event list, which determines the order in which events are read */
+        std::vector<int> event_list_;
 
+    
+    
+    
     protected:
 
         /** Verbose level for print output (1-4). */
@@ -411,11 +420,11 @@ class PrimaryGenerator : public G4VPrimaryGenerator {
         /** The read mode of the generator: either sequential or random. */
         ReadMode readMode_{Sequential};
  
-        /** The event list, which determines the order in which events are read */
-        std::vector<int> event_list_;
-
         /* Flag that controls whether generator rereads the same event (e.g. for biasing). */
         bool readFlag_{true};
+
+        /** To create a random shuffle, we need one of the std:: random generators. Same generator for all sub classes. */
+        static std::mt19937 random_gen;
 };
 
 }
