@@ -413,8 +413,14 @@ IMPL::LCCollectionVec* LcioPersistencyManager::writeCalorimeterHitsCollection(G4
 
         // 1. - Build Map:
         std::map<G4int,std::vector<HitContribution>> contrib_map;
+        int map_size=0;
         for(HitContribution contrib: contribs){
             G4int trackID = contrib.getTrackID();
+            // Find the first parent track with a trajectory; it could actually be this track.
+            G4VTrajectory* traj = builder_->getTrackMap().findTrajectory(contrib.getTrackID());
+            
+            // We reset the trackID to the uptree particle that is actually stored.
+            trackID = traj->GetTrackID();
             
             if (trackID <= 0) {
                 std::cerr << "LcioPersistencyManager: Bad track ID " << trackID << " for calorimeter hit contrib"
@@ -425,6 +431,7 @@ IMPL::LCCollectionVec* LcioPersistencyManager::writeCalorimeterHitsCollection(G4
             
             if( contrib_map.find(trackID)==contrib_map.end()){
                 contrib_map[trackID] = std::vector<HitContribution>();
+                ++map_size;
             }
             contrib_map[trackID].push_back(contrib);
         }
@@ -446,22 +453,15 @@ IMPL::LCCollectionVec* LcioPersistencyManager::writeCalorimeterHitsCollection(G4
                     hitTime_first = hitTime;
                 }
                 G4int    pdg     = contrib.getPDGID();
-                if( pdg_check == -99999) pdg_check = pdg;
-                if( pdg != pdg_check ){
-                    std::cerr << "=============== WOAA: LcioPersistencyManager::writeCalorimeterHitsCollection -- PDG id in track inconsistent!!!! \n";
-                }
-                G4int trackID = contrib.getTrackID();
+                pdg_check = pdg;
                 
-                if( trackID != map_item.first){
-                    std::cerr << "=============== WOAA: LcioPersistencyManager::writeCalorimeterHitsCollection -- Track id in track map vector inconsistent!!!! \n";
-                }
                 const float* contribPos  = contrib.getPosition();
                 for(int i=0;i<3;++i) contribPos_ave[i] +=contribPos[i];
                 num_contribs++;
             }
             
             for(int i=0;i<3;++i) contribPos_ave[i]=contribPos_ave[i]/num_contribs;
-            // Find the first parent track with a trajectory; it could actually be this track.
+            // Find the first parent track with a trajectory; it could actually be this track.  // FIXME: This should not be needed again.
             G4VTrajectory* traj = builder_->getTrackMap().findTrajectory(map_item.first);
             if (!traj) {
                 std::cerr << "LcioPersistencyManager: No trajectory found for track ID " << map_item.first << std::endl;
