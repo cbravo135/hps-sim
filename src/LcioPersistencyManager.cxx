@@ -375,9 +375,9 @@ IMPL::LCCollectionVec* LcioPersistencyManager::writeCalorimeterHitsCollection(G4
     if (m_verbose > 2) {
         std::cout << "LcioPersistencyManager: Converting " << nhits << " calorimeter hits to LCIO" << std::endl;
     }
-    for (int i = 0; i < nhits; i++) {
+    for (int i_hit = 0; i_hit < nhits; ++i_hit) {
 
-        auto calHit = static_cast<CalorimeterHit*>(calHits->GetHit(i));
+        auto calHit = static_cast<CalorimeterHit*>(calHits->GetHit(i_hit));
         auto simCalHit = new IMPL::SimCalorimeterHitImpl();
 
         // set cellid from cal hit's id64
@@ -456,11 +456,11 @@ IMPL::LCCollectionVec* LcioPersistencyManager::writeCalorimeterHitsCollection(G4
                 pdg_check = pdg;
                 
                 const float* contribPos  = contrib.getPosition();
-                for(int i=0;i<3;++i) contribPos_ave[i] +=contribPos[i];
+                for(int j=0;j<3;++j) contribPos_ave[j] +=contribPos[j];
                 num_contribs++;
             }
             
-            for(int i=0;i<3;++i) contribPos_ave[i]=contribPos_ave[i]/num_contribs;
+            for(int j=0;j<3;++j) contribPos_ave[j]=contribPos_ave[j]/num_contribs;
             // Find the first parent track with a trajectory; it could actually be this track.  // FIXME: This should not be needed again.
             G4VTrajectory* traj = builder_->getTrackMap().findTrajectory(map_item.first);
             if (!traj) {
