@@ -68,9 +68,13 @@ class UserTrackingAction : public G4UserTrackingAction {
 
             // Save tracks with tracker hits.
             // This flag is used by LCDD tracker detectors.
-            //if (info->hasTrackerHit()) {
-                // info->setSaveFlag(true);  /// ====> This effectively overrides any decisions made in processTrack.   MWH
-            //}
+            if (info->hasTrackerHit()) {
+                G4ThreeVector vertex= aTrack->GetVertexPosition();
+                double vertex_z = vertex.z();
+                if(vertex_z < 1000.){
+                info->setSaveFlag(true);  /// ====> This effectively overrides any decisions made in processTrack.   MWH
+                }
+            }
 
             // Store trajectory if info has save flag turned on.
             if (info->getSaveFlag()) {
