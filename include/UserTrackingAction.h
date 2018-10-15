@@ -71,7 +71,7 @@ class UserTrackingAction : public G4UserTrackingAction {
             if (info->hasTrackerHit()) {
                 G4ThreeVector vertex= aTrack->GetVertexPosition();
                 double vertex_z = vertex.z();
-                if(vertex_z < 1000.){
+                if(vertex_z < 1000.){     // FIXME: hard coded cut distance -- Need a way to set this from the command macro using a general messenger.
                 info->setSaveFlag(true);  /// ====> This effectively overrides any decisions made in processTrack.   MWH
                 }
             }
