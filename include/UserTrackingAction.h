@@ -21,6 +21,7 @@
 #include "TrackMap.h"
 #include "UserPrimaryParticleInformation.h"
 #include "UserTrackInformation.h"
+#include "Trajectory.h"
 
 namespace hpssim {
 
@@ -68,7 +69,11 @@ class UserTrackingAction : public G4UserTrackingAction {
             // Save tracks with tracker hits.
             // This flag is used by LCDD tracker detectors.
             if (info->hasTrackerHit()) {
-                info->setSaveFlag(true);
+                G4ThreeVector vertex= aTrack->GetVertexPosition();
+                double vertex_z = vertex.z();
+                if(vertex_z < 1000.){     // FIXME: hard coded cut distance -- Need a way to set this from the command macro using a general messenger.
+                info->setSaveFlag(true);  /// ====> This effectively overrides any decisions made in processTrack.   MWH
+                }
             }
 
             // Store trajectory if info has save flag turned on.
@@ -135,7 +140,7 @@ class UserTrackingAction : public G4UserTrackingAction {
             //if (isPrimary) {
             //    std::cout << "UserTrackingAction: Track " << aTrack->GetTrackID() << " is a primary." << std::endl;
             //}
-            if ((regionInfo && regionInfo->getStoreSecondaries()) || isPrimary) {
+           if ((regionInfo && regionInfo->getStoreSecondaries() && ( aTrack->GetKineticEnergy() > regionInfo->getThreshold())) || isPrimary) {
                 /*
                 if (regionInfo && regionInfo->getStoreSecondaries()) {
                     std::cout << "UserTrackingAction: Storing trajectory for " << aTrack->GetTrackID() << " in region "

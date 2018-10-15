@@ -375,9 +375,9 @@ IMPL::LCCollectionVec* LcioPersistencyManager::writeCalorimeterHitsCollection(G4
     if (m_verbose > 2) {
         std::cout << "LcioPersistencyManager: Converting " << nhits << " calorimeter hits to LCIO" << std::endl;
     }
-    for (int i = 0; i < nhits; i++) {
+    for (int i_hit = 0; i_hit < nhits; ++i_hit) {
 
-        auto calHit = static_cast<CalorimeterHit*>(calHits->GetHit(i));
+        auto calHit = static_cast<CalorimeterHit*>(calHits->GetHit(i_hit));
         auto simCalHit = new IMPL::SimCalorimeterHitImpl();
 
         // set cellid from cal hit's id64
@@ -390,51 +390,101 @@ IMPL::LCCollectionVec* LcioPersistencyManager::writeCalorimeterHitsCollection(G4
         float pos[3] = { (float) hitPos.x(), (float) hitPos.y(), (float) hitPos.z() };
         simCalHit->setPosition(pos);
 
-        // energy
-        simCalHit->setEnergy(calHit->getEdep());
+      // Energy
+      // This is wrong, IF you also store ALL the contribs of the hit.
+      // In IOIMPL::SimCalorimeterHitImpl::addMCParticleContribution( EVENT::MCParticle *p, ...)
+      // the energy of each contributing particle is added to the energy of the simCalHit.
+      // simCalHit->setEnergy(calHit->getEdep()/GeV);  // MWH - Energy is in GeV.
+      
+      // add to output collection
 
         // add to output collection
         collVec->push_back(simCalHit);
 
         auto contribs = calHit->getHitContributions();
-        for (auto contrib : contribs) {
-            auto edep = contrib.getEdep();
-            auto hitTime = contrib.getGlobalTime();
-            auto pdg = contrib.getPDGID();
-            auto contribPos = contrib.getPosition();
-            auto trackID = contrib.getTrackID();
+        // We do not want to store _all_ the contributions. For a single hit, that can be >3500.
+        // We store only one contribution per trackID, summing over all the contributions from that track.
+        //
+        // Perhaps the fastest way to do this:
+        // 1. - Build a map TrackID -> Vector of Contributions.
+        // 2. - Itterate over TrackIDs
+        // 3. - For each TrackID, add up contributions and store result as a contrib.
+        
 
+        // 1. - Build Map:
+        std::map<G4int,std::vector<HitContribution>> contrib_map;
+        int map_size=0;
+        for(HitContribution contrib: contribs){
+            G4int trackID = contrib.getTrackID();
+            // Find the first parent track with a trajectory; it could actually be this track.
+            G4VTrajectory* traj = builder_->getTrackMap().findTrajectory(contrib.getTrackID());
+            
+            // We reset the trackID to the uptree particle that is actually stored.
+            trackID = traj->GetTrackID();
+            
             if (trackID <= 0) {
                 std::cerr << "LcioPersistencyManager: Bad track ID " << trackID << " for calorimeter hit contrib"
-                        << std::endl;
+                << std::endl;
                 G4Exception("LcioPersistencyManager::writeCalorimeterHitsCollections", "", FatalException,
-                        "Bad track ID in cal hit contribution.");
+                            "Bad track ID in cal hit contribution.");
             }
+            
+            if( contrib_map.find(trackID)==contrib_map.end()){
+                contrib_map[trackID] = std::vector<HitContribution>();
+                ++map_size;
+            }
+            contrib_map[trackID].push_back(contrib);
+        }
 
-            // Find the first parent track with a trajectory; it could actually be this track.
-            G4VTrajectory* traj = builder_->getTrackMap().findTrajectory(trackID);
+        // 2. - Itterate over Map:
+        for( std::pair<G4int,std::vector<HitContribution>> map_item : contrib_map){
+            G4double edep_sum = 0;
+            G4double hitTime_first = 100000000000;
+            G4int    pdg_check = -99999;
+            float    contribPos_ave[3]={0.,0.,0.};
+            int      num_contribs=0;
+            
+            for(auto contrib : map_item.second){
+                //        for (auto contrib : contribs) {
+                
+                edep_sum   += contrib.getEdep()/GeV;  // Need to convert from Geant4 Mev to Lcio GeV.
+                G4double hitTime = contrib.getGlobalTime();
+                if(hitTime < hitTime_first){
+                    hitTime_first = hitTime;
+                }
+                G4int    pdg     = contrib.getPDGID();
+                pdg_check = pdg;
+                
+                const float* contribPos  = contrib.getPosition();
+                for(int j=0;j<3;++j) contribPos_ave[j] +=contribPos[j];
+                num_contribs++;
+            }
+            
+            for(int j=0;j<3;++j) contribPos_ave[j]=contribPos_ave[j]/num_contribs;
+            // Find the first parent track with a trajectory; it could actually be this track.  // FIXME: This should not be needed again.
+            G4VTrajectory* traj = builder_->getTrackMap().findTrajectory(map_item.first);
             if (!traj) {
-                std::cerr << "LcioPersistencyManager: No trajectory found for track ID " << trackID << std::endl;
+                std::cerr << "LcioPersistencyManager: No trajectory found for track ID " << map_item.first << std::endl;
                 G4Exception("LcioPersistencyManager::writeCalorimeterHitsCollections", "", FatalException,
-                        "No trajectory found for track ID.");
+                            "No trajectory found for track ID.");
             }
-
+            
             // Lookup an MCParticle from the parent, which should exist!
             auto mcp = builder_->findMCParticle(traj->GetTrackID());
             if (!mcp) {
-                std::cerr << "LcioPersistencyManager: No MCParticle found for track ID " << trackID << std::endl;
+                std::cerr << "LcioPersistencyManager: No MCParticle found for track ID " << map_item.first << std::endl;
                 G4Exception("LcioPersistencyManager::writeCalorimeterHitsCollection", "", FatalException,
-                        "No MCParticle found for track ID.");
+                            "No MCParticle found for track ID.");
             }
-
-            simCalHit->addMCParticleContribution(static_cast<EVENT::MCParticle*>(mcp), (float) edep, (float) hitTime,
-                    (int) pdg, (float*) contribPos);
-
+            
+            simCalHit->addMCParticleContribution(static_cast<EVENT::MCParticle*>(mcp), (float) edep_sum, (float) hitTime_first,
+                                                 (int) pdg_check, (float*) contribPos_ave);
+            
             if (m_verbose > 3) {
-                std::cout << "LcioPersistencyManager: Assigned hit contrib with " << "trackID = " << trackID << "; "
-                        << "edep = " << edep << "; " << "time = " << hitTime << "; " << "pdg = " << pdg << "; "
-                        << "pos = ( " << contribPos[0] << ", " << contribPos[1] << ", " << contribPos[2] << " ) "
-                        << std::endl;
+                std::cout << "LcioPersistencyManager: Assigned hit contrib with " << "trackID = " << map_item.first << "; "
+                << "edep = " << edep_sum << "; " << "time = " << hitTime_first << "; " << "pdg = " << pdg_check << "; "
+                << "pos = ( " << contribPos_ave[0] << ", " << contribPos_ave[1] << ", " << contribPos_ave[2] << " ) "
+                << std::endl;
             }
         }
     }

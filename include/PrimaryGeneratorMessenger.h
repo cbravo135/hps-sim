@@ -41,7 +41,10 @@ class PrimaryGeneratorMessenger : public G4UImessenger {
         G4UIcommand* randzCmd_;
 
         G4UIcommand* randomCmd_;
+        G4UIcommand* pureRandomCmd_;
         G4UIcommand* sequentialCmd_;
+        G4UIcommand* linearCmd_;
+        G4UIcommand* semiRandomCmd_;
 };
 
 }

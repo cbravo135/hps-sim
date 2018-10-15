@@ -56,8 +56,10 @@ PrimaryGeneratorMessenger::PrimaryGeneratorMessenger(PrimaryGenerator* generator
     randzCmd_->SetParameter(p);
 
     randomCmd_ = new G4UIcommand(G4String(genDir + "random"), this);
-
     sequentialCmd_ = new G4UIcommand(G4String(genDir + "sequential"), this);
+    linearCmd_ = new G4UIcommand(G4String(genDir + "linear"), this);
+    pureRandomCmd_ = new G4UIcommand(G4String(genDir + "purerandom"), this);
+    semiRandomCmd_ = new G4UIcommand(G4String(genDir + "semirandom"), this);
 }
 
 PrimaryGeneratorMessenger::~PrimaryGeneratorMessenger() {
@@ -127,8 +129,28 @@ void PrimaryGeneratorMessenger::SetNewValue(G4UIcommand* command, G4String newVa
                     G4String("The generator " + G4String(generator_->getName()) + " does not support random access."));
         }
         generator_->setReadMode(PrimaryGenerator::Random);
+    } else if (command == linearCmd_) {
+      if (!generator_->supportsRandomAccess()) {
+        G4Exception("", "", FatalException,
+                    G4String("The generator " + G4String(generator_->getName()) + " does not support random access."));
+      }
+      generator_->setReadMode(PrimaryGenerator::Linear);
+    } else if (command == semiRandomCmd_) {
+      if (!generator_->supportsRandomAccess()) {
+        G4Exception("", "", FatalException,
+                    G4String("The generator " + G4String(generator_->getName()) + " does not support random access."));
+      }
+      generator_->setReadMode(PrimaryGenerator::SemiRandom);
+    } else if (command == pureRandomCmd_) {
+      if (!generator_->supportsRandomAccess()) {
+        G4Exception("", "", FatalException,
+                    G4String("The generator " + G4String(generator_->getName()) + " does not support random access."));
+      }
+      generator_->setReadMode(PrimaryGenerator::PureRandom);
     } else if (command == sequentialCmd_) {
         generator_->setReadMode(PrimaryGenerator::Sequential);
+    } else {
+      std::cerr << "Command barf for " << command->GetCurrentValue() << std::endl;
     }
 }
 
