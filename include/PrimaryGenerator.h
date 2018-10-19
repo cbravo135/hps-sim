@@ -11,6 +11,11 @@
 #include <map>
 #include <queue>
 #include <exception>
+#include <vector>
+#include <deque>
+#include <random>
+#include <thread>
+#include <mutex>
 
 namespace hpssim {
 
@@ -95,8 +100,11 @@ class PrimaryGenerator : public G4VPrimaryGenerator {
          * random access by index of its event data.
          */
         enum ReadMode {
-            Sequential,
-            Random
+            Sequential,  // Does not cache the file.
+            Linear,      // Cache the file, then read content in order.
+            Random,      // Cache the file, then read the events randomly, making sure there are no duplicates.
+            PureRandom,  // Cache the file, then reads the events randomly, with possible duplicates.
+            SemiRandom   // Cache the file, then read the events randomly among 1k blocks.
         };
 
         /**
@@ -112,12 +120,24 @@ class PrimaryGenerator : public G4VPrimaryGenerator {
          */
         virtual void GeneratePrimaryVertex(G4Event* anEvent) = 0;
 
-        /**
-         * Initialization callback to perform extra setup before run starts.
-         */
-        virtual void initialize() {
+        static std::once_flag flag1;  /* make sure random initializer is called only once. Thread safe. */
+
+        static void initialize_random_once(void){
+            const long seed = CLHEP::HepRandom::getTheSeed();
+            random_gen.seed(seed);
+            std::cout << "PrimaryGeneratorAction::initialize_random_once() -- Initialized random_gen with seed: " << seed << std::endl;
+            std::cout << "Trials: : " << random_gen() << " " << random_gen() << std::endl;
         }
 
+        /**
+         * Initialization callback to perform extra setup before run starts.
+         *
+         * Initializes the random generator so the event_list_ can be std::shuffle-ed.
+         * We want this here so the same generator is used by all sub classes.
+         */
+        virtual void initialize() {
+            std::call_once(flag1,initialize_random_once);
+        }
         /**
          * Get the list of name-value double parameters assigned to this generator.
          */
@@ -214,16 +234,53 @@ class PrimaryGenerator : public G4VPrimaryGenerator {
             if (fileQueue_.size()) {
                 std::string nextFile = popFile();
                 openFile(nextFile);
-                if (getReadMode() == PrimaryGenerator::Random) {
+                if (getReadMode() != PrimaryGenerator::Sequential) {
+                    current_event_ = 0;         // We must reset the current event for the file.
                     cacheEvents();
+                    createEventList();
                 }
             } else {
                 throw EndOfDataException();
             }
         }
 
+        /*
+         * Generate the table to read out the cached events in a particular order.
+         * This can be "linear" i.e. 0...N, or "random" where 0..N is randomized, or
+         * semirandom, where 0..N is randomized among blocks of 1K events.
+         *
+         * This list is used by the PrimaryGeneratorAction to choose the next event to read.
+         * TODO: This should be re-organized in a clearner manner!
+         */
+    
+        void createEventList() {
+            // If readout is unique random, we need to initialize the unique random array.
+            
+            if (getReadMode() == PrimaryGenerator::Random || getReadMode() == PrimaryGenerator::Linear || getReadMode() == PrimaryGenerator::SemiRandom){
+                int n_evt =getNumEvents();
+                if(verbose_ > 3) std::cout << "Number events in file = " << n_evt << std::endl;
+                for(int i=0;i<n_evt;++i) event_list_.push_back(i); // Make the linear list of events.
+                if(verbose_ > 3) std::cout << "Number events in cache = " << event_list_.size() << std::endl;
+                if (getReadMode() == PrimaryGenerator::Random ){
+                    std::shuffle(event_list_.begin(),event_list_.end(),random_gen);  // Random shuffle the list.
+                }else if(getReadMode() == PrimaryGenerator::SemiRandom ){
+                    int num_blocks = n_evt/1024;
+                    for(int i=0;i<num_blocks;++i){
+                        std::shuffle(event_list_.begin()+(i*1024),event_list_.begin()+((i+1)*1024),random_gen);
+                    }
+                    std::shuffle(event_list_.begin()+(num_blocks*1024),event_list_.end(),random_gen); // Shuffle the remainder.
+                }
+                if(verbose_ > 0){
+                    std::cout<<"Sample random sequence out of " << event_list_.size() << " after shuffle. " << std::endl;;
+                    for(int i=0; i<20; ++i){
+                        std::cout << event_list_[i] << " ";
+                    }
+                    std::cout << std::endl;
+                }
+            }
+        }
         /**
-         * Set the generator read mode, either Random or Sequential.
+         * Set the generator read mode, either Random or Sequential, PureRandon, Linear, SemiRandom.
          * The validity of the read mode for a particular generator
          * is checked from the PrimaryGeneratorMessenger before this is set.
          */
@@ -319,7 +376,19 @@ class PrimaryGenerator : public G4VPrimaryGenerator {
             fileQueue_.pop();
             return nextFile;
         }
+   
+    public:
+    
+    /** TODO: These should be private, but that require a class re-organization. These two are needed by PrimaryGeneratorAction.
+    
+        /** The current event for sequential reads or unique random reads. **/
+        int current_event_=0;
+        /** The event list, which determines the order in which events are read */
+        std::vector<int> event_list_;
 
+    
+    
+    
     protected:
 
         /** Verbose level for print output (1-4). */
@@ -353,6 +422,9 @@ class PrimaryGenerator : public G4VPrimaryGenerator {
  
         /* Flag that controls whether generator rereads the same event (e.g. for biasing). */
         bool readFlag_{true};
+
+        /** To create a random shuffle, we need one of the std:: random generators. Same generator for all sub classes. */
+        static std::mt19937 random_gen;
 };
 
 }
