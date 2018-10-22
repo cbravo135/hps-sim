@@ -64,7 +64,7 @@ cd build
 cmake --DCMAKE_INSTALL_PREFIX=/nfs/slac/g/hps3/software/simulation/xerces-c-3.2.2
 make -j8
 make install
-export XercesC_DIR=../$PWD
+export XercesC_DIR=../
 ```
 Setting of the variable ```XercesC_DIR``` is completely optional and for convinience. It makes installation of other dependencies easier.  It will be used throughout this README. 
 
@@ -130,9 +130,11 @@ make install
 An alternative to using the variable ```CMAKE_PREFIX_PATH``` is to just pass the location of Xerces-c directly as follows: 
 
 ```bash
+
 cmake3 -DXERCES_DIR=$XercesC_DIR -DCMAKE_INSTALL_PREFIX=../install ..
+export GDML_DIR=../install
 ```
-where ```install``` is the installation directory. 
+where ```install``` is the installation passed to CMake via the command ```CMAKE_INSTALL_PREFIX```. Setting of the environmental vairable ```GDML_DIR``` is optional but faciliates the installation of other packages. 
 
 #### Install LCDD
 
