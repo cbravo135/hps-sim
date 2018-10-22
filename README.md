@@ -66,7 +66,7 @@ make -j8
 make install
 export XercesC_DIR=../$PWD
 ```
-Setting of the variable ```XercesC_DIR``` is completely optional and for convinience. It makes installation of other dependencies easier.
+Setting of the variable ```XercesC_DIR``` is completely optional and for convinience. It makes installation of other dependencies easier.  It will be used throughout this README. 
 
 
 #### GEANT4
@@ -126,6 +126,13 @@ cmake3 -DCMAKE_INSTALL_PREFIX=/nfs/slac/g/hps3/software/simulation/gdml -DCMAKE_
 make -j 8
 make install
 ```
+
+An alternative to using the variable ```CMAKE_PREFIX_PATH``` is to just pass the location of Xerces-c directly as follows: 
+
+```bash
+cmake3 -DXERCES_DIR=$XercesC_DIR -DCMAKE_INSTALL_PREFIX=../install ..
+```
+where ```install``` is the installation directory. 
 
 #### Install LCDD
 
