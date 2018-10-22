@@ -134,7 +134,7 @@ An alternative to using the variable ```CMAKE_PREFIX_PATH``` is to just pass the
 cmake3 -DXERCES_DIR=$XercesC_DIR -DCMAKE_INSTALL_PREFIX=../install ..
 export GDML_DIR=../install
 ```
-where ```install``` is the installation passed to CMake via the command ```CMAKE_INSTALL_PREFIX```. Setting of the environmental vairable ```GDML_DIR``` is optional but faciliates the installation of other packages. 
+where ```install``` is the location of the install directory passed to CMake via the command ```CMAKE_INSTALL_PREFIX```. Setting of the environmental vairable ```GDML_DIR``` is optional but faciliates the installation of other packages. 
 
 #### Install LCDD
 
@@ -154,6 +154,15 @@ cmake3 -DCMAKE_INSTALL_PREFIX=/nfs/slac/g/hps3/software/simulation/lcdd  -DGDML_
 make -j 8
 make install
 ```
+
+An alternative to using the variable ```CMAKE_PREFIX_PATH``` is to just pass the location of Xerces-c directly as follows: 
+
+```bash
+cmake -DXERCES_DIR=$XercesC_DIR -DGDML_DIR=$GDML_DIR -DCMAKE_INSTALL_PREFIX=../install ..
+export LCDD_DIR=../install
+```
+where ```install``` is the location of the install directory passed to CMake via the command ```CMAKE_INSTALL_PREFIX```. Setting of the environmental vairable ```LCDD_DIR``` is optional but faciliates the installation of other packages. 
+
 
 #### Install LCIO
 
