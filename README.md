@@ -62,9 +62,11 @@ cd xerces-c-3.2.2
 mkdir build
 cd build
 cmake --DCMAKE_INSTALL_PREFIX=/nfs/slac/g/hps3/software/simulation/xerces-c-3.2.2
-make -j 8
+make -j8
 make install
+export XercesC_DIR=../$PWD
 ```
+Setting of the variable ```XercesC_DIR``` is completely optional and for convinience. It makes installation of other dependencies easier.
 
 
 #### GEANT4
