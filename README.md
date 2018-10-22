@@ -171,8 +171,8 @@ For LCIO, we _must_ get a _specific version_: v02-07-05. If not, then the C++ pr
 Example install (SLAC):
 ```bash
 git clone https://github.com/iLCSoft/LCIO
-git checkout v02-07-05
 cd lcio
+git checkout v02-07-05
 mkdir build
 cmake  -DBUILD_ROOTDICT=on  -DCMAKE_CXX_FLAGS="`root-config --cflags`"  -DCMAKE_INSTALL_PREFIX=/nfs/slac/g/hps3/software/simulation/lcio  -DCMAKE_SHARED_LINKER_FLAGS="`root-config --libs`" -DCMAKE_BUILD_TYPE=Release ..
 make -j 8
