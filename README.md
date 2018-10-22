@@ -178,6 +178,11 @@ cmake  -DBUILD_ROOTDICT=on  -DCMAKE_CXX_FLAGS="`root-config --cflags`"  -DCMAKE_
 make -j 8
 make install
 ```
+Optionally, the environmental variable ```LCIO_DIR``` can be set to point to your install directory: 
+```bash
+export LCIO_DIR=../install
+```
+where ```install``` is the location of the install directory passed to CMake via the command ```CMAKE_INSTALL_PREFIX```.
 
 You should now have the pre-requisites to:
 
