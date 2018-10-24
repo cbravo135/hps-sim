@@ -25,14 +25,18 @@ std::vector<PrimaryGenerator*>& PrimaryGeneratorAction::getGenerators() {
 
 void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent) {
 
-    if (verbose_ > 1) {
-        std::cout << "PrimaryGenerationAction: Generating event " << anEvent->GetEventID() << std::endl;
-    }
-
     for (auto gen : generators_) {
 
         if (verbose_ > 1) {
             std::cout << "PrimaryGeneratorAction: Running generator '" << gen->getName() << "'" << std::endl;
+        }
+
+        if (gen->getName().compare("gps")  == 0) { 
+            
+            // Generate a primary vertex.
+            gen->GeneratePrimaryVertex(anEvent);
+            return; 
+            
         }
 
         // Get the list of event transforms to be applied to each generated event.
