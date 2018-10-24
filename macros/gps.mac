@@ -10,6 +10,7 @@
 /hps/generators/create gps GPS
 
 # Set the GPS parameters
+/gps/particle e-
 /gps/energy 2. GeV
 /gps/direction 0 0 1
 /gps/position 0 0 -1. m
