@@ -3,6 +3,7 @@
 #include "globals.hh"
 
 #include "BeamPrimaryGenerator.h"
+#include "GpsPrimaryGenerator.h"
 #include "LcioPrimaryGenerator.h"
 #include "LHEPrimaryGenerator.h"
 #include "PrimaryGeneratorAction.h"
@@ -26,11 +27,12 @@ PGAMessenger::PGAMessenger(PrimaryGeneratorAction* pga) : pga_(pga) {
     verboseCmd_ = new G4UIcmdWithAnInteger("/hps/generators/verbose", this);
 
     // Define valid source types (this should probably be static and go someplace else).
-    sourceType_["TEST"] = TEST;
-    sourceType_["LHE"] = LHE;
+    sourceType_["TEST"]   = TEST;
+    sourceType_["LHE"]    = LHE;
     sourceType_["STDHEP"] = STDHEP;
-    sourceType_["BEAM"] = BEAM;
-    sourceType_["LCIO"] = LCIO;
+    sourceType_["BEAM"]   = BEAM;
+    sourceType_["LCIO"]   = LCIO;
+    sourceType_["GPS"]    = GPS;
 }
 
 void PGAMessenger::SetNewValue(G4UIcommand* command, G4String newValues) {
@@ -68,6 +70,8 @@ PrimaryGenerator* PGAMessenger::createGenerator(std::string name, std::string ty
         return new BeamPrimaryGenerator(name);
     } else if (srcType == LCIO) {
         return new LcioPrimaryGenerator(name);
+    } else if (srcType == GPS) { 
+        return new GpsPrimaryGenerator("gps"); 
     }
     return nullptr;
 }
