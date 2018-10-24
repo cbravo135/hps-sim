@@ -424,9 +424,7 @@ IMPL::LCCollectionVec* LcioPersistencyManager::writeCalorimeterHitsCollection(G4
                         "No MCParticle found for track ID.");
             }
 
-            simCalHit->addMCParticleContribution(static_cast<EVENT::MCParticle*>(mcp), (float) edep, (float) hitTime,
-                    (int) pdg, (float*) contribPos);
-
+            simCalHit->addMCParticleContribution(static_cast<EVENT::MCParticle*>(mcp), (float) edep, (float) hitTime); //  (int) pdg, (float*) contribPos);
             if (m_verbose > 3) {
                 std::cout << "LcioPersistencyManager: Assigned hit contrib with " << "trackID = " << trackID << "; "
                         << "edep = " << edep << "; " << "time = " << hitTime << "; " << "pdg = " << pdg << "; "
