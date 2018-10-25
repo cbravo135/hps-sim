@@ -41,7 +41,7 @@ void MCParticleBuilder::buildMCParticle(Trajectory* traj) {
     p->setGeneratorStatus(traj->getGenStatus());
     p->setPDG(traj->GetPDGEncoding());
     p->setCharge(traj->GetCharge());
-    p->setMass(traj->getMass());
+    p->setMass(traj->getMass()/GeV);
     //p->setEnergy(traj->getEnergy());
     p->setTime(traj->getGlobalTime());
 

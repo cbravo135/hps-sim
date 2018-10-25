@@ -74,7 +74,7 @@ class LcioMergeTool {
 
                 bool accept(EVENT::LCEvent* event) {
                     auto hits = event->getCollection(collName_);
-                    float e;
+                    float e=0;
                     for (int iElem = 0; iElem < hits->getNumberOfElements(); iElem++) {
                         EVENT::SimCalorimeterHit* hit =
                                 static_cast<EVENT::SimCalorimeterHit*>(hits->getElementAt(iElem));
