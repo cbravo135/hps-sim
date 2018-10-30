@@ -390,15 +390,12 @@ IMPL::LCCollectionVec* LcioPersistencyManager::writeCalorimeterHitsCollection(G4
         float pos[3] = { (float) hitPos.x(), (float) hitPos.y(), (float) hitPos.z() };
         simCalHit->setPosition(pos);
 
-        // energy
-        simCalHit->setEnergy(calHit->getEdep());
-
-        // add to output collection
+       // add to output collection
         collVec->push_back(simCalHit);
 
         auto contribs = calHit->getHitContributions();
         for (auto contrib : contribs) {
-            auto edep = contrib.getEdep();
+            auto edep = contrib.getEdep()/GeV;
             auto hitTime = contrib.getGlobalTime();
             auto pdg = contrib.getPDGID();
             auto contribPos = contrib.getPosition();
