@@ -131,7 +131,7 @@ class Trajectory : public G4VTrajectory {
          * Get the trajectory end point [mm].
          * @return The trajectory end point.
          */
-        const G4ThreeVector& getEndPoint() const;
+        const G4ThreeVector getEndPoint() const;
 
         /**
          * Get the particle's energy [MeV].
