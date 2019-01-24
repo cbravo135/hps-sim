@@ -67,9 +67,9 @@ class UserTrackingAction : public G4UserTrackingAction {
 
             // Save tracks with tracker hits.
             // This flag is used by LCDD tracker detectors.
-            if (info->hasTrackerHit()) {
-                info->setSaveFlag(true);
-            }
+            //if (info->hasTrackerHit()) {
+            //    info->setSaveFlag(true);
+            //}
 
             // Store trajectory if info has save flag turned on.
             if (info->getSaveFlag()) {
@@ -126,16 +126,26 @@ class UserTrackingAction : public G4UserTrackingAction {
             }
 
             /*
-             * Check if trajectory storage should be turned on.
-             * Region is flagged for storing secondaries (e.g. "tracking region") or the particle is a primary.
+             * Trajectory storage is enabled if the region is flagged for storing secondaries
+             * (e.g. "tracking region") and particle energy is above threshold or the particle is a primary.
              */
             UserRegionInformation* regionInfo =
                     (UserRegionInformation*) aTrack->GetLogicalVolumeAtVertex()->GetRegion()->GetUserInformation();
             bool isPrimary = (aTrack->GetDynamicParticle()->GetPrimaryParticle() != nullptr);
+            // TODO: Make sure GPS primary particles pass this check. ^^^
+            bool aboveEnergyThreshold = false;
+            bool storeSecondaries = false;
+            if (regionInfo) {
+                aboveEnergyThreshold = (aTrack->GetKineticEnergy() > regionInfo->getThreshold());
+                storeSecondaries = regionInfo->getStoreSecondaries();
+            }
+
+            // DEBUG
             //if (isPrimary) {
             //    std::cout << "UserTrackingAction: Track " << aTrack->GetTrackID() << " is a primary." << std::endl;
             //}
-            if ((regionInfo && regionInfo->getStoreSecondaries()) || isPrimary) {
+
+            if ((storeSecondaries && aboveEnergyThreshold) || isPrimary) {
                 /*
                 if (regionInfo && regionInfo->getStoreSecondaries()) {
                     std::cout << "UserTrackingAction: Storing trajectory for " << aTrack->GetTrackID() << " in region "
