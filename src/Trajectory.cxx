@@ -59,10 +59,7 @@ Trajectory::Trajectory(const G4Track* aTrack) :
             auto info = UserPrimaryParticleInformation::getUserPrimaryParticleInformation(
                     aTrack->GetDynamicParticle()->GetPrimaryParticle());
             genStatus_ = info->getGenStatus();
-        } else {
-            // Set default gen status so particle is still flagged correctly.
-            genStatus_ = 1;
-        }
+        } 
     }
 }
 
