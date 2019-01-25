@@ -1,5 +1,6 @@
 #include "PrimaryGeneratorAction.h"
 
+#include "PluginManager.h"
 
 namespace hpssim {
 
@@ -35,8 +36,15 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent) {
             
             // Generate a primary vertex.
             gen->GeneratePrimaryVertex(anEvent);
-            return; 
-            
+
+            /*
+             * FIXME: It seems like GPS events should be transformable.
+             * For now, continue instead of returning here, as the plugin
+             * manager still needs to be activated at the end of the method
+             * (and multiple exit points are bad).
+             * --JM
+             */
+            continue;
         }
 
         // Get the list of event transforms to be applied to each generated event.
@@ -87,6 +95,9 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent) {
 
     // Set the generator status on the primaries and attach a user info object, if needed.
     setGenStatus(anEvent);
+
+    // Activate sim plugins.
+    PluginManager::getPluginManager()->generatePrimary(anEvent);
 }
 
 void PrimaryGeneratorAction::addGenerator(PrimaryGenerator* generator) {
