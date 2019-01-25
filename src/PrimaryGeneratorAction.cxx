@@ -24,6 +24,10 @@ std::vector<PrimaryGenerator*>& PrimaryGeneratorAction::getGenerators() {
     return generators_;
 }
 
+/*
+ * FIXME: Improve performance of this method for simple cases
+ * when no overlay or event transformations are being applied.  --JM
+ */
 void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent) {
 
     for (auto gen : generators_) {
@@ -32,16 +36,16 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent) {
             std::cout << "PrimaryGeneratorAction: Running generator '" << gen->getName() << "'" << std::endl;
         }
 
-        if (gen->getName().compare("gps")  == 0) { 
-            
+        if (gen->getName().compare("gps")  == 0) {
+
             // Generate a primary vertex.
             gen->GeneratePrimaryVertex(anEvent);
 
             /*
              * FIXME: It seems like GPS events should be transformable.
-             * For now, continue instead of returning here, as the plugin
-             * manager still needs to be activated at the end of the method
-             * (and multiple exit points are bad).
+             * For now, continue instead of return as additional generators
+             * still need to be activated and bookkeeping methods need to
+             * be called at the end of generation.
              * --JM
              */
             continue;
