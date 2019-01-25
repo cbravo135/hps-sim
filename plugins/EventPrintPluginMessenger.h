@@ -12,6 +12,7 @@
 
 // Geant4
 #include "G4UIcommand.hh"
+#include "G4UIcmdWithABool.hh"
 #include "G4UIparameter.hh"
 
 namespace hpssim {
@@ -73,22 +74,22 @@ class EventPrintPluginMessenger: public SimPluginMessenger {
         /**
          * Command for enabling start of run message.
          */
-        G4UIcommand* enableStartRunCmd_;
+        G4UIcmdWithABool* enableStartRunCmd_;
 
         /**
          * Command for enabling end of run message.
          */
-        G4UIcommand* enableEndRunCmd_;
+        G4UIcmdWithABool* enableEndRunCmd_;
 
         /**
          * Command for enabling start of event message.
          */
-        G4UIcommand* enableStartEventCmd_;
+        G4UIcmdWithABool* enableStartEventCmd_;
 
         /**
          * Command for enabling end of event message.
          */
-        G4UIcommand* enableEndEventCmd_;
+        G4UIcmdWithABool* enableEndEventCmd_;
 
         /**
          * Command for resetting the plugin state.

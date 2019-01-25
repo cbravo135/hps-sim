@@ -34,37 +34,34 @@ EventPrintPluginMessenger::EventPrintPluginMessenger(EventPrintPlugin* plugin) :
     appendCmd_->AvailableForStates(G4ApplicationState::G4State_PreInit,
             G4ApplicationState::G4State_Idle);
 
-    enableStartRunCmd_ = new G4UIcommand(
+    enableStartRunCmd_ = new G4UIcmdWithABool(
             std::string(getPath() + "enableStartRun").c_str(), this);
-    G4UIparameter* enableStartRun = new G4UIparameter("enable", 'b', false);
-    enableStartRunCmd_->SetParameter(enableStartRun);
-    enableStartRunCmd_->SetGuidance(
-            "Enable or disable print out at start of run.");
+    enableStartRunCmd_->SetGuidance("Enable or disable print out at start of run.");
+    enableStartRunCmd_->SetParameterName("enable", true, false);
+    enableStartRunCmd_->SetDefaultValue(true);
     enableStartRunCmd_->AvailableForStates(G4ApplicationState::G4State_PreInit,
             G4ApplicationState::G4State_Idle);
 
-    enableEndRunCmd_ = new G4UIcommand(
+    enableEndRunCmd_ = new G4UIcmdWithABool(
             std::string(getPath() + "enableEndRun").c_str(), this);
-    G4UIparameter* enableEndRun = new G4UIparameter("enable", 'b', false);
-    enableEndRunCmd_->SetParameter(enableEndRun);
     enableEndRunCmd_->SetGuidance("Enable or disable print out at end of run.");
+    enableStartRunCmd_->SetParameterName("enable", true, false);
+    enableStartRunCmd_->SetDefaultValue(true);
     enableEndRunCmd_->AvailableForStates(G4ApplicationState::G4State_PreInit,
             G4ApplicationState::G4State_Idle);
 
-    enableStartEventCmd_ = new G4UIcommand(
+    enableStartEventCmd_ = new G4UIcmdWithABool(
             std::string(getPath() + "enableStartEvent").c_str(), this);
-    G4UIparameter* enableStartEvent = new G4UIparameter("enable", 'b', false);
-    enableStartEventCmd_->SetParameter(enableStartEvent);
-    enableStartEventCmd_->SetGuidance(
-            "Enable or disable print out at start of event.");
-    enableStartEventCmd_->AvailableForStates(
-            G4ApplicationState::G4State_PreInit,
+    enableStartEventCmd_->SetParameterName("enable", true, false);
+    enableStartEventCmd_->SetDefaultValue(true);
+    enableStartEventCmd_->SetGuidance("Enable or disable print out at start of event.");
+    enableStartEventCmd_->AvailableForStates(G4ApplicationState::G4State_PreInit,
             G4ApplicationState::G4State_Idle);
 
-    enableEndEventCmd_ = new G4UIcommand(
+    enableEndEventCmd_ = new G4UIcmdWithABool(
             std::string(getPath() + "enableEndEvent").c_str(), this);
-    G4UIparameter* enableEndEvent = new G4UIparameter("enable", 'b', false);
-    enableEndEventCmd_->SetParameter(enableEndEvent);
+    enableEndEventCmd_->SetParameterName("enable", true, false);
+    enableEndEventCmd_->SetDefaultValue(true);
     enableEndEventCmd_->SetGuidance(
             "Enable or disable print out at end of event.");
     enableEndEventCmd_->AvailableForStates(G4ApplicationState::G4State_PreInit,
