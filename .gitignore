@@ -42,3 +42,4 @@ scratch/
 # Eclipse files
 .cproject
 .project
+.settings
