@@ -43,6 +43,9 @@ class EventPrintPlugin: public SimPlugin {
          */
         virtual std::string getName();
 
+        /**
+         * Get the actions implemented by this plugin.
+         */
         std::vector<PluginAction> getActions();
 
         /**
@@ -59,7 +62,8 @@ class EventPrintPlugin: public SimPlugin {
 
         /**
          * Print a start event message.
-         * Use the primary generator hook for the start event message so it appears as early as possible in output.
+         * Use the primary generator hook for the start event message
+         * so it appears as early as possible in output.
          * @param anEvent The Geant4 event that is starting.
          */
         void generatePrimary(G4Event* anEvent);
