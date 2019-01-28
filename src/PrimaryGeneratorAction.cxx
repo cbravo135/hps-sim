@@ -1,5 +1,6 @@
 #include "PrimaryGeneratorAction.h"
 
+#include "PluginManager.h"
 
 namespace hpssim {
 
@@ -23,6 +24,10 @@ std::vector<PrimaryGenerator*>& PrimaryGeneratorAction::getGenerators() {
     return generators_;
 }
 
+/*
+ * FIXME: Improve performance of this method for simple cases
+ * when no overlay or event transformations are being applied.  --JM
+ */
 void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent) {
 
     for (auto gen : generators_) {
@@ -31,12 +36,19 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent) {
             std::cout << "PrimaryGeneratorAction: Running generator '" << gen->getName() << "'" << std::endl;
         }
 
-        if (gen->getName().compare("gps")  == 0) { 
-            
+        if (gen->getName().compare("gps")  == 0) {
+
             // Generate a primary vertex.
             gen->GeneratePrimaryVertex(anEvent);
-            return; 
-            
+
+            /*
+             * FIXME: It seems like GPS events should be transformable.
+             * For now, continue instead of return as additional generators
+             * still need to be activated and bookkeeping methods need to
+             * be called at the end of generation.
+             * --JM
+             */
+            continue;
         }
 
         // Get the list of event transforms to be applied to each generated event.
@@ -87,6 +99,9 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent) {
 
     // Set the generator status on the primaries and attach a user info object, if needed.
     setGenStatus(anEvent);
+
+    // Activate sim plugins.
+    PluginManager::getPluginManager()->generatePrimary(anEvent);
 }
 
 void PrimaryGeneratorAction::addGenerator(PrimaryGenerator* generator) {
