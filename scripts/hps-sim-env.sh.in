@@ -7,13 +7,13 @@ then
     export LD_LIBRARY_PATH=$(dirname @CMAKE_CXX_COMPILER@)/../lib64:$LD_LIBRARY_PATH
 fi
 
-#export GDML_SCHEMA_DIR=@GDML_DIR@/schemas
+export GDML_SCHEMA_DIR=@LCDD_DIR@/share
 
 . @Geant4_DIR@/../../bin/geant4.sh
 
 export PATH=@CMAKE_INSTALL_PREFIX@/bin:$PATH
 
-echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
+#echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
 #echo "GDML_SCHEMA_DIR=$GDML_SCHEMA_DIR"
-env | grep G4 | sort
-which hps-sim
+#env | grep G4 | sort
+#which hps-sim
