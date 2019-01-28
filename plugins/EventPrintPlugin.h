@@ -62,8 +62,8 @@ class EventPrintPlugin: public SimPlugin {
 
         /**
          * Print a start event message.
-         * Use the primary generator hook for the start event message
-         * so it appears as early as possible in output.
+         * Uses the primary generator hook for the start event message
+         * so that it appears as early as possible in output.
          * @param anEvent The Geant4 event that is starting.
          */
         void generatePrimary(G4Event* anEvent);
