@@ -33,9 +33,6 @@ int main(int argc, char* argv[]) {
     // Initialize the custom run manager.
     RunManager* mgr = new RunManager();
 
-    // Setup the user detector construction.
-    LCDDDetectorConstruction* det = new LCDDDetectorConstruction();
-
     // Initialize the visualization engine.
     G4VisManager* vis = new G4VisExecutive;
     vis->Initialize();
