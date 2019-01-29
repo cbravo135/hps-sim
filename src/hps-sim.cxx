@@ -1,9 +1,11 @@
+/*
+ * C++
+ */
 #include <iostream>
 
 /*
  * Geant4
  */
-#include "FTFP_BERT.hh"
 #include "G4RunManager.hh"
 #include "G4UIExecutive.hh"
 #include "G4UImanager.hh"
@@ -13,75 +15,79 @@
 /*
  * LCDD
  */
-#include "lcdd/core/LCDDDetectorConstruction.hh"
+//#include "lcdd/core/LCDDDetectorConstruction.hh"
 
 /*
  * HPS
  */
-#include "SteppingAction.h"
-#include "LcioPersistencyManager.h"
-#include "PrimaryGeneratorAction.h"
 #include "RunManager.h"
+/*
+#include "LcioPersistencyManager.h"
+#include "SteppingAction.h"
+#include "PrimaryGeneratorAction.h"
 #include "UserTrackingAction.h"
 #include "UserRunAction.h"
 #include "UserEventAction.h"
 #include "UserStackingAction.h"
-#include "UnknownDecayPhysics.h"
+*/
 
 using namespace hpssim;
 
+/**
+ * Application's main entry point which performs all required setup of Geant4
+ * and custom user classes in the correct initialization order.
+ */
 int main(int argc, char* argv[]) {
 
-    std::cout << "Hello hps-sim!" << std::endl;
-
+    // Create the Geant4 UI executive to process macro commands.
     G4UIExecutive* UIExec = 0;
     if (argc == 1) {
         UIExec = new G4UIExecutive(argc, argv);
     }
 
-    std::cout << "Setting up RunManager ..." << std::endl;
+    // Initialize the custom run manager.
     RunManager* mgr = new RunManager();
-    std::cout << "Done setting up RunManager!" << std::endl;
 
-    mgr->setupPhysList();
-    std::cout << "Done setting up phys list" << std::endl;
-
+    // Setup the user detector construction.
     LCDDDetectorConstruction* det = new LCDDDetectorConstruction();
-    mgr->SetUserInitialization(det);
-    std::cout << "Registered detector construction" << std::endl;
 
+    // Setup the physics list.
+    //mgr->setupPhysList();
+
+    /*
+
+    // Register all user action classes with the run manager.
     mgr->SetUserAction(new PrimaryGeneratorAction);
     mgr->SetUserAction(new UserTrackingAction);
     mgr->SetUserAction(new UserRunAction);
     mgr->SetUserAction(new UserEventAction);
     mgr->SetUserAction(new SteppingAction);
     mgr->SetUserAction(new UserStackingAction);
-    std::cout << "Registered user actions" << std::endl;
 
+    // Create the persistency manager.
     LcioPersistencyManager* lcio = new LcioPersistencyManager();
-    std::cout << "Created persistency manager" << std::endl;
+    */
 
+    // Initialize the visualization engine.
     G4VisManager* vis = new G4VisExecutive;
     vis->Initialize();
-    std::cout << "Initialized vis engine" << std::endl;
 
+    // Execute the UI session to run the application.
     G4UImanager* UImgr = G4UImanager::GetUIpointer();
-
     if (UIExec == 0) {
         G4String command = "/control/execute ";
         G4String fileName = argv[1];
-        std::cout << "Executing macro " << fileName << " ..." << std::endl;
+        //std::cout << "Executing macro " << fileName << " ..." << std::endl;
         UImgr->ApplyCommand(command + fileName);
     } else {
-        std::cout << "Starting interactive session ..." << std::endl;
+        //std::cout << "Starting interactive session ..." << std::endl;
         UIExec->SessionStart();
         delete UIExec;
     }
 
-    std::cout << "Application is exiting ..." << std::endl;
+    // Delete the persistency manager.
+    //delete lcio;
 
-    delete lcio;
+    // Delete the run manager.
     delete mgr;
-
-    std::cout << "Bye hps-sim!" << std::endl;
 }
