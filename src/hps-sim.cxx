@@ -6,30 +6,15 @@
 /*
  * Geant4
  */
-#include "G4RunManager.hh"
 #include "G4UIExecutive.hh"
 #include "G4UImanager.hh"
 #include "G4VisManager.hh"
 #include "G4VisExecutive.hh"
 
 /*
- * LCDD
- */
-//#include "lcdd/core/LCDDDetectorConstruction.hh"
-
-/*
  * HPS
  */
 #include "RunManager.h"
-/*
-#include "LcioPersistencyManager.h"
-#include "SteppingAction.h"
-#include "PrimaryGeneratorAction.h"
-#include "UserTrackingAction.h"
-#include "UserRunAction.h"
-#include "UserEventAction.h"
-#include "UserStackingAction.h"
-*/
 
 using namespace hpssim;
 
@@ -51,23 +36,6 @@ int main(int argc, char* argv[]) {
     // Setup the user detector construction.
     LCDDDetectorConstruction* det = new LCDDDetectorConstruction();
 
-    // Setup the physics list.
-    //mgr->setupPhysList();
-
-    /*
-
-    // Register all user action classes with the run manager.
-    mgr->SetUserAction(new PrimaryGeneratorAction);
-    mgr->SetUserAction(new UserTrackingAction);
-    mgr->SetUserAction(new UserRunAction);
-    mgr->SetUserAction(new UserEventAction);
-    mgr->SetUserAction(new SteppingAction);
-    mgr->SetUserAction(new UserStackingAction);
-
-    // Create the persistency manager.
-    LcioPersistencyManager* lcio = new LcioPersistencyManager();
-    */
-
     // Initialize the visualization engine.
     G4VisManager* vis = new G4VisExecutive;
     vis->Initialize();
@@ -84,9 +52,6 @@ int main(int argc, char* argv[]) {
         UIExec->SessionStart();
         delete UIExec;
     }
-
-    // Delete the persistency manager.
-    //delete lcio;
 
     // Delete the run manager.
     delete mgr;
