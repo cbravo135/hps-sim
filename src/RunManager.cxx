@@ -59,31 +59,6 @@ void RunManager::setupPhysList() {
     std::cout << "Done creating physics list!" << std::endl;
 }
 
-/*
-void RunManager::InitializePhysics() {
-
-    // Call the G4RunManager's intitialization method.
-    G4RunManager::InitializePhysics();
-
-    // Check if the LCDD subsystem got some limits.
-    LCDDProcessor* lcdd = LCDDProcessor::instance();
-    PhysicsListManager* pmgr = PhysicsListManager::instance();
-    if (lcdd->getLimitSetsBegin() != lcdd->getLimitSetsEnd()) {
-        std::cout << "enabling phys limits" << std::endl;
-        pmgr->enableLimits(true);
-    }
-
-    // Enable physics limits, if necessary.
-    if (pmgr->enableLimits()) {
-        std::cout << "setting up user limits processes" << std::endl;
-        pmgr->setupUserLimitsProcesses();
-    }
-
-    // Print out particle table.
-    //G4ParticleTable::GetParticleTable()->DumpTable();
-}
-*/
-
 void RunManager::Initialize() {
 
     setupPhysList();
@@ -98,7 +73,7 @@ void RunManager::Initialize() {
     SetUserAction(new SteppingAction);
     SetUserAction(new UserStackingAction);
 
-    // Create the persistency manager.
+    // Create the persistency manager (must go here to get pointer to track map).
     lcioMgr_ = new LcioPersistencyManager();
 }
 

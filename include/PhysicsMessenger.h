@@ -13,6 +13,7 @@ namespace hpssim {
 
 /**
  * @class PhysicsMessenger
+ * @brief Messenger to allow setting of physics list.
  */
 class PhysicsMessenger : public G4UImessenger {
 
