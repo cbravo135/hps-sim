@@ -59,7 +59,7 @@ Trajectory::Trajectory(const G4Track* aTrack) :
             auto info = UserPrimaryParticleInformation::getUserPrimaryParticleInformation(
                     aTrack->GetDynamicParticle()->GetPrimaryParticle());
             genStatus_ = info->getGenStatus();
-        }
+        } 
     }
 }
 
