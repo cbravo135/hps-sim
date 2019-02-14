@@ -1,74 +1,55 @@
+/*
+ * C++
+ */
 #include <iostream>
 
-#include "FTFP_BERT.hh"
-#include "G4RunManager.hh"
+/*
+ * Geant4
+ */
 #include "G4UIExecutive.hh"
 #include "G4UImanager.hh"
 #include "G4VisManager.hh"
 #include "G4VisExecutive.hh"
 
-#include "lcdd/core/LCDDDetectorConstruction.hh"
-
-#include "SteppingAction.h"
-#include "LcioPersistencyManager.h"
-#include "PluginManager.h"
-#include "PrimaryGeneratorAction.h"
-#include "UserTrackingAction.h"
-#include "UserRunAction.h"
-#include "UserEventAction.h"
-#include "UserStackingAction.h"
-#include "UnknownDecayPhysics.h"
+/*
+ * HPS
+ */
+#include "RunManager.h"
 
 using namespace hpssim;
 
+/**
+ * Application's main entry point which performs all required setup of Geant4
+ * and custom user classes in the correct initialization order.
+ */
 int main(int argc, char* argv[]) {
 
-    std::cout << "Hello hps-sim!" << std::endl;
-
+    // Create the Geant4 UI executive to process macro commands.
     G4UIExecutive* UIExec = 0;
     if (argc == 1) {
         UIExec = new G4UIExecutive(argc, argv);
     }
 
-    G4RunManager* mgr = new G4RunManager;
+    // Initialize the custom run manager.
+    RunManager* mgr = new RunManager();
 
-    auto pluginMgr = PluginManager::getPluginManager();
-
-    auto physicsList = new FTFP_BERT;
-    G4VModularPhysicsList* modularPhysicsList = dynamic_cast<G4VModularPhysicsList*>(physicsList);
-    modularPhysicsList->RegisterPhysics(new UnknownDecayPhysics);
-    mgr->SetUserInitialization(physicsList);
-
-    LCDDDetectorConstruction* det = new LCDDDetectorConstruction();
-    mgr->SetUserInitialization(det);
-
-    mgr->SetUserAction(new PrimaryGeneratorAction);
-    mgr->SetUserAction(new UserTrackingAction);
-    mgr->SetUserAction(new UserRunAction);
-    mgr->SetUserAction(new UserEventAction);
-    mgr->SetUserAction(new SteppingAction);
-    mgr->SetUserAction(new UserStackingAction);
-
-    LcioPersistencyManager* lcio = new LcioPersistencyManager();
-
+    // Initialize the visualization engine.
     G4VisManager* vis = new G4VisExecutive;
     vis->Initialize();
 
+    // Execute the UI session to run the application.
     G4UImanager* UImgr = G4UImanager::GetUIpointer();
-
     if (UIExec == 0) {
         G4String command = "/control/execute ";
         G4String fileName = argv[1];
-        std::cout << "Executing macro " << fileName << " ..." << std::endl;
+        //std::cout << "Executing macro " << fileName << " ..." << std::endl;
         UImgr->ApplyCommand(command + fileName);
     } else {
-        std::cout << "Starting interactive session ..." << std::endl;
+        //std::cout << "Starting interactive session ..." << std::endl;
         UIExec->SessionStart();
         delete UIExec;
     }
 
-    delete lcio;
+    // Delete the run manager.
     delete mgr;
-
-    std::cout << "Bye hps-sim!" << std::endl;
 }
