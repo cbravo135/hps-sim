@@ -26,6 +26,7 @@ void UserRunAction::BeginOfRunAction(const G4Run* aRun) {
     PluginManager::getPluginManager()->beginRun(aRun);
 }
 
-void UserRunAction::EndOfRunAction(const G4Run*) {
+void UserRunAction::EndOfRunAction(const G4Run* aRun) {
+    PluginManager::getPluginManager()->endRun(aRun);
 }
 }
