@@ -69,7 +69,7 @@ include(MacroModule)
 # import macro for declaring external dependencies
 include(MacroExtDeps)
 
-set(MODULES sim_app)
+set(MODULES sim_app filters)
 
 # build each module in the list
 foreach(module ${MODULES})
