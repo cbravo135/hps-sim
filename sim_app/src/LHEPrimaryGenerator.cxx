@@ -93,8 +93,6 @@ void LHEPrimaryGenerator::GeneratePrimaryVertex(G4Event* anEvent) {
             if( verbose_ > 1) primary->Print();
 
         } else {
-            // TODO: Handle doc particles!
-            if( verbose_ > 0) std::cout << "Skipping doc particle!!!" << std::endl;
         }
 
         if(verbose_ > 1) std::cout << std::endl;
