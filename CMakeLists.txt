@@ -1,16 +1,15 @@
-##########################################################
-# CMake configuration for HPS sim application.           #
-#                                                        #
-# @author Jeremy McCormick <jeremym@slac.stanford.edu>   #
-#                                                        #
-##########################################################
 
-project(HPSSIM)
-set(HPSSIM_VERSION 0.0.1)
-cmake_minimum_required(VERSION 3.0)
+project(HPS_SIM)
+set(HPS_SIM_VERSION 0.0.1)
+cmake_minimum_required(VERSION 3.1)
 
-if(CMAKE_CXX_COMPILER_VERSION LESS 4.8)
-    message(FATAL_ERROR "The gcc compiler version '${CMAKE_CXX_COMPILER_VERSION}' is too old (at least 4.8 required).")
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_C_STANDARD 14)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+
+if(CMAKE_CXX_COMPILER_VERSION LESS 6.1)
+    message(FATAL_ERROR "The gcc compiler version '${CMAKE_CXX_COMPILER_VERSION}' is too old (at least 6.1 required).")
 endif()
 #
 # OPTIMIZE Release
@@ -26,44 +25,59 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
 endif()
 
-set(CMAKE_CXX_FLAGS_DEBUG "-g")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3")
-
-#
-# This is needed for the JLab compilation to not use c++98
-#
-set (CMAKE_CXX_STANDARD 11)
-
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 find_package(XERCES REQUIRED)
-find_package(Geant4 REQUIRED ui_all vis_all)
-find_package(GDML REQUIRED)
-find_package(LCDD REQUIRED)
-find_package(LCIO REQUIRED)
-
-file(GLOB_RECURSE library_sources ${PROJECT_SOURCE_DIR}/src/*.cxx)
-add_executable(hps-sim ${library_sources} src/hps-sim.cxx)
-
-include(${Geant4_USE_FILE})
-
-include_directories(include/)
-include_directories(${XERCES_INCLUDE_DIR} ${LCIO_INCLUDE_DIRS} ${Geant4_INCLUDE_DIRS} ${GDML_INCLUDE_DIR} ${LCDD_INCLUDE_DIR}) 
-
-# build user plugin library
-FILE(GLOB_RECURSE plugin_sources plugins/*.cxx)
-ADD_LIBRARY(SimPlugins SHARED ${plugin_sources})
-if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-   target_link_libraries(SimPlugins "-undefined dynamic_lookup" ${Geant4_LIBRARIES})
+if(XERCES_DIR)
+    if (NOT EXISTS "${XERCES_DIR}")
+        message(FATAL_ERROR "Unable to guess location of Xerces lib.  Please specify using: -DXERCES_DIR")
+  endif()
+  message(STATUS "XercesC dir set to: ${XERCES_DIR}")
+  message(STATUS "XercesC include dir set to: ${XERCES_INCLUDE_DIR}")
+  message(STATUS "XercesC library set to: ${XERCES_LIBRARY}")
 endif()
-INSTALL(TARGETS SimPlugins DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
-ADD_DEPENDENCIES(hps-sim SimPlugins)
-    
-target_link_libraries(hps-sim ${XERCES_LIBRARY} ${Geant4_LIBRARIES} ${GDML_LIBRARY} ${LCDD_LIBRARY} ${LCIO_LIBRARIES} dl)
-link_directories(${GDML_LIBRARY_DIR} ${LCDD_LIBRARY_DIR} ${LCIO_LIBRARY_DIRS})
 
-install(TARGETS hps-sim hps-sim DESTINATION bin)
+find_package(Geant4 REQUIRED ui_all vis_all)
 
-configure_file(scripts/hps-sim-env.sh.in ${CMAKE_CURRENT_BINARY_DIR}/hps-sim-env.sh)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/hps-sim-env.sh DESTINATION bin
-        PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+find_package(GDML REQUIRED)
+if(GDML_DIR)
+    if (NOT EXISTS "${GDML_DIR}")
+        message(FATAL_ERROR "Unable to guess location of Xerces lib.  Please specify using: -DXERCES_DIR")
+  endif()
+  message(STATUS "GDML dir set to: ${GDML_DIR}")
+  message(STATUS "GDML include dir set to: ${GDML_INCLUDE_DIR}")
+  message(STATUS "GDML library set to: ${GDML_LIBRARY}")
+endif()
+
+find_package(LCDD REQUIRED)
+if (LCIO_DIR)
+    message(STATUS "LCDD dir set to: ${LCDD_DIR}")
+    message(STATUS "LCDD include dir set to: ${LCDD_INCLUDE_DIR}")
+    message(STATUS "LCDD library set to: ${LCDD_LIBRARY}")
+endif()
+
+find_package(LCIO REQUIRED)
+if (LCIO_DIR)
+    message(STATUS "LCIO dir set to: ${LCIO_DIR}")
+    message(STATUS "LCIO include dir set to: ${LCIO_INCLUDE_DIR}")
+    message(STATUS "LCIO library set to: ${LCIO_LIBRARY}")
+endif()
+
+# import macro for declaring modules
+include(MacroModule)
+
+# import macro for declaring external dependencies
+include(MacroExtDeps)
+
+set(MODULES sim_app filters)
+
+# build each module in the list
+foreach(module ${MODULES})
+  message(STATUS "Adding module: ${module}")
+  add_subdirectory(${module})
+  if(EXTRA_INC)
+      message(STATUS "Adding include directory: ${EXTRA_INC}")
+      include_directories(${EXTRA_INC}) 
+      unset(EXTRA_INC)
+  endif()
+endforeach()

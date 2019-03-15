@@ -1,4 +1,4 @@
-# HPS Sim
+# New HPS Sim
 
 The HPS Sim project provides a physics detector simulation tool for the HPS project.  It reads an LCDD geometry description and simulates particle interactions using LHE, StdHep or LCIO generator input files.  There is also a built-in generator for overlaying beam background events.  There is a flexible set of tools for event overlay and merging, as well as components for transforming the vertices and momenta of the input particle data.
 
