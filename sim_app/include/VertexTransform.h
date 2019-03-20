@@ -13,16 +13,15 @@
 namespace hpssim {
 
 /**
- * @class EventTransform
+ * @class VertexTransform
  * @brief Interface for transforming a generated Geant4
  * by applying changes to particle positions, momentum, etc.
  */
-class EventTransform {
+class VertexTransform {
 
     public:
 
-        virtual ~EventTransform() {
-        }
+        virtual ~VertexTransform() {}
 
         virtual void transform(G4Event*) = 0;
 };
@@ -31,7 +30,7 @@ class EventTransform {
  * @class PositionTransform
  * @brief Transform vertices to a fixed position.
  */
-class PositionTransform : public EventTransform {
+class PositionTransform : public VertexTransform {
 
     public:
 
@@ -58,14 +57,14 @@ class PositionTransform : public EventTransform {
 };
 
 /**
- * @class SmearTransform
+ * @class GaussSmearTransform
  * @brief Gaussian smearing of vertex positions.
  */
-class SmearTransform : public EventTransform {
+class GaussSmearTransform : public VertexTransform {
 
     public:
 
-        SmearTransform(double sigmaX, double sigmaY, double sigmaZ) {
+        GaussSmearTransform(double sigmaX, double sigmaY, double sigmaZ) {
             sigmaX_ = sigmaX;
             sigmaY_ = sigmaY;
             sigmaZ_ = sigmaZ;
@@ -74,7 +73,7 @@ class SmearTransform : public EventTransform {
             randZ_ = new CLHEP::RandGauss(G4Random::getTheEngine(), 0, sigmaZ);
         }
 
-        virtual ~SmearTransform() {
+        virtual ~GaussSmearTransform() {
             delete randX_;
             delete randY_;
             delete randZ_;
@@ -112,7 +111,7 @@ class SmearTransform : public EventTransform {
                     //std::cout << "posZ: " << pos.z() << std::endl;
                 }
                 vertex->SetPosition(pos.x(), pos.y(), pos.z());
-                //std::cout << "SmearTransform: Smeared vertex to new pos " << vertex->GetPosition()
+                //std::cout << "GaussSmearTransform: Smeared vertex to new pos " << vertex->GetPosition()
                 //        << "." << std::endl;
             }
         }
@@ -135,7 +134,7 @@ class SmearTransform : public EventTransform {
  * @note Based on algorithm from this StdHep tool:
  * @link https://github.com/JeffersonLab/hps-mc/blob/master/tools/stdhep-tools/src/beam_coords.cc
  */
-class RotateTransform : public EventTransform {
+class RotateTransform : public VertexTransform {
 
     public:
         RotateTransform(double theta = 0.0305) {
@@ -184,13 +183,14 @@ class RotateTransform : public EventTransform {
 };
 
 /**
- * @class RandZTransform
- * @brief Transform the vertex Z position in a uniform random range.
+ * @class FlatSmearTransform
+ * @brief Smear the x, y and z vertex positions in a uniform random range.
  */
-class RandZTransform : public EventTransform {
+class FlatSmearTransform : public VertexTransform {
 
     public:
-        RandZTransform(double width) {
+
+        FlatSmearTransform(double width) {
             width_ = width;
             //CLHEP::RandFlat::setTheEngine(G4Random::getTheEngine());
         }
@@ -204,7 +204,7 @@ class RandZTransform : public EventTransform {
                 double b = pos.z() + width_ / 2;
                 double z = vertex->GetPosition().z() + CLHEP::RandFlat::shoot(a, b);
                 vertex->SetPosition(pos.x(), pos.y(), z);
-                //std::cout << "RandZTransform: Set Z to " << z << "." << std::endl;
+                //std::cout << "FlatSmearTransform: Set Z to " << z << "." << std::endl;
             }
         }
 
