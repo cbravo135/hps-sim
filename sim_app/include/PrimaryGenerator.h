@@ -4,7 +4,7 @@
 #include "G4VPrimaryGenerator.hh"
 
 #include "EventSampling.h"
-#include "EventTransform.h"
+#include "VertexTransform.h"
 #include "Parameters.h"
 #include "PrimaryGeneratorMessenger.h"
 
@@ -77,7 +77,7 @@ class NoSuchRecordException: public std::exception {
  * <li>An EventSampling object determines how many events to overlay from this source for a single Geant4 event.</li>
  * <li>Each generator has an arbitrarily long list of input files which is copied into a queue that is emptied during job processing.</li>
  * <li>For file-based generators, there are a series of methods that should be implemented for reading event data (see method comments).</li>
- * <li>There is an optional list of EventTransform objects that can be used to transform events from the generator.</li>
+ * <li>There is an optional list of VertexTransform objects that can be used to transform events from the generator.</li>
  * <li>A verbose level can be set between 1 and 4 (following Geant4 convention).
  * </ul>
  *
@@ -195,14 +195,14 @@ class PrimaryGenerator : public G4VPrimaryGenerator {
         /**
          * Add a transform to be applied to this generator's events.
          */
-        void addTransform(EventTransform* transform) {
+        void addTransform(VertexTransform* transform) {
             transforms_.push_back(transform);
         }
 
         /**
          * Get the list of event transforms to apply to this generator's events.
          */
-        const std::vector<EventTransform*>& getTransforms() {
+        const std::vector<VertexTransform*>& getTransforms() {
             return transforms_;
         }
 
@@ -409,7 +409,7 @@ class PrimaryGenerator : public G4VPrimaryGenerator {
         PrimaryGeneratorMessenger* messenger_;
 
         /** List of transforms that are applied to the events from this generator. */
-        std::vector<EventTransform*> transforms_;
+        std::vector<VertexTransform*> transforms_;
 
         /** The event sampling for getting the number of events to overlay (default of 1). */
         EventSampling* sampling_{new UniformEventSampling};
