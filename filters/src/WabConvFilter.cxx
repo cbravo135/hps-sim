@@ -7,11 +7,12 @@
 
 #include "WabConvFilter.h"
 
+//------------//
+//   Geant4   //
+//------------//
+#include "G4RunManager.hh"
+
 namespace hpssim {
-
-    WabConvFilter::WabConvFilter() {} 
-
-    WabConvFilter::~WabConvFilter() {} 
 
     void WabConvFilter::stepping(const G4Step* step) { 
         

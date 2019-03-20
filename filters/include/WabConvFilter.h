@@ -13,11 +13,6 @@
 //----------------//
 #include <iostream>
 
-//------------//
-//   Geant4   //
-//------------//
-#include "G4RunManager.hh"
-
 //-------------//
 //   hps-sim   //
 //-------------//
@@ -30,31 +25,20 @@ namespace hpssim {
         public:
 
             /**
-             * Class constructor.
-             */
-            WabConvFilter();
-
-            /**
-             * Class destructor.
-             */
-            ~WabConvFilter();
-
-            /**
              * Get the name of the plugin.
              * @return The name of the plugin.
              */
-            virtual std::string getName() {
-                return "WabConvFilter";
-            }
+            inline std::string getName() { return "WabConvFilter"; }
 
-            std::vector<PluginAction> getActions() {
-                return {PluginAction::STEPPING, PluginAction::EVENT};
-            }
+            /**
+             * Get the user actions that will be called by this plugin. 
+             */
+            inline std::vector<PluginAction> getActions() { return {PluginAction::STEPPING, PluginAction::EVENT}; }
 
             /**
              * End of event action.
              */
-            virtual void endEvent(const G4Event*);
+            void endEvent(const G4Event*);
             
             /**
              * Implementmthe stepping action which performs the target volume biasing.
