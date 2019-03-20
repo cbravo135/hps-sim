@@ -1,7 +1,7 @@
 #include "PrimaryGeneratorMessenger.h"
 
 #include "EventSampling.h"
-#include "EventTransform.h"
+#include "VertexTransform.h"
 #include "PrimaryGenerator.h"
 
 namespace hpssim {
@@ -114,7 +114,7 @@ void PrimaryGeneratorMessenger::SetNewValue(G4UIcommand* command, G4String newVa
     } else if (command == smearCmd_) {
         double sigmas[3];
         sstream >> sigmas[0] >> sigmas[1] >> sigmas[2];
-        generator_->addTransform(new SmearTransform(sigmas[0], sigmas[1], sigmas[2]));
+        generator_->addTransform(new GaussSmearTransform(sigmas[0], sigmas[1], sigmas[2]));
     } else if (command == rotCmd_) {
         double theta;
         sstream >> theta;
@@ -122,7 +122,7 @@ void PrimaryGeneratorMessenger::SetNewValue(G4UIcommand* command, G4String newVa
     } else if (command == randzCmd_) {
         double width;
         sstream >> width;
-        generator_->addTransform(new RandZTransform(width));
+        generator_->addTransform(new FlatSmearTransform(width));
     } else if (command == randomCmd_) {
         if (!generator_->supportsRandomAccess()) {
             G4Exception("", "", FatalException,
