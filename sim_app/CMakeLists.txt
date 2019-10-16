@@ -5,3 +5,5 @@ module(
   DEPENDENCIES 
   EXTERNAL_DEPENDENCIES Geant4 LCIO LCDD GDML
 )
+
+target_link_libraries(hps-sim dl)

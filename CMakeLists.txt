@@ -81,3 +81,22 @@ foreach(module ${MODULES})
       unset(EXTRA_INC)
   endif()
 endforeach()
+
+include(${Geant4_USE_FILE})
+
+include_directories(include/)
+include_directories(sim_app/include/ ${XERCES_INCLUDE_DIR} ${LCIO_INCLUDE_DIRS} ${Geant4_INCLUDE_DIRS} ${GDML_INCLUDE_DIR} ${LCDD_INCLUDE_DIR}) 
+
+# build user plugin library
+file(GLOB_RECURSE plugin_sources plugins/*.cxx)
+add_library(SimPlugins SHARED ${plugin_sources})
+if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+   target_link_libraries(SimPlugins "-undefined dynamic_lookup" ${Geant4_LIBRARIES})
+endif()
+install(TARGETS SimPlugins DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
+add_dependencies(hps-sim SimPlugins)
+
+# configure and install env setup script
+configure_file(scripts/hps-sim-env.sh.in ${CMAKE_CURRENT_BINARY_DIR}/hps-sim-env.sh)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/hps-sim-env.sh DESTINATION bin
+        PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
